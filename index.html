@@ -155,6 +155,8 @@ Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusan
 </div>
 
 <script>
+
+// ================= LOGIN =================
 function bukaLogin(){
 document.getElementById("loginModal").style.display="flex";
 }
@@ -168,11 +170,40 @@ const user=document.getElementById("username").value;
 const pass=document.getElementById("password").value;
 
 if(user==="Sugeng11" && pass==="300507Sg#"){
-window.location.href="https://sugeng1104.github.io/koleksikerisskh/admin-panel.html";
+    
+    // simpan status login
+    localStorage.setItem("adminLogin","true");
+    localStorage.setItem("loginTime",Date.now());
+
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/admin-panel.html";
+    
 }else{
 document.getElementById("errorLogin").innerText="Username atau Password salah!";
 }
 }
+
+// ================= AUTO LOGOUT 10 MENIT =================
+
+const timeoutDuration = 10 * 60 * 1000; // 10 menit
+
+function cekAutoLogout(){
+    const loginTime = localStorage.getItem("loginTime");
+    const isLogin = localStorage.getItem("adminLogin");
+
+    if(isLogin === "true" && loginTime){
+        const sekarang = Date.now();
+        if(sekarang - loginTime > timeoutDuration){
+            localStorage.removeItem("adminLogin");
+            localStorage.removeItem("loginTime");
+            alert("Sesi habis. Silakan login kembali.");
+            window.location.href="index.html";
+        }
+    }
+}
+
+// cek setiap 5 detik
+setInterval(cekAutoLogout,5000);
+
 </script>
 
 </body>
