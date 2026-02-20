@@ -113,9 +113,11 @@ margin-top:10px;
         </p>
 
         <div class="buttons">
-            <a href="admin.html" class="btn">Masuk Arsip Sertifikat</a>
-            <a href="#" onclick="bukaLogin()" class="btn">Tambah Koleksi (Admin)</a>
-        </div>
+    <a href="admin.html" class="btn">Masuk Arsip Sertifikat</a>
+    <a href="#" onclick="bukaLogin(); return false;" class="btn">
+        Tambah Koleksi (Admin)
+    </a>
+    </div>
     </div>
 </div>
 
@@ -166,7 +168,7 @@ const user=document.getElementById("username").value;
 const pass=document.getElementById("password").value;
 
 if(user==="Sugeng11" && pass==="300507Sg#"){
-window.location.href="admin.html";
+window.location.href="https://sugeng1104.github.io/koleksikerisskh/admin-panel.html";
 }else{
 document.getElementById("errorLogin").innerText="Username atau Password salah!";
 }
