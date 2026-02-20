@@ -113,11 +113,11 @@ margin-top:10px;
         </p>
 
         <div class="buttons">
-    <a href="admin.html" class="btn">Masuk Arsip Sertifikat</a>
-    <a href="#" onclick="bukaLogin(); return false;" class="btn">
-        Tambah Koleksi (Admin)
-    </a>
-    </div>
+            <a href="admin.html" class="btn">Masuk Arsip Sertifikat</a>
+            <a href="#" onclick="bukaLogin(); return false;" class="btn">
+                Tambah Koleksi (Admin)
+            </a>
+        </div>
     </div>
 </div>
 
@@ -156,46 +156,40 @@ Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusan
 
 <script>
 
-// ================= LOGIN =================
-function bukaLogin(){
-document.getElementById("loginModal").style.display="flex";
+document.addEventListener("DOMContentLoaded", function(){
+
+// buka login
+window.bukaLogin = function(){
+    document.getElementById("loginModal").style.display="flex";
 }
 
-function tutupLogin(){
-document.getElementById("loginModal").style.display="none";
+// tutup login
+window.tutupLogin = function(){
+    document.getElementById("loginModal").style.display="none";
 }
 
-function cekLogin(){
-const user=document.getElementById("username").value;
-const pass=document.getElementById("password").value;
+// login
+window.cekLogin = function(){
 
-if(user==="Sugeng11" && pass==="300507Sg#"){
-    
-    // simpan status login
-    localStorage.setItem("adminLogin","true");
-    localStorage.setItem("loginTime",Date.now());
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
 
-    window.location.href="https://sugeng1104.github.io/koleksikerisskh/admin-panel.html";
-    
-}else{
-document.getElementById("errorLogin").innerText="Username atau Password salah!";
-}
-}
-function cekLogin(){
-const user=document.getElementById("username").value;
-const pass=document.getElementById("password").value;
+    if(user === "Sugeng11" && pass === "300507Sg#"){
 
-if(user==="Sugeng11" && pass==="300507Sg#"){
-    
-    localStorage.setItem("adminLogin","true");
-    localStorage.setItem("lastActivity",Date.now());
+        localStorage.setItem("adminLogin","true");
+        localStorage.setItem("lastActivity", Date.now().toString());
 
-    window.location.href="admin-panel.html";
-    
-}else{
-document.getElementById("errorLogin").innerText="Username atau Password salah!";
+        window.location.href = "admin-panel.html";
+
+    } else {
+        document.getElementById("errorLogin").innerText="Username atau Password salah!";
+    }
 }
-}
+
+// bersihkan session lama
+sessionStorage.clear();
+
+});
 
 </script>
 
