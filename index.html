@@ -181,28 +181,21 @@ if(user==="Sugeng11" && pass==="300507Sg#"){
 document.getElementById("errorLogin").innerText="Username atau Password salah!";
 }
 }
+function cekLogin(){
+const user=document.getElementById("username").value;
+const pass=document.getElementById("password").value;
 
-// ================= AUTO LOGOUT 10 MENIT =================
+if(user==="Sugeng11" && pass==="300507Sg#"){
+    
+    localStorage.setItem("adminLogin","true");
+    localStorage.setItem("lastActivity",Date.now());
 
-const timeoutDuration = 10 * 60 * 1000; // 10 menit
-
-function cekAutoLogout(){
-    const loginTime = localStorage.getItem("loginTime");
-    const isLogin = localStorage.getItem("adminLogin");
-
-    if(isLogin === "true" && loginTime){
-        const sekarang = Date.now();
-        if(sekarang - loginTime > timeoutDuration){
-            localStorage.removeItem("adminLogin");
-            localStorage.removeItem("loginTime");
-            alert("Sesi habis. Silakan login kembali.");
-            window.location.href="index.html";
-        }
-    }
+    window.location.href="admin-panel.html";
+    
+}else{
+document.getElementById("errorLogin").innerText="Username atau Password salah!";
 }
-
-// cek setiap 5 detik
-setInterval(cekAutoLogout,5000);
+}
 
 </script>
 
