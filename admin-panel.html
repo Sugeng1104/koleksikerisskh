@@ -27,88 +27,100 @@ button{padding:10px 18px;border:none;border-radius:8px;background:#d4af37;color:
 
 <script>
 
-// ================= PROTEKSI LOGIN =================
-if(localStorage.getItem("adminLogin") !== "true"){
-    alert("Akses ditolak! Silakan login terlebih dahulu.");
-    window.location.href="index.html";
-}
+// ================= VALIDASI LOGIN =================
+document.addEventListener("DOMContentLoaded", function(){
 
-// ================= AUTO TIMEOUT 10 MENIT =================
-const timeoutDuration = 10 * 60 * 1000; // 10 menit
+    const isLogin = localStorage.getItem("adminLogin");
 
-function updateActivity(){
-    localStorage.setItem("lastActivity", Date.now());
-}
+    if(isLogin !== "true"){
+        window.location.replace("index.html");
+        return;
+    }
 
-function checkTimeout(){
-    const lastActivity = localStorage.getItem("lastActivity");
-    if(lastActivity){
-        if(Date.now() - lastActivity > timeoutDuration){
+    // ================= AUTO TIMEOUT 10 MENIT =================
+    const timeoutDuration = 10 * 60 * 1000; // 10 menit
+
+    function updateActivity(){
+        localStorage.setItem("lastActivity", Date.now().toString());
+    }
+
+    function checkTimeout(){
+        const lastActivity = localStorage.getItem("lastActivity");
+
+        if(!lastActivity){
+            updateActivity();
+            return;
+        }
+
+        const selisih = Date.now() - parseInt(lastActivity);
+
+        if(selisih > timeoutDuration){
             logout();
         }
     }
-}
 
-// Reset timer saat ada aktivitas
-document.addEventListener("click", updateActivity);
-document.addEventListener("mousemove", updateActivity);
-document.addEventListener("keypress", updateActivity);
-
-// Cek setiap 5 detik
-setInterval(checkTimeout, 5000);
-
-// ================= LOGOUT =================
-function logout(){
-    localStorage.removeItem("adminLogin");
-    localStorage.removeItem("lastActivity");
-    alert("Anda telah logout.");
-    window.location.href="index.html";
-}
-
-// ================= DATABASE =================
-function getDB(){
-    return JSON.parse(localStorage.getItem("koleksiSKH") || "[]");
-}
-
-function setDB(data){
-    localStorage.setItem("koleksiSKH", JSON.stringify(data));
-}
-
-function simpan(){
-    let db = getDB();
-
-    let nomor = document.getElementById("nomor").value;
-    let nama = document.getElementById("nama").value;
-    let jenis = document.getElementById("jenis").value;
-    let periode = document.getElementById("periode").value;
-    let deskripsi = document.getElementById("deskripsi").value;
-
-    if(!nomor || !nama){
-        alert("Nomor dan Nama wajib diisi!");
-        return;
+    function logout(){
+        localStorage.removeItem("adminLogin");
+        localStorage.removeItem("lastActivity");
+        window.location.replace("index.html");
     }
 
-    if(db.find(d => d.nomor === nomor)){
-        alert("Nomor sudah ada!");
-        return;
-    }
+    // reset timer saat ada aktivitas
+    document.addEventListener("click", updateActivity);
+    document.addEventListener("mousemove", updateActivity);
+    document.addEventListener("keydown", updateActivity);
 
-    db.push({nomor, nama, jenis, periode, deskripsi});
-    setDB(db);
-
-    alert("Data tersimpan!");
-
-    // reset form
-    document.getElementById("nomor").value="";
-    document.getElementById("nama").value="";
-    document.getElementById("jenis").value="";
-    document.getElementById("periode").value="";
-    document.getElementById("deskripsi").value="";
-
+    // set awal aktivitas
     updateActivity();
-}
 
-updateActivity();
+    // cek tiap 5 detik
+    setInterval(checkTimeout, 5000);
+
+    // ================= DATABASE =================
+    window.getDB = function(){
+        return JSON.parse(localStorage.getItem("koleksiSKH") || "[]");
+    }
+
+    window.setDB = function(data){
+        localStorage.setItem("koleksiSKH", JSON.stringify(data));
+    }
+
+    window.simpan = function(){
+        let db = getDB();
+
+        let nomor = document.getElementById("nomor").value;
+        let nama = document.getElementById("nama").value;
+        let jenis = document.getElementById("jenis").value;
+        let periode = document.getElementById("periode").value;
+        let deskripsi = document.getElementById("deskripsi").value;
+
+        if(!nomor || !nama){
+            alert("Nomor dan Nama wajib diisi!");
+            return;
+        }
+
+        if(db.find(d => d.nomor === nomor)){
+            alert("Nomor sudah ada!");
+            return;
+        }
+
+        db.push({nomor,nama,jenis,periode,deskripsi});
+        setDB(db);
+
+        alert("Data tersimpan!");
+
+        document.getElementById("nomor").value="";
+        document.getElementById("nama").value="";
+        document.getElementById("jenis").value="";
+        document.getElementById("periode").value="";
+        document.getElementById("deskripsi").value="";
+
+        updateActivity();
+    }
+
+    window.logout = logout;
+
+});
 
 </script>
 
