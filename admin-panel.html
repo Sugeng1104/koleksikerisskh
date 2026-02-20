@@ -26,57 +26,90 @@ button{padding:10px 18px;border:none;border-radius:8px;background:#d4af37;color:
 </div>
 
 <script>
-// PROTEKSI LOGIN
-if(sessionStorage.getItem("adminSKH")!=="logged"){
-    window.location.href="index.html";
-}
 
-// AUTO TIMEOUT 5 MENIT
-const maxTime=5*60*1000;
-if(Date.now()-sessionStorage.getItem("loginTime")>maxTime){
-    logout();
-}
-
-setInterval(()=>{
-if(Date.now()-sessionStorage.getItem("loginTime")>maxTime){
-    logout();
-}
-},10000);
-
-function logout(){
-sessionStorage.clear();
-window.location.href="index.html";
-}
-
-// DATABASE
-function getDB(){
-return JSON.parse(localStorage.getItem("koleksiSKH")||"[]");
-}
-function setDB(data){
-localStorage.setItem("koleksiSKH",JSON.stringify(data));
-}
-function simpan(){
-let db=getDB();
-let nomor=document.getElementById("nomor").value;
-let nama=document.getElementById("nama").value;
-let jenis=document.getElementById("jenis").value;
-let periode=document.getElementById("periode").value;
-let deskripsi=document.getElementById("deskripsi").value;
-
-if(db.find(d=>d.nomor===nomor)){
-alert("Nomor sudah ada!");
-return;
-}
-
-db.push({nomor,nama,jenis,periode,deskripsi});
-setDB(db);
-alert("Data tersimpan");
-}
-
+// ================= PROTEKSI LOGIN =================
 if(localStorage.getItem("adminLogin") !== "true"){
     alert("Akses ditolak! Silakan login terlebih dahulu.");
     window.location.href="index.html";
 }
+
+// ================= AUTO TIMEOUT 10 MENIT =================
+const timeoutDuration = 10 * 60 * 1000; // 10 menit
+
+function updateActivity(){
+    localStorage.setItem("lastActivity", Date.now());
+}
+
+function checkTimeout(){
+    const lastActivity = localStorage.getItem("lastActivity");
+    if(lastActivity){
+        if(Date.now() - lastActivity > timeoutDuration){
+            logout();
+        }
+    }
+}
+
+// Reset timer saat ada aktivitas
+document.addEventListener("click", updateActivity);
+document.addEventListener("mousemove", updateActivity);
+document.addEventListener("keypress", updateActivity);
+
+// Cek setiap 5 detik
+setInterval(checkTimeout, 5000);
+
+// ================= LOGOUT =================
+function logout(){
+    localStorage.removeItem("adminLogin");
+    localStorage.removeItem("lastActivity");
+    alert("Anda telah logout.");
+    window.location.href="index.html";
+}
+
+// ================= DATABASE =================
+function getDB(){
+    return JSON.parse(localStorage.getItem("koleksiSKH") || "[]");
+}
+
+function setDB(data){
+    localStorage.setItem("koleksiSKH", JSON.stringify(data));
+}
+
+function simpan(){
+    let db = getDB();
+
+    let nomor = document.getElementById("nomor").value;
+    let nama = document.getElementById("nama").value;
+    let jenis = document.getElementById("jenis").value;
+    let periode = document.getElementById("periode").value;
+    let deskripsi = document.getElementById("deskripsi").value;
+
+    if(!nomor || !nama){
+        alert("Nomor dan Nama wajib diisi!");
+        return;
+    }
+
+    if(db.find(d => d.nomor === nomor)){
+        alert("Nomor sudah ada!");
+        return;
+    }
+
+    db.push({nomor, nama, jenis, periode, deskripsi});
+    setDB(db);
+
+    alert("Data tersimpan!");
+
+    // reset form
+    document.getElementById("nomor").value="";
+    document.getElementById("nama").value="";
+    document.getElementById("jenis").value="";
+    document.getElementById("periode").value="";
+    document.getElementById("deskripsi").value="";
+
+    updateActivity();
+}
+
+updateActivity();
+
 </script>
 
 </body>
