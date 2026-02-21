@@ -8,191 +8,241 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
-body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
-.container{max-width:1000px;margin:auto;}
-h1{color:gold;text-align:center;margin-bottom:40px;text-shadow:0 0 15px rgba(212,175,55,0.5);}
-.card{background:#111;padding:25px;border-radius:15px;margin-bottom:20px;box-shadow:0 0 20px rgba(212,175,55,0.3);}
-.btn-daftar{display:inline-block;padding:12px 25px;background:linear-gradient(45deg,#007bff,#00c6ff);color:white;font-weight:bold;border-radius:10px;cursor:pointer;margin-top:20px;}
-.back{display:inline-block;margin-top:30px;padding:10px 20px;background:gold;color:black;text-decoration:none;font-weight:bold;border-radius:8px;}
-table{width:100%;border-collapse:collapse;margin-top:20px;background:#111;}
-th,td{padding:10px;border:1px solid #333;text-align:center;}
-th{background:gold;color:black;}
-#modalDaftar{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;}
-.modal-content{background:#0f172a;width:420px;padding:30px;border-radius:15px;box-shadow:0 0 30px #00c6ff;}
-.modal-content input,.modal-content textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;}
-button{width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;}
-.submit-btn{background:linear-gradient(45deg,#007bff,#00c6ff);color:white;}
-.close-btn{background:#444;color:white;}
+body{
+    margin:0;
+    font-family:Georgia,serif;
+    background:#000;
+    color:white;
+    padding:40px;
+}
+.container{ max-width:900px; margin:auto; }
+h1{
+    color:gold;
+    text-align:center;
+    margin-bottom:40px;
+    text-shadow:0 0 15px rgba(212,175,55,0.5);
+}
+.card{
+    background:#111;
+    padding:25px;
+    border-radius:15px;
+    margin-bottom:20px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+.btn-daftar{
+    display:inline-block;
+    padding:12px 25px;
+    background:linear-gradient(45deg,#007bff,#00c6ff);
+    color:white;
+    font-weight:bold;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:20px;
+}
+.back{
+    display:inline-block;
+    margin-top:30px;
+    padding:10px 20px;
+    background:gold;
+    color:black;
+    text-decoration:none;
+    font-weight:bold;
+    border-radius:8px;
+}
+
+/* MODAL */
+#modalDaftar{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.9);
+    justify-content:center;
+    align-items:center;
+}
+.modal-content{
+    background:#0f172a;
+    width:420px;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 0 30px #00c6ff;
+}
+.modal-content input,
+.modal-content textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:8px;
+    border:none;
+}
+.preview img{
+    max-width:120px;
+    border-radius:10px;
+}
+button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.submit-btn{
+    background:linear-gradient(45deg,#007bff,#00c6ff);
+    color:white;
+}
+.close-btn{
+    background:#444;
+    color:white;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<h1>Nama-nama Pengurus dan Anggota<br>Komunitas Keris SKH</h1>
+<h1>Nama Pengurus & Anggota<br>Komunitas Keris SKH</h1>
 
 <div class="card">
 <h2 style="color:#d4af37;">Pengurus</h2>
+<p>
 Ketua : Sugeng Hidayat<br>
 Sekretaris : -<br>
 Bendahara : -<br>
 Kurator Pusaka : -
+</p>
 </div>
 
 <div class="card">
-<h2 style="color:#d4af37;">Anggota Resmi</h2>
-
-<table>
-<thead>
-<tr>
-<th>No</th>
-<th>Nomor Anggota</th>
-<th>Nama</th>
-</tr>
-</thead>
-<tbody id="listAnggota"></tbody>
-</table>
+<h2 style="color:#d4af37;">Anggota</h2>
+<div id="listAnggota">Memuat data...</div>
 
 <div class="btn-daftar" onclick="bukaForm()">Daftar</div>
 </div>
 
-<a href="index.html" class="back">← Kembali ke Beranda</a>
+<a href="index.html" class="back">← Kembali</a>
+
 </div>
 
 <!-- MODAL -->
 <div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:#00c6ff;text-align:center;">Pendaftaran Anggota SKH</h3>
+  <div class="modal-content">
+    <h3 style="text-align:center;color:#00c6ff;">Pendaftaran Anggota SKH</h3>
 
-<input type="text" id="namaLengkap" placeholder="Nama Lengkap *">
-<input type="text" id="namaGelar" placeholder="Nama Julukan / Gelar">
-<textarea id="alamat" placeholder="Alamat *"></textarea>
-<input type="tel" id="nohp" placeholder="Nomor HP *">
-<input type="file" id="foto" accept="image/*">
+    <input type="text" id="namaLengkap" placeholder="Nama Lengkap *">
+    <textarea id="alamat" placeholder="Alamat *"></textarea>
+    <input type="tel" id="nohp" placeholder="Nomor HP *">
+    <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)">
+    <div class="preview" id="preview"></div>
 
-<button class="submit-btn" onclick="kirim()">Kirim Pendaftaran</button>
-<button class="close-btn" onclick="tutupForm()">Batal</button>
-</div>
+    <button class="submit-btn" onclick="kirim()">Kirim</button>
+    <button class="close-btn" onclick="tutupForm()">Batal</button>
+  </div>
 </div>
 
 <script>
 
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
-
-function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
-
-/* ======================= */
-/*      LOAD ANGGOTA       */
-/* ======================= */
-async function loadAnggota(){
-    try{
-        const response = await fetch(WEBAPP_URL);
-        const data = await response.json();
-
-        let html="";
-        data.reverse().forEach((row,index)=>{
-            html+=`
-            <tr>
-                <td>${index+1}</td>
-                <td>${row.nomor}</td>
-                <td>${row.nama}</td>
-            </tr>`;
-        });
-
-        document.getElementById("listAnggota").innerHTML=html;
-    }catch(error){
-        console.error(error);
-    }
+/* ======================
+   MODAL CONTROL
+====================== */
+function bukaForm(){
+    document.getElementById("modalDaftar").style.display="flex";
 }
-loadAnggota();
 
-/* ======================= */
-/*      KIRIM DATA         */
-/* ======================= */
+function tutupForm(){
+    document.getElementById("modalDaftar").style.display="none";
+}
+
+/* ======================
+   PREVIEW FOTO
+====================== */
+function previewFoto(event){
+    const reader = new FileReader();
+    reader.onload = function(){
+        document.getElementById("preview").innerHTML =
+            '<img src="'+reader.result+'">';
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+/* ======================
+   KIRIM DATA
+====================== */
 async function kirim(){
 
-    const nama=document.getElementById("namaLengkap").value.trim();
-    const gelar=document.getElementById("namaGelar").value.trim();
-    const alamat=document.getElementById("alamat").value.trim();
-    const nohp=document.getElementById("nohp").value.trim();
-    const file=document.getElementById("foto").files[0];
+    const nama = document.getElementById("namaLengkap").value.trim();
+    const alamat = document.getElementById("alamat").value.trim();
+    const nohp = document.getElementById("nohp").value.trim();
+    const fileInput = document.getElementById("foto").files[0];
 
-    if(!nama||!alamat||!nohp||!file){
+    if(!nama || !alamat || !nohp || !fileInput){
         alert("Mohon isi semua kolom dan upload foto.");
         return;
     }
 
-    const reader=new FileReader();
-    reader.onload=async function(){
+    const reader = new FileReader();
 
-        try{
-            const response=await fetch(WEBAPP_URL,{
-                method:"POST",
-                headers:{"Content-Type":"text/plain"},
-                body:JSON.stringify({
-                    nama:nama,
-                    gelar:gelar,
-                    alamat:alamat,
-                    nohp:nohp,
-                    foto:reader.result,
-                    mimeType:file.type
+    reader.onload = async function(){
+
+        try {
+
+            const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI", {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    nama: nama,
+                    alamat: alamat,
+                    nohp: nohp,
+                    foto: reader.result,
+                    mimeType: fileInput.type
                 })
             });
 
-            const result=await response.json();
+            const result = await response.json();
 
-            if(result.status==="success"){
-                alert("✅ Berhasil!\nNomor Anggota: "+result.nomor);
-                generateCard(nama,result.nomor,result.foto);
+            if(result.status === "success"){
+                alert("Pendaftaran Berhasil!\nNomor Anggota: " + result.nomor);
                 tutupForm();
                 loadAnggota();
-            }else{
-                alert("❌ Gagal: "+result.message);
+            } else {
+                alert("Gagal: " + result.message);
             }
 
-        }catch(err){
-            alert("Koneksi gagal.");
-            console.error(err);
+        } catch(error){
+            alert("Koneksi ke server gagal.");
+            console.error(error);
         }
     };
-    reader.readAsDataURL(file);
-}
-<p>
-<p>
-/* ======================= */
-/*      GENERATE KARTU     */
-/* ======================= */
-function generateCard(nama,nomor,foto){
 
-    const verifikasiURL="https://sugeng1104.github.io/koleksikerisskh/verifikasi.html?nomor="+nomor;
-
-    const win=window.open("");
-    win.document.write(`
-    <html>
-    <head>
-    <title>Kartu Anggota SKH</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    </head>
-    <body style="background:black;color:gold;font-family:Georgia;text-align:center;padding:20px;">
-    <div style="width:420px;margin:auto;padding:20px;border:4px solid gold;border-radius:15px;background:#111;">
-        <h2>👑 KARTU ANGGOTA RESMI 👑</h2>
-        <h3>Komunitas Keris SKH</h3>
-        <img src="${foto}" style="width:120px;border-radius:10px;border:3px solid gold;"><br><br>
-        <strong>${nama}</strong><br>
-        Nomor: <b>${nomor}</b><br><br>
-        <div id="qrcode"></div>
-        <br>
-        <button onclick="window.print()" style="padding:8px 15px;background:gold;border:none;border-radius:6px;font-weight:bold;">Cetak PDF</button>
-    </div>
-    <script>
-        new QRCode(document.getElementById("qrcode"), "${verifikasiURL}");
-    </script>
-    </body>
-    </html>
-    `);
+    reader.readAsDataURL(fileInput);
 }
+
+/* ======================
+   LOAD DATA ANGGOTA
+====================== */
+async function loadAnggota(){
+    try {
+        const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI");
+        const data = await response.json();
+
+        let html = "<ul>";
+        data.reverse().forEach(row => {
+            html += `<li>${row.nomor} - ${row.nama}</li>`;
+        });
+        html += "</ul>";
+
+        document.getElementById("listAnggota").innerHTML = html;
+
+    } catch(error){
+        document.getElementById("listAnggota").innerHTML = "Belum ada data.";
+    }
+}
+
+loadAnggota();
 
 </script>
+
 </body>
 </html>
