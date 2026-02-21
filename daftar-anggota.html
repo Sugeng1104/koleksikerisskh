@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daftar Anggota SKH</title>
@@ -256,18 +257,43 @@ function kirim(){
     
 function generateCard(nama, nomor, foto){
 
-    const card = `
-    <div style="width:400px;padding:20px;background:black;color:gold;border:3px solid gold;text-align:center;font-family:Georgia;">
-        <h2>KARTU ANGGOTA</h2>
-        <img src="${foto}" style="width:100px;border-radius:10px;"><br><br>
-        <strong>${nama}</strong><br>
-        Nomor: ${nomor}<br>
-        Komunitas Keris SKH
-    </div>
-    `;
+    const verifikasiURL = "https://sugeng1104.github.io/koleksikerisskh/verifikasi.html?nomor=" + nomor;
 
     const win = window.open("");
-    win.document.write(card);
+    win.document.write(`
+    <html>
+    <head>
+    <title>Kartu Anggota SKH</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    </head>
+    <body style="background:black;color:gold;font-family:Georgia;text-align:center;padding:20px;">
+    
+    <div id="card" style="width:420px;margin:auto;padding:20px;border:4px solid gold;border-radius:15px;background:linear-gradient(145deg,#000,#1a1a1a);box-shadow:0 0 30px gold;">
+    
+        <h2>👑 KARTU ANGGOTA RESMI 👑</h2>
+        <h3>Komunitas Keris SKH</h3>
+        
+        <img src="${foto}" style="width:120px;border-radius:10px;border:3px solid gold;"><br><br>
+        
+        <strong style="font-size:18px;">${nama}</strong><br>
+        Nomor Anggota: <b>${nomor}</b><br><br>
+
+        <div id="qrcode"></div>
+
+        <p style="font-size:12px;margin-top:10px;">
+        Scan QR untuk verifikasi keaslian
+        </p>
+
+        <button onclick="window.print()" style="margin-top:15px;padding:8px 15px;background:gold;border:none;border-radius:6px;font-weight:bold;">Cetak PDF</button>
+    </div>
+
+    <script>
+        new QRCode(document.getElementById("qrcode"), "${verifikasiURL}");
+    </script>
+
+    </body>
+    </html>
+    `);
 }
     
 </body>
