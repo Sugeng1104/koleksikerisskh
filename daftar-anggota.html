@@ -38,7 +38,7 @@ h2{
     box-shadow:0 0 15px rgba(212,175,55,0.3);
 }
 
-a.back{
+.back{
     display:inline-block;
     margin-top:30px;
     padding:10px 20px;
@@ -48,8 +48,88 @@ a.back{
     font-weight:bold;
     border-radius:8px;
 }
-a.back:hover{
-    background:#ffd700;
+
+.back:hover{ background:#ffd700; }
+
+/* Tombol Daftar */
+.btn-daftar{
+    display:inline-block;
+    padding:12px 25px;
+    background:#007bff;
+    color:white;
+    font-weight:bold;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:20px;
+}
+.btn-daftar:hover{
+    background:#0056b3;
+}
+
+/* MODAL */
+#modalDaftar{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.8);
+    justify-content:center;
+    align-items:flex-start;
+    padding-top:60px;
+    z-index:999;
+}
+
+.modal-content{
+    background:#111;
+    width:400px;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 0 25px #007bff;
+    animation:slideDown 0.4s ease;
+}
+
+@keyframes slideDown{
+    from{transform:translateY(-40px); opacity:0;}
+    to{transform:translateY(0); opacity:1;}
+}
+
+.modal-content h3{
+    text-align:center;
+    color:#007bff;
+    margin-bottom:15px;
+}
+
+.modal-content input,
+.modal-content textarea{
+    width:100%;
+    padding:8px;
+    margin:8px 0;
+    border-radius:6px;
+    border:none;
+}
+
+.modal-content button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.submit-btn{
+    background:#007bff;
+    color:white;
+}
+
+.submit-btn:hover{
+    background:#0056b3;
+}
+
+.close-btn{
+    background:#444;
+    color:white;
 }
 </style>
 </head>
@@ -63,11 +143,10 @@ a.back:hover{
 <div class="card">
 <h2>Pengurus</h2>
 <p>
-Ketua : .Sugeng Hidayat<br>
+Ketua : ........................................<br>
 Sekretaris : ........................................<br>
-Bendahara : ........................................</p>
-Kurator Keris : ........................................
-<br>
+Bendahara : ........................................
+</p>
 </div>
 
 <div class="card">
@@ -75,15 +154,54 @@ Kurator Keris : ........................................
 <p>
 1. ........................................<br>
 2. ........................................<br>
-3. ........................................<br>
-4. ........................................<br>
-5. ........................................
+3. ........................................
 </p>
+
+<div class="btn-daftar" onclick="bukaForm()">Daftar</div>
 </div>
 
 <a href="index.html" class="back">← Kembali ke Beranda</a>
 
 </div>
+
+<!-- MODAL FORM -->
+<div id="modalDaftar">
+  <div class="modal-content">
+    <h3>Pendaftaran Anggota Komunitas SKH</h3>
+
+    <input type="text" id="namaLengkap" placeholder="Nama Lengkap">
+    <input type="text" id="namaGelar" placeholder="Nama Julukan / Gelar">
+    <textarea id="alamat" placeholder="Alamat"></textarea>
+    <input type="text" id="nohp" placeholder="Nomor HP">
+    <input type="file" id="foto">
+
+    <button class="submit-btn" onclick="kirim()">Kirim Pendaftaran</button>
+    <button class="close-btn" onclick="tutupForm()">Batal</button>
+  </div>
+</div>
+
+<script>
+
+function bukaForm(){
+    document.getElementById("modalDaftar").style.display="flex";
+}
+
+function tutupForm(){
+    document.getElementById("modalDaftar").style.display="none";
+}
+
+function kirim(){
+    const nama = document.getElementById("namaLengkap").value;
+    if(!nama){
+        alert("Nama Lengkap wajib diisi!");
+        return;
+    }
+
+    alert("Pendaftaran berhasil dikirim!\n(Admin akan menghubungi Anda.)");
+    tutupForm();
+}
+
+</script>
 
 </body>
 </html>
