@@ -217,7 +217,7 @@ async function kirim(){
     const fileInput = document.getElementById("foto").files[0];
 
     if(!nama || !alamat || !nohp || !fileInput){
-        alert("Mohon isi semua kolom wajib dan upload foto.");
+        alert("Mohon isi semua kolom dan upload foto.");
         return;
     }
 
@@ -229,8 +229,9 @@ async function kirim(){
 
             const response = await fetch("https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec", {
                 method: "POST",
+                mode: "cors",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "text/plain"
                 },
                 body: JSON.stringify({
                     nama: nama,
@@ -245,23 +246,14 @@ async function kirim(){
             const result = await response.json();
 
             if(result.status === "success"){
-
                 alert("✅ Pendaftaran Berhasil!\nNomor Anggota: " + result.nomor);
-
-                generateCard(nama, result.nomor, result.foto);
-
-                const pesan = `PENDAFTARAN BARU SKH\n\nNama: ${nama}\nNomor: ${result.nomor}\nHP: ${nohp}`;
-                window.open(`https://wa.me/6283862505875?text=${encodeURIComponent(pesan)}`);
-
-                document.getElementById("modalDaftar").style.display="none";
-
             } else {
                 alert("❌ Gagal: " + result.message);
             }
 
         } catch(error){
-            alert("Terjadi kesalahan koneksi.\nPastikan Web App sudah di deploy sebagai Anyone.");
             console.error(error);
+            alert("Koneksi ke server gagal.\nSilakan cek Console (F12).");
         }
     };
 
