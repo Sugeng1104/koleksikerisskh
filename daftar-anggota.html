@@ -205,32 +205,70 @@ function previewFoto(event){
 function kirim(){
 
     const nama = document.getElementById("namaLengkap").value.trim();
+    const gelar = document.getElementById("namaGelar").value.trim();
     const alamat = document.getElementById("alamat").value.trim();
     const nohp = document.getElementById("nohp").value.trim();
+    const fileInput = document.getElementById("foto").files[0];
 
-    if(!nama || !alamat || !nohp){
-        alert("Mohon isi semua kolom wajib (*)");
+    if(!nama || !alamat || !nohp || !fileInput){
+        alert("Semua kolom wajib diisi!");
         return;
     }
 
-    let data = JSON.parse(localStorage.getItem("pendaftaranSKH") || "[]");
+    const reader = new FileReader();
+    reader.onload = function(){
 
-    data.push({
-        nama:nama,
-        gelar:document.getElementById("namaGelar").value,
-        alamat:alamat,
-        nohp:nohp,
-        tanggal:new Date().toLocaleString()
-    });
+        fetch("PASTE_URL_WEBAPP_DISINI",{
+            method:"POST",
+            body:JSON.stringify({
+                nama:nama,
+                gelar:gelar,
+                alamat:alamat,
+                nohp:nohp,
+                foto:reader.result,
+                mimeType:fileInput.type
+            })
+        })
+        .then(res=>res.json())
+        .then(response=>{
 
-    localStorage.setItem("pendaftaranSKH", JSON.stringify(data));
+            if(response.status==="success"){
 
-    alert("Pendaftaran berhasil dikirim!\nTerima kasih telah bergabung dengan SKH 👑");
+                // Generate Kartu
+                generateCard(nama, response.nomor, response.foto);
 
-    tutupForm();
+                // Kirim WhatsApp
+                const pesan = `PENDAFTARAN BARU SKH\n\nNama: ${nama}\nNomor: ${response.nomor}\nHP: ${nohp}`;
+                window.open(`https://wa.me/6283862505875?text=${encodeURIComponent(pesan)}`);
+
+                alert("Pendaftaran berhasil!\nNomor Anggota: " + response.nomor);
+
+                tutupForm();
+            }
+        });
+
+    }
+
+    reader.readAsDataURL(fileInput);
 }
 
 </script>
+    
+function generateCard(nama, nomor, foto){
 
+    const card = `
+    <div style="width:400px;padding:20px;background:black;color:gold;border:3px solid gold;text-align:center;font-family:Georgia;">
+        <h2>KARTU ANGGOTA</h2>
+        <img src="${foto}" style="width:100px;border-radius:10px;"><br><br>
+        <strong>${nama}</strong><br>
+        Nomor: ${nomor}<br>
+        Komunitas Keris SKH
+    </div>
+    `;
+
+    const win = window.open("");
+    win.document.write(card);
+}
+    
 </body>
 </html>
