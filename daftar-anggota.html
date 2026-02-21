@@ -297,6 +297,33 @@ function generateCard(nama, nomor, foto){
     <script>
         new QRCode(document.getElementById("qrcode"), "${verifikasiURL}");
     </script>
+    async function loadAnggota(){
+
+    try {
+
+        const response = await fetch("https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec");
+        const data = await response.json();
+
+        let html = "";
+
+        data.reverse().forEach((row, index) => {
+            html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${row.nomor}</td>
+                <td>${row.nama}</td>
+            </tr>
+            `;
+        });
+
+        document.getElementById("listAnggota").innerHTML = html;
+
+    } catch(error){
+        console.error("Gagal load anggota:", error);
+    }
+}
+
+loadAnggota();
 
     </body>
     </html>
