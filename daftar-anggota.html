@@ -15,39 +15,56 @@ body{
     color:white;
     padding:40px;
 }
-.container{ max-width:900px; margin:auto; }
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
 h1{
     color:gold;
     text-align:center;
     margin-bottom:40px;
+    font-size:32px;
     text-shadow:0 0 15px rgba(212,175,55,0.5);
 }
+
 .card{
     background:#111;
-    padding:25px;
+    padding:30px;
     border-radius:15px;
-    margin-bottom:20px;
+    margin-bottom:25px;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
+    font-size:18px;
 }
+
 .btn-daftar{
     display:inline-block;
-    padding:12px 25px;
+    padding:14px 30px;
     background:linear-gradient(45deg,#007bff,#00c6ff);
     color:white;
     font-weight:bold;
     border-radius:10px;
     cursor:pointer;
     margin-top:20px;
+    font-size:18px;
+    transition:0.3s;
 }
+.btn-daftar:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 20px #00c6ff;
+}
+
 .back{
     display:inline-block;
     margin-top:30px;
-    padding:10px 20px;
+    padding:12px 25px;
     background:gold;
     color:black;
     text-decoration:none;
     font-weight:bold;
     border-radius:8px;
+    font-size:16px;
 }
 
 /* MODAL */
@@ -59,39 +76,67 @@ h1{
     background:rgba(0,0,0,0.9);
     justify-content:center;
     align-items:center;
+    z-index:999;
 }
+
 .modal-content{
     background:#0f172a;
-    width:420px;
-    padding:30px;
+    width:500px;
+    padding:35px;
     border-radius:15px;
     box-shadow:0 0 30px #00c6ff;
+    animation:fadeIn 0.4s ease;
 }
+
+@keyframes fadeIn{
+    from{opacity:0; transform:scale(0.9);}
+    to{opacity:1; transform:scale(1);}
+}
+
+.modal-content h3{
+    text-align:center;
+    color:#00c6ff;
+    margin-bottom:20px;
+    font-size:22px;
+}
+
 .modal-content input,
 .modal-content textarea{
     width:100%;
-    padding:10px;
-    margin:8px 0;
+    padding:12px;
+    margin:10px 0;
     border-radius:8px;
     border:none;
+    font-size:16px;
 }
+
+.preview{
+    text-align:center;
+    margin-top:10px;
+}
+
 .preview img{
-    max-width:120px;
+    max-width:140px;
     border-radius:10px;
+    box-shadow:0 0 10px #00c6ff;
 }
+
 button{
     width:100%;
-    padding:10px;
+    padding:12px;
     margin-top:10px;
     border:none;
     border-radius:8px;
     font-weight:bold;
     cursor:pointer;
+    font-size:16px;
 }
+
 .submit-btn{
     background:linear-gradient(45deg,#007bff,#00c6ff);
     color:white;
 }
+
 .close-btn{
     background:#444;
     color:white;
@@ -103,61 +148,60 @@ button{
 
 <div class="container">
 
-<h1>Nama Pengurus & Anggota<br>Komunitas Keris SKH</h1>
+<h1>Nama-nama Pengurus dan Anggota<br>Komunitas Keris SKH</h1>
 
 <div class="card">
 <h2 style="color:#d4af37;">Pengurus</h2>
-<p>
+<p style="font-size:20px;">
 Ketua : Sugeng Hidayat<br>
-Sekretaris : -<br>
-Bendahara : -<br>
-Kurator Pusaka : -
+Sekretaris : ........................................<br>
+Bendahara : ........................................<br>
+Kurator Pusaka : ........................................
 </p>
 </div>
 
 <div class="card">
 <h2 style="color:#d4af37;">Anggota</h2>
-<div id="listAnggota">Memuat data...</div>
+<div id="listAnggota" style="font-size:20px;">
+Memuat data...
+</div>
 
 <div class="btn-daftar" onclick="bukaForm()">Daftar</div>
 </div>
 
-<a href="index.html" class="back">← Kembali</a>
+<a href="index.html" class="back">← Kembali ke Beranda</a>
 
 </div>
 
 <!-- MODAL -->
 <div id="modalDaftar">
   <div class="modal-content">
-    <h3 style="text-align:center;color:#00c6ff;">Pendaftaran Anggota SKH</h3>
+    <h3>Pendaftaran Anggota Komunitas SKH</h3>
 
     <input type="text" id="namaLengkap" placeholder="Nama Lengkap *">
+    <input type="text" id="namaGelar" placeholder="Nama Julukan / Gelar">
     <textarea id="alamat" placeholder="Alamat *"></textarea>
     <input type="tel" id="nohp" placeholder="Nomor HP *">
     <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)">
+
     <div class="preview" id="preview"></div>
 
-    <button class="submit-btn" onclick="kirim()">Kirim</button>
+    <button class="submit-btn" onclick="kirim()">Kirim Pendaftaran</button>
     <button class="close-btn" onclick="tutupForm()">Batal</button>
   </div>
 </div>
 
 <script>
 
-/* ======================
-   MODAL CONTROL
-====================== */
+/* BUKA & TUTUP MODAL */
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
 }
-
 function tutupForm(){
     document.getElementById("modalDaftar").style.display="none";
 }
 
-/* ======================
-   PREVIEW FOTO
-====================== */
+/* PREVIEW FOTO */
 function previewFoto(event){
     const reader = new FileReader();
     reader.onload = function(){
@@ -167,32 +211,30 @@ function previewFoto(event){
     reader.readAsDataURL(event.target.files[0]);
 }
 
-/* ======================
-   KIRIM DATA
-====================== */
+/* KIRIM DATA */
 async function kirim(){
 
     const nama = document.getElementById("namaLengkap").value.trim();
+    const gelar = document.getElementById("namaGelar").value.trim();
     const alamat = document.getElementById("alamat").value.trim();
     const nohp = document.getElementById("nohp").value.trim();
     const fileInput = document.getElementById("foto").files[0];
 
     if(!nama || !alamat || !nohp || !fileInput){
-        alert("Mohon isi semua kolom dan upload foto.");
+        alert("Mohon isi semua kolom wajib dan upload foto.");
         return;
     }
 
     const reader = new FileReader();
 
     reader.onload = async function(){
-
         try {
-
             const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI", {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({
                     nama: nama,
+                    gelar: gelar,
                     alamat: alamat,
                     nohp: nohp,
                     foto: reader.result,
@@ -203,11 +245,11 @@ async function kirim(){
             const result = await response.json();
 
             if(result.status === "success"){
-                alert("Pendaftaran Berhasil!\nNomor Anggota: " + result.nomor);
+                alert("✅ Pendaftaran Berhasil!\nNomor Anggota: " + result.nomor);
                 tutupForm();
                 loadAnggota();
             } else {
-                alert("Gagal: " + result.message);
+                alert("❌ Gagal: " + result.message);
             }
 
         } catch(error){
@@ -219,19 +261,16 @@ async function kirim(){
     reader.readAsDataURL(fileInput);
 }
 
-/* ======================
-   LOAD DATA ANGGOTA
-====================== */
+/* LOAD DATA ANGGOTA */
 async function loadAnggota(){
     try {
         const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI");
         const data = await response.json();
 
-        let html = "<ul>";
-        data.reverse().forEach(row => {
-            html += `<li>${row.nomor} - ${row.nama}</li>`;
+        let html = "";
+        data.reverse().forEach((row, index) => {
+            html += (index+1) + ". " + row.nama + " (" + row.nomor + ")<br>";
         });
-        html += "</ul>";
 
         document.getElementById("listAnggota").innerHTML = html;
 
