@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Komunitas Keris SKH</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <style>
 body{
     margin:0;
@@ -22,7 +19,6 @@ h1{
     color:gold;
     text-align:center;
     margin-bottom:40px;
-    font-size:32px;
 }
 
 .card{
@@ -44,7 +40,6 @@ table{
 th, td{
     border:1px solid #444;
     padding:10px;
-    text-align:left;
 }
 
 th{ background:#222; color:gold; }
@@ -59,17 +54,19 @@ th{ background:#222; color:gold; }
 .btn{
     display:inline-block;
     padding:10px 20px;
-    background:#007bff;
-    color:white;
     border-radius:8px;
-    cursor:pointer;
     text-decoration:none;
     margin-top:15px;
+    margin-right:10px;
+    font-weight:bold;
 }
 
-.btn-gold{
-    background:gold;
-    color:black;
+.btn-blue{ background:#007bff; color:white; }
+.btn-green{ background:#28a745; color:white; }
+.btn-gold{ background:gold; color:black; }
+
+.button-area{
+    margin-top:20px;
 }
 </style>
 </head>
@@ -82,13 +79,14 @@ th{ background:#222; color:gold; }
 
 <div class="card">
 <h2>Pengurus</h2>
-<p style="font-size:18px;">
+<p>
 Ketua : Sugeng Hidayat<br>
 Sekretaris : -<br>
 Bendahara : -<br>
 Kurator Pusaka : -
 </p>
-<a href="index.html" class="btn btn-gold">⬅ Kembali ke Halaman Depan</a>
+
+<a href="index.html" class="btn btn-gold">⬅ Halaman Depan</a>
 </div>
 
 <div class="card">
@@ -107,20 +105,22 @@ Kurator Pusaka : -
 </tbody>
 </table>
 
-<a href="verifikasi.html" class="btn">Verifikasi QR</a>
+<div class="button-area">
+<a href="daftar.html" class="btn btn-blue">Daftar</a>
+<a href="verifikasi.html" class="btn btn-green">Verifikasi QR</a>
+</div>
 
 </div>
 
 </div>
 
 <script>
-
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
 async function loadAnggota(){
     try{
-        const response=await fetch(WEB_APP_URL);
-        const data=await response.json();
+        const response = await fetch(WEB_APP_URL);
+        const data = await response.json();
 
         let html="";
         data.reverse().forEach(row=>{
@@ -141,7 +141,6 @@ async function loadAnggota(){
 }
 
 loadAnggota();
-
 </script>
 
 </body>
