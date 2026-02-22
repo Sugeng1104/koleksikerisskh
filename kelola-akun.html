@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kelola Akun</title>
+  <style>
+    body {
+      background: black;
+      color: #00ffcc;
+      font-family: Arial;
+      padding: 30px;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+    }
+    button {
+      padding: 8px 12px;
+      background: #00ffcc;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Kelola Akun Admin</h2>
+
+<input type="text" id="newUsername" placeholder="Username">
+<input type="password" id="newPassword" placeholder="Password">
+<select id="newRole">
+  <option>Admin</option>
+  <option>Super Admin</option>
+</select>
+<button onclick="tambahUser()">Tambah</button>
+
+<ul id="listUser"></ul>
+
+<script>
+if (localStorage.getItem("role") !== "Super Admin") {
+  alert("Akses ditolak!");
+  window.location.href = "admin.html";
+}
+
+let users = JSON.parse(localStorage.getItem("adminUsers")) || [];
+
+function tampilUser() {
+  const list = document.getElementById("listUser");
+  list.innerHTML = "";
+  users.forEach((u, index) => {
+    list.innerHTML += `
+      <li>
+        ${u.username} - ${u.role}
+        <button onclick="hapusUser(${index})">Hapus</button>
+      </li>
+    `;
+  });
+}
+
+function tambahUser() {
+  const username = document.getElementById("newUsername").value;
+  const password = document.getElementById("newPassword").value;
+  const role = document.getElementById("newRole").value;
+
+  users.push({username, password, role});
+  localStorage.setItem("adminUsers", JSON.stringify(users));
+  tampilUser();
+}
+
+function hapusUser(index) {
+  users.splice(index, 1);
+  localStorage.setItem("adminUsers", JSON.stringify(users));
+  tampilUser();
+}
+
+tampilUser();
+</script>
+
+</body>
+</html>
