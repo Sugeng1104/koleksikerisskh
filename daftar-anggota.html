@@ -16,14 +16,13 @@ body{
     color:white;
     padding:40px;
 }
-.container{ max-width:1000px; margin:auto; }
+.container{ max-width:1100px; margin:auto; }
 
 h1{
     color:gold;
     text-align:center;
     margin-bottom:40px;
     font-size:32px;
-    text-shadow:0 0 15px rgba(212,175,55,0.5);
 }
 
 .card{
@@ -40,7 +39,6 @@ table{
     width:100%;
     border-collapse:collapse;
     margin-top:15px;
-    font-size:18px;
 }
 
 th, td{
@@ -49,63 +47,30 @@ th, td{
     text-align:left;
 }
 
-th{
-    background:#222;
-    color:gold;
+th{ background:#222; color:gold; }
+
+.foto-kecil{
+    width:50px;
+    height:50px;
+    object-fit:cover;
+    border-radius:6px;
 }
 
-.btn-daftar{
+.btn{
     display:inline-block;
-    padding:14px 30px;
+    padding:10px 20px;
     background:#007bff;
     color:white;
-    font-weight:bold;
-    border-radius:10px;
-    cursor:pointer;
-    margin-top:20px;
-}
-
-#modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
-}
-
-.modal-content{
-    background:#0f172a;
-    width:500px;
-    padding:35px;
-    border-radius:15px;
-}
-
-.modal-content input,
-.modal-content textarea{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
     border-radius:8px;
-    border:none;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border:none;
-    border-radius:8px;
-    font-weight:bold;
     cursor:pointer;
+    text-decoration:none;
+    margin-top:15px;
 }
 
-.submit-btn{ background:#00c6ff; color:white; }
-.close-btn{ background:#444; color:white; }
-
-.preview{text-align:center;}
-.preview img{ max-width:140px; border-radius:10px; }
+.btn-gold{
+    background:gold;
+    color:black;
+}
 </style>
 </head>
 
@@ -115,166 +80,43 @@ button{
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- PENGURUS -->
 <div class="card">
 <h2>Pengurus</h2>
-<p style="font-size:20px;">
+<p style="font-size:18px;">
 Ketua : Sugeng Hidayat<br>
 Sekretaris : -<br>
 Bendahara : -<br>
 Kurator Pusaka : -
 </p>
+<a href="index.html" class="btn btn-gold">⬅ Kembali ke Halaman Depan</a>
 </div>
 
-<!-- ANGGOTA -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
 <table>
 <thead>
 <tr>
+<th>Foto</th>
 <th>Nama</th>
 <th>No Anggota</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="2">Memuat data...</td></tr>
+<tr><td colspan="3">Memuat data...</td></tr>
 </tbody>
 </table>
 
-<div class="btn-daftar" onclick="bukaForm()">Daftar</div>
-</div>
+<a href="verifikasi.html" class="btn">Verifikasi QR</a>
 
 </div>
 
-<!-- MODAL -->
-<div id="modalDaftar">
-  <div class="modal-content">
-    <h3 style="color:#00c6ff;text-align:center;">Pendaftaran Anggota SKH</h3>
-    <input type="text" id="namaLengkap" placeholder="Nama Lengkap *">
-    <input type="text" id="namaGelar" placeholder="Nama Julukan / Gelar">
-    <textarea id="alamat" placeholder="Alamat *"></textarea>
-    <input type="tel" id="nohp" placeholder="Nomor HP *">
-    <input type="file" id="foto" accept="image/*" onchange="previewFoto(event)">
-    <div class="preview" id="preview"></div>
-    <button class="submit-btn" onclick="kirim()">Kirim</button>
-    <button class="close-btn" onclick="tutupForm()">Batal</button>
-  </div>
 </div>
 
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-/* Modal */
-function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
-
-/* Preview */
-function previewFoto(event){
-    const reader=new FileReader();
-    reader.onload=function(){
-        document.getElementById("preview").innerHTML=
-        '<img src="'+reader.result+'">';
-    }
-    reader.readAsDataURL(event.target.files[0]);
-}
-
-/* Kirim */
-async function kirim(){
-
-    const nama=document.getElementById("namaLengkap").value.trim();
-    const gelar=document.getElementById("namaGelar").value.trim();
-    const alamat=document.getElementById("alamat").value.trim();
-    const nohp=document.getElementById("nohp").value.trim();
-    const fileInput=document.getElementById("foto").files[0];
-
-    if(!nama || !alamat || !nohp || !fileInput){
-        alert("Mohon lengkapi semua data.");
-        return;
-    }
-
-    const reader=new FileReader();
-
-    reader.onload=async function(){
-
-        try{
-            const response=await fetch(WEB_APP_URL,{
-                method:"POST",
-                body:JSON.stringify({
-                    nama:nama,
-                    gelar:gelar,
-                    alamat:alamat,
-                    nohp:nohp,
-                    foto:reader.result,
-                    mimeType:fileInput.type
-                })
-            });
-
-            const result=await response.json();
-
-            if(result.status==="success"){
-
-                alert("Berhasil! Nomor Anggota: "+result.nomor);
-
-                if(result.wa) window.open(result.wa,"_blank");
-                if(result.waAdmin) window.open(result.waAdmin,"_blank");
-
-                generateCard(nama, gelar, result.nomor, result.foto);
-
-                tutupForm();
-                loadAnggota();
-
-            }else{
-                alert("Gagal: "+result.message);
-            }
-
-        }catch(err){
-            alert("Koneksi gagal. Pastikan Web App Anyone.");
-        }
-    };
-
-    reader.readAsDataURL(fileInput);
-}
-
-/* Generate Card */
-function generateCard(nama, gelar, nomor, foto){
-
-    const card=document.createElement("div");
-    card.style.width="400px";
-    card.style.padding="20px";
-    card.style.background="black";
-    card.style.color="gold";
-    card.style.textAlign="center";
-    card.innerHTML=`
-        <h2>KARTU ANGGOTA SKH</h2>
-        <img src="${foto}" width="100"><br><br>
-        <strong>${nama}</strong><br>
-        ${gelar}<br><br>
-        Nomor: ${nomor}
-        <div id="qrcode"></div>
-    `;
-
-    document.body.appendChild(card);
-
-    new QRCode(document.getElementById("qrcode"),{
-        text:nomor,
-        width:100,
-        height:100
-    });
-
-    setTimeout(()=>{
-        html2canvas(card).then(canvas=>{
-            const link=document.createElement("a");
-            link.download=nomor+".png";
-            link.href=canvas.toDataURL();
-            link.click();
-            card.remove();
-        });
-    },1000);
-}
-
-/* Load Anggota */
 async function loadAnggota(){
     try{
         const response=await fetch(WEB_APP_URL);
@@ -284,6 +126,7 @@ async function loadAnggota(){
         data.reverse().forEach(row=>{
             html+=`
             <tr>
+                <td><img src="${row.foto}" class="foto-kecil"></td>
                 <td>${row.nama}</td>
                 <td>${row.nomor}</td>
             </tr>`;
@@ -293,7 +136,7 @@ async function loadAnggota(){
 
     }catch{
         document.getElementById("listAnggota").innerHTML=
-        "<tr><td colspan='2'>Belum ada data.</td></tr>";
+        "<tr><td colspan='3'>Belum ada data.</td></tr>";
     }
 }
 
