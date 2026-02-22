@@ -2,25 +2,88 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Verifikasi Anggota SKH</title>
+<title>Verifikasi QR SKH</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+    background:black;
+    color:white;
+    font-family:Georgia,serif;
+    text-align:center;
+    padding:30px;
+}
+#reader{
+    width:320px;
+    margin:auto;
+}
+.result{
+    margin-top:20px;
+    background:#111;
+    padding:20px;
+    border-radius:10px;
+}
+img{
+    width:120px;
+    border-radius:10px;
+}
+.btn{
+    display:inline-block;
+    margin-top:20px;
+    padding:10px 20px;
+    background:gold;
+    color:black;
+    text-decoration:none;
+    border-radius:8px;
+}
+</style>
 </head>
-<body style="background:black;color:gold;text-align:center;font-family:Georgia;padding:40px;">
+<body>
 
-<h2>Verifikasi Anggota SKH</h2>
+<h2 style="color:gold;">Scan QR Anggota SKH</h2>
 
-<div id="hasil"></div>
+<div id="reader"></div>
+
+<div id="hasil" class="result"></div>
+
+<a href="anggota.html" class="btn">⬅ Kembali</a>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const nomor = urlParams.get("nomor");
 
-if(nomor){
-    document.getElementById("hasil").innerHTML =
-    "<h3 style='color:lime;'>VALID</h3><p>Nomor Anggota: "+nomor+"</p>";
-}else{
-    document.getElementById("hasil").innerHTML =
-    "<h3 style='color:red;'>TIDAK VALID</h3>";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+
+function onScanSuccess(decodedText){
+
+    html5QrcodeScanner.clear();
+
+    fetch(WEB_APP_URL)
+    .then(res=>res.json())
+    .then(data=>{
+        const anggota=data.find(a=>a.nomor===decodedText);
+
+        if(anggota){
+            document.getElementById("hasil").innerHTML=`
+                <h3 style="color:#00ff99;">Anggota Valid</h3>
+                <img src="${anggota.foto}"><br><br>
+                <strong>${anggota.nama}</strong><br>
+                No: ${anggota.nomor}
+            `;
+        }else{
+            document.getElementById("hasil").innerHTML=
+            "<h3 style='color:red;'>Tidak Terdaftar</h3>";
+        }
+    });
 }
+
+const html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: 250 },
+    false
+);
+
+html5QrcodeScanner.render(onScanSuccess);
+
 </script>
 
 </body>
