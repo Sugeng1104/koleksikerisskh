@@ -129,11 +129,9 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQ
 
 function convertDriveLink(url){
     if(!url) return "";
-    if(url.includes("drive.google.com")){
-        const idMatch = url.match(/[-\w]{25,}/);
-        if(idMatch){
-            return "https://drive.google.com/uc?export=view&id=" + idMatch[0];
-        }
+    const idMatch = url.match(/[-\w]{25,}/);
+    if(idMatch){
+        return "https://drive.google.com/uc?export=view&id=" + idMatch[0];
     }
     return url;
 }
@@ -146,8 +144,11 @@ async function loadAnggota(){
         let html="";
         data.reverse().forEach(row=>{
 
-            const fotoURL = convertDriveLink(row.foto);
-            const statusClass = row.status === "Aktif"
+            const fotoURL = convertDriveLink(row["Foto"]);
+            const statusValue = row["Status"] ? row["Status"] : "Non Aktif";
+
+            const statusClass =
+                statusValue === "Aktif"
                 ? "status-aktif"
                 : "status-nonaktif";
 
@@ -157,17 +158,18 @@ async function loadAnggota(){
                     <img src="${fotoURL}" class="foto-kecil"
                     onerror="this.src='https://via.placeholder.com/55'">
                 </td>
-                <td>${row.nama}</td>
-                <td>${row.nomor}</td>
-                <td><span class="${statusClass}">${row.status}</span></td>
+                <td>${row["Nama Lengkap"]}</td>
+                <td>${row["No Anggota"]}</td>
+                <td><span class="${statusClass}">${statusValue}</span></td>
             </tr>`;
         });
 
         document.getElementById("listAnggota").innerHTML=html;
 
-    }catch{
+    }catch(error){
         document.getElementById("listAnggota").innerHTML=
-        "<tr><td colspan='4'>Belum ada data.</td></tr>";
+        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+        console.log(error);
     }
 }
 
