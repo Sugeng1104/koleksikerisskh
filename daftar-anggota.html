@@ -40,15 +40,31 @@ table{
 th, td{
     border:1px solid #444;
     padding:10px;
+    text-align:left;
 }
 
 th{ background:#222; color:gold; }
 
 .foto-kecil{
-    width:50px;
-    height:50px;
+    width:55px;
+    height:55px;
     object-fit:cover;
+    border-radius:8px;
+    border:2px solid gold;
+}
+
+.status-aktif{
+    background:#00aa00;
+    padding:5px 10px;
     border-radius:6px;
+    font-weight:bold;
+}
+
+.status-nonaktif{
+    background:#aa0000;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
 }
 
 .btn{
@@ -64,10 +80,6 @@ th{ background:#222; color:gold; }
 .btn-blue{ background:#007bff; color:white; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
-
-.button-area{
-    margin-top:20px;
-}
 </style>
 </head>
 
@@ -85,7 +97,6 @@ Sekretaris : -<br>
 Bendahara : -<br>
 Kurator Pusaka : -
 </p>
-
 <a href="index.html" class="btn btn-gold">⬅ Halaman Depan</a>
 </div>
 
@@ -98,17 +109,16 @@ Kurator Pusaka : -
 <th>Foto</th>
 <th>Nama</th>
 <th>No Anggota</th>
+<th>Status</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="3">Memuat data...</td></tr>
+<tr><td colspan="4">Memuat data...</td></tr>
 </tbody>
 </table>
 
-<div class="button-area">
 <a href="daftar.html" class="btn btn-blue">Daftar</a>
 <a href="verifikasi.html" class="btn btn-green">Verifikasi QR</a>
-</div>
 
 </div>
 
@@ -117,6 +127,17 @@ Kurator Pusaka : -
 <script>
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
+function convertDriveLink(url){
+    if(!url) return "";
+    if(url.includes("drive.google.com")){
+        const idMatch = url.match(/[-\w]{25,}/);
+        if(idMatch){
+            return "https://drive.google.com/uc?export=view&id=" + idMatch[0];
+        }
+    }
+    return url;
+}
+
 async function loadAnggota(){
     try{
         const response = await fetch(WEB_APP_URL);
@@ -124,11 +145,21 @@ async function loadAnggota(){
 
         let html="";
         data.reverse().forEach(row=>{
+
+            const fotoURL = convertDriveLink(row.foto);
+            const statusClass = row.status === "Aktif"
+                ? "status-aktif"
+                : "status-nonaktif";
+
             html+=`
             <tr>
-                <td><img src="${row.foto}" class="foto-kecil"></td>
+                <td>
+                    <img src="${fotoURL}" class="foto-kecil"
+                    onerror="this.src='https://via.placeholder.com/55'">
+                </td>
                 <td>${row.nama}</td>
                 <td>${row.nomor}</td>
+                <td><span class="${statusClass}">${row.status}</span></td>
             </tr>`;
         });
 
@@ -136,7 +167,7 @@ async function loadAnggota(){
 
     }catch{
         document.getElementById("listAnggota").innerHTML=
-        "<tr><td colspan='3'>Belum ada data.</td></tr>";
+        "<tr><td colspan='4'>Belum ada data.</td></tr>";
     }
 }
 
