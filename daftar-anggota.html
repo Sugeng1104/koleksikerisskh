@@ -109,7 +109,7 @@ th{ background:#222; color:gold; }
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- ================= PENGURUS ================= -->
+<!-- STRUKTUR -->
 <div class="card">
 <h2>Struktur Pengurus</h2>
 <div class="pengurus-list" id="strukturPengurus">
@@ -117,7 +117,7 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- ================= ANGGOTA ================= -->
+<!-- ANGGOTA -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -137,20 +137,18 @@ Memuat struktur...
 
 <div class="button-group">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-
 <a href="verifikasi.html">
 <button class="btn btn-green">Verifikasi QR</button>
 </a>
-
 <a href="index.html">
-<button class="btn btn-gold">Kembali ke Halaman Depan</button>
+<button class="btn btn-gold">Kembali</button>
 </a>
 </div>
 
 </div>
 </div>
 
-<!-- ================= MODAL DAFTAR ================= -->
+<!-- MODAL -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
@@ -168,83 +166,65 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-<script>
-    /* ================= LOAD STRUKTUR (VERSI FIX FINAL) ================= */
+//////////////////////////////////////////////////
+// LOAD STRUKTUR (Sinkron dengan admin.html)
+//////////////////////////////////////////////////
 
 function loadStruktur(){
-
     const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("strukturSKH"));
+    const data = JSON.parse(localStorage.getItem("pengurus"));
 
-    if(!data){
-        container.innerHTML = "Belum ditentukan.";
+    if(!data || data.length===0){
+        container.innerHTML="Belum ditentukan.";
         return;
     }
 
-    // Jika format lama (object langsung)
-    if(data.ketua || data.sekretaris || data.bendahara || data.kurator){
+    let ketua="-";
+    let sekretaris="-";
+    let bendahara="-";
+    let korektor="-";
 
-        container.innerHTML = `
-        Ketua : <strong>${data.ketua || "-"}</strong><br>
-        Sekretaris : ${data.sekretaris || "-"}<br>
-        Bendahara : ${data.bendahara || "-"}<br>
-        Korektor Pusaka : ${data.kurator || "-"}
-        `;
-        return;
-    }
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Korektor Pusaka") korektor=p.nama;
+    });
 
-    // Jika format baru (array multi-user dengan role)
-    if(Array.isArray(data)){
-
-        let ketua="-";
-        let sekretaris="-";
-        let bendahara="-";
-        let korektor="-";
-
-        data.forEach(p=>{
-            if(p.role==="Ketua") ketua=p.nama;
-            if(p.role==="Sekretaris") sekretaris=p.nama;
-            if(p.role==="Bendahara") bendahara=p.nama;
-            if(p.role==="Korektor Pusaka") korektor=p.nama;
-        });
-
-        container.innerHTML = `
-        Ketua : <strong>${ketua}</strong><br>
-        Sekretaris : ${sekretaris}<br>
-        Bendahara : ${bendahara}<br>
-        Korektor Pusaka : ${korektor}
-        `;
-        return;
-    }
-
-    container.innerHTML = "Struktur tidak valid.";
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Korektor Pusaka : ${korektor}
+    `;
 }
 
 loadStruktur();
 
-/* ================= LOAD ANGGOTA ================= */
+//////////////////////////////////////////////////
+// LOAD ANGGOTA
+//////////////////////////////////////////////////
 
 function convertDriveLink(url){
     if(!url) return "https://via.placeholder.com/55";
-    const match = url.match(/\/d\/(.*?)\//);
+    const match=url.match(/\/d\/(.*?)\//);
     if(match){
-        return "https://drive.google.com/uc?export=view&id=" + match[1];
+        return "https://drive.google.com/uc?export=view&id="+match[1];
     }
     return url;
 }
 
 async function loadAnggota(){
     try{
-        const res = await fetch(WEB_APP_URL);
-        const data = await res.json();
+        const res=await fetch(WEB_APP_URL);
+        const data=await res.json();
 
         let html="";
 
         data.reverse().forEach(row=>{
-
-            const foto = convertDriveLink(row["Foto"]);
-            const status = row["Status"] || "Tidak Aktif";
-            const statusClass = status==="Aktif" ? "status-aktif":"status-nonaktif";
+            const foto=convertDriveLink(row["Foto"]);
+            const status=row["Status"]||"Nonaktif";
+            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
             html+=`
             <tr>
@@ -265,7 +245,9 @@ async function loadAnggota(){
 
 loadAnggota();
 
-/* ================= FORM ================= */
+//////////////////////////////////////////////////
+// FORM
+//////////////////////////////////////////////////
 
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
@@ -276,7 +258,6 @@ function tutupForm(){
 }
 
 function kirim(){
-
     const nama=document.getElementById("nama").value.trim();
     const file=document.getElementById("foto").files[0];
 
@@ -288,7 +269,6 @@ function kirim(){
     const reader=new FileReader();
 
     reader.onload=async function(){
-
         await fetch(WEB_APP_URL,{
             method:"POST",
             body:JSON.stringify({
