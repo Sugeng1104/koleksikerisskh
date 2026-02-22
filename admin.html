@@ -1,194 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Admin Pro</title>
+<title>Dashboard Admin</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:linear-gradient(135deg,#000,#111,#001f1f);color:white;display:flex;min-height:100vh}
-.sidebar{width:230px;background:rgba(0,0,0,0.85);padding:20px;border-right:1px solid #00ffcc}
-.sidebar h2{color:#00ffcc;margin-bottom:20px}
-.sidebar button{width:100%;padding:10px;margin-bottom:10px;background:#00ffcc;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.content{flex:1;padding:30px}
-h1{color:#00ffcc;margin-bottom:20px}
-.glass{background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin-bottom:30px;border:1px solid rgba(0,255,204,0.3)}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.1)}
-th{color:#00ffcc;text-align:left}
-button{padding:5px 10px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.add{background:#00cc66;color:white}
-.delete{background:#ff0033;color:white}
-select,input{padding:5px;border-radius:6px;border:none;margin-right:5px}
-#loginPopup{position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:flex;justify-content:center;align-items:center;z-index:999}
-.loginBox{background:#111;padding:30px;border-radius:12px;width:300px;text-align:center;border:1px solid #00ffcc}
-.loginBox h3{color:#00ffcc;margin-bottom:20px}
-.loginBox input{width:100%;margin-bottom:15px}
-#notif{position:fixed;top:20px;right:20px;background:#00cc66;padding:12px 20px;border-radius:8px;display:none}
+body{
+  margin:0;
+  background:linear-gradient(to right,black,#001f1f);
+  color:#00ffcc;
+  font-family:Arial;
+}
+.sidebar{
+  width:220px;
+  height:100vh;
+  background:black;
+  position:fixed;
+  padding:20px;
+}
+.sidebar button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  background:#00ffcc;
+  border:none;
+  cursor:pointer;
+}
+.content{
+  margin-left:240px;
+  padding:30px;
+}
+.card{
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+}
+input,select{
+  padding:8px;
+}
+button.tambah{
+  background:#00cc66;
+  color:white;
+  border:none;
+  padding:8px 12px;
+}
+button.hapus{
+  background:red;
+  color:white;
+  border:none;
+  padding:6px 10px;
+}
 </style>
 </head>
 <body>
 
-<div id="loginPopup">
-  <div class="loginBox">
-    <h3>Login Admin</h3>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Sandi">
-    <button onclick="login()">Login</button>
-  </div>
-</div>
-
 <div class="sidebar">
   <h2>ADMIN</h2>
-  <div id="roleInfo"></div>
+  <p id="userInfo"></p>
+  <p id="roleInfo"></p>
+
+  <button onclick="window.location.href='index.html'">Halaman Depan</button>
+
+  <button id="menuKelola" style="display:none;"
+          onclick="window.location.href='kelola-akun.html'">
+    Kelola Akun
+  </button>
+
   <button onclick="logout()">Logout</button>
 </div>
 
 <div class="content">
-<h1>Dashboard Admin</h1>
-<div id="notif"></div>
+  <h1>Dashboard Admin</h1>
 
-<div class="glass" id="pengurusSection">
-<h2>Struktur Pengurus</h2>
-<input type="text" id="namaPengurus" placeholder="Nama Pengurus">
-<select id="jabatanPengurus">
-<option>Ketua</option>
-<option>Sekretaris</option>
-<option>Bendahara</option>
-<option>Korektor Pusaka</option>
-</select>
-<button class="add" onclick="tambahPengurus()">Tambah</button>
-<table>
-<thead><tr><th>Nama & Jabatan</th><th>Aksi</th></tr></thead>
-<tbody id="pengurusTable"></tbody>
-</table>
-</div>
-
-<div class="glass" id="anggotaSection">
-<h2>Daftar Anggota</h2>
-<table>
-<thead>
-<tr><th>No</th><th>Nama</th><th>Status</th><th>Aksi</th></tr>
-</thead>
-<tbody id="anggotaTable"></tbody>
-</table>
-</div>
-
-<div class="glass" id="adminSection">
-<h2>Manajemen Admin (Super Admin)</h2>
-<input type="text" id="newUser" placeholder="Username">
-<input type="password" id="newPass" placeholder="Password">
-<select id="newRole">
-<option>Ketua</option>
-<option>Sekretaris</option>
-<option>Bendahara</option>
-<option>Korektor Pusaka</option>
-</select>
-<button class="add" onclick="tambahAdmin()">Tambah Admin</button>
-<table>
-<thead><tr><th>Username</th><th>Role</th><th>Aksi</th></tr></thead>
-<tbody id="adminTable"></tbody>
-</table>
-</div>
+  <div class="card">
+    <h2>Struktur Pengurus</h2>
+    <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
+    <select id="jabatan">
+      <option>Ketua</option>
+      <option>Sekertaris</option>
+      <option>Bendahara</option>
+      <option>Korektor Pusaka</option>
+    </select>
+    <button class="tambah" onclick="tambahPengurus()">Tambah</button>
+    <ul id="listPengurus"></ul>
+  </div>
 
 </div>
 
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
-
-/* ===== ADMIN STORAGE ===== */
-let admins=JSON.parse(localStorage.getItem("admins")||"[]");
-if(admins.length===0){
-admins=[{username:"Sugeng11",password:"300507Sg#",role:"Super Admin"}];
-localStorage.setItem("admins",JSON.stringify(admins));
+if(localStorage.getItem("isLoggedIn")!=="true"){
+  window.location.href="login.html";
 }
 
-function login(){
-const user=username.value;
-const pass=password.value;
-const found=admins.find(a=>a.username===user&&a.password===pass);
-if(found){
-sessionStorage.setItem("adminUser",user);
-sessionStorage.setItem("adminRole",found.role);
-loginPopup.style.display="none";
-initRole();
-}else alert("Login gagal");
+const username=localStorage.getItem("username");
+const role=localStorage.getItem("role");
+
+document.getElementById("userInfo").innerText="User: "+username;
+document.getElementById("roleInfo").innerText="Role: "+role;
+
+if(role==="Super Admin"){
+  document.getElementById("menuKelola").style.display="block";
 }
 
-function logout(){sessionStorage.clear();location.reload();}
-
-function initRole(){
-const role=sessionStorage.getItem("adminRole");
-roleInfo.innerHTML="<p>Role: <b>"+role+"</b></p>";
-
-if(role!=="Super Admin") adminSection.style.display="none";
-if(role==="Bendahara"){pengurusSection.style.display="none";}
-if(role==="Korektor Pusaka"){anggotaSection.style.display="none";}
-if(role==="Sekretaris"){pengurusSection.style.display="none";}
+function logout(){
+  localStorage.clear();
+  window.location.href="login.html";
 }
 
-window.onload=function(){
-if(sessionStorage.getItem("adminUser")){loginPopup.style.display="none";initRole();}
-loadPengurus();loadAnggota();loadAdminTable();
+let pengurus=JSON.parse(localStorage.getItem("pengurus"))||[];
+
+function tampilPengurus(){
+  const list=document.getElementById("listPengurus");
+  list.innerHTML="";
+  pengurus.forEach((p,i)=>{
+    list.innerHTML+=`
+      <li>
+        ${p.nama} - ${p.jabatan}
+        <button class="hapus" onclick="hapusPengurus(${i})">Hapus</button>
+      </li>
+    `;
+  });
 }
 
-/* ===== NOTIF ===== */
-function showNotif(msg,color="#00cc66"){notif.innerText=msg;notif.style.background=color;notif.style.display="block";setTimeout(()=>notif.style.display="none",2000);}
-
-/* ===== ADMIN CRUD ===== */
-function loadAdminTable(){
-adminTable.innerHTML="";
-admins.forEach((a,i)=>{
-if(a.role!=="Super Admin"){
-adminTable.innerHTML+=`<tr><td>${a.username}</td><td>${a.role}</td><td><button class="delete" onclick="hapusAdmin(${i})">Hapus</button></td></tr>`;
-}});
-}
-function tambahAdmin(){
-admins.push({username:newUser.value,password:newPass.value,role:newRole.value});
-localStorage.setItem("admins",JSON.stringify(admins));
-loadAdminTable();showNotif("Admin ditambahkan");
-}
-function hapusAdmin(i){
-admins.splice(i,1);
-localStorage.setItem("admins",JSON.stringify(admins));
-loadAdminTable();showNotif("Admin dihapus","#ff0033");
-}
-
-/* ===== PENGURUS ===== */
-function loadPengurus(){
-const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-pengurusTable.innerHTML="";
-data.forEach((p,i)=>{
-pengurusTable.innerHTML+=`<tr><td>${p.nama} - <b>${p.jabatan}</b></td><td><button class="delete" onclick="hapusPengurus(${i})">Hapus</button></td></tr>`;
-});
-}
 function tambahPengurus(){
-const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-data.push({nama:namaPengurus.value,jabatan:jabatanPengurus.value});
-localStorage.setItem("pengurus",JSON.stringify(data));
-loadPengurus();showNotif("Pengurus ditambahkan");
-}
-function hapusPengurus(i){
-const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-data.splice(i,1);
-localStorage.setItem("pengurus",JSON.stringify(data));
-loadPengurus();showNotif("Pengurus dihapus","#ff0033");
+  const nama=document.getElementById("namaPengurus").value;
+  const jabatan=document.getElementById("jabatan").value;
+  if(nama==="") return alert("Isi nama!");
+
+  pengurus.push({nama,jabatan});
+  localStorage.setItem("pengurus",JSON.stringify(pengurus));
+  tampilPengurus();
 }
 
-/* ===== ANGGOTA ===== */
-async function loadAnggota(){
-const res=await fetch(WEB_APP_URL);
-const data=await res.json();
-anggotaTable.innerHTML="";
-data.forEach(r=>{
-anggotaTable.innerHTML+=`
-<tr>
-<td>${r["No Anggota"]}</td>
-<td>${r["Nama Lengkap"]}</td>
-<td>${r.Status}</td>
-<td></td>
-</tr>`;
-});
+function hapusPengurus(i){
+  pengurus.splice(i,1);
+  localStorage.setItem("pengurus",JSON.stringify(pengurus));
+  tampilPengurus();
 }
+
+tampilPengurus();
 </script>
 
 </body>
