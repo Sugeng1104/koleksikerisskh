@@ -2,93 +2,28 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin Premium</title>
-
+<title>Admin Pro</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{
-  background:linear-gradient(135deg,#000000,#111111,#001f1f);
-  color:white;
-  min-height:100vh;
-  display:flex;
-}
-.sidebar{
-  width:220px;
-  background:rgba(0,0,0,0.8);
-  backdrop-filter:blur(10px);
-  padding:20px;
-  border-right:1px solid #00ffcc;
-}
-.sidebar h2{color:#00ffcc;margin-bottom:30px;}
-.sidebar button{
-  width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  background:#00ffcc;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
-  cursor:pointer;
-}
-.content{flex:1;padding:30px;}
-h1{margin-bottom:20px;color:#00ffcc;}
-.glass{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(15px);
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:30px;
-  border:1px solid rgba(0,255,204,0.3);
-}
-table{width:100%;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.1);}
-th{color:#00ffcc;text-align:left;}
-button{
-  padding:6px 12px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:bold;
-}
+body{background:linear-gradient(135deg,#000,#111,#001f1f);color:white;display:flex;min-height:100vh}
+.sidebar{width:230px;background:rgba(0,0,0,0.85);padding:20px;border-right:1px solid #00ffcc}
+.sidebar h2{color:#00ffcc;margin-bottom:20px}
+.sidebar button{width:100%;padding:10px;margin-bottom:10px;background:#00ffcc;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
+.content{flex:1;padding:30px}
+h1{color:#00ffcc;margin-bottom:20px}
+.glass{background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin-bottom:30px;border:1px solid rgba(0,255,204,0.3)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.1)}
+th{color:#00ffcc;text-align:left}
+button{padding:5px 10px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
 .add{background:#00cc66;color:white}
 .delete{background:#ff0033;color:white}
-select,input{
-  padding:6px;
-  border-radius:6px;
-  border:none;
-  margin-right:5px;
-}
-#loginPopup{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,0.9);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:999;
-}
-.loginBox{
-  background:#111;
-  padding:30px;
-  border-radius:12px;
-  width:300px;
-  text-align:center;
-  border:1px solid #00ffcc;
-}
-.loginBox h3{margin-bottom:20px;color:#00ffcc;}
-.loginBox input{width:100%;margin-bottom:15px;}
-.loginBox button{width:100%;background:#00ffcc;}
-#notif{
-  position:fixed;
-  top:20px;
-  right:20px;
-  background:#00cc66;
-  padding:12px 20px;
-  border-radius:8px;
-  display:none;
-  font-weight:bold;
-}
+select,input{padding:5px;border-radius:6px;border:none;margin-right:5px}
+#loginPopup{position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:flex;justify-content:center;align-items:center;z-index:999}
+.loginBox{background:#111;padding:30px;border-radius:12px;width:300px;text-align:center;border:1px solid #00ffcc}
+.loginBox h3{color:#00ffcc;margin-bottom:20px}
+.loginBox input{width:100%;margin-bottom:15px}
+#notif{position:fixed;top:20px;right:20px;background:#00cc66;padding:12px 20px;border-radius:8px;display:none}
 </style>
 </head>
 <body>
@@ -104,7 +39,7 @@ select,input{
 
 <div class="sidebar">
   <h2>ADMIN</h2>
-  <button onclick="window.location.href='index.html'">Halaman Depan</button>
+  <div id="roleInfo"></div>
   <button onclick="logout()">Logout</button>
 </div>
 
@@ -112,159 +47,148 @@ select,input{
 <h1>Dashboard Admin</h1>
 <div id="notif"></div>
 
-<div class="glass">
+<div class="glass" id="pengurusSection">
 <h2>Struktur Pengurus</h2>
-
 <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
-
 <select id="jabatanPengurus">
-  <option value="Ketua">Ketua</option>
-  <option value="Sekretaris">Sekretaris</option>
-  <option value="Bendahara">Bendahara</option>
-  <option value="Korektor Pusaka">Korektor Pusaka</option>
+<option>Ketua</option>
+<option>Sekretaris</option>
+<option>Bendahara</option>
+<option>Korektor Pusaka</option>
 </select>
-
 <button class="add" onclick="tambahPengurus()">Tambah</button>
-
 <table>
-<thead>
-<tr><th>Nama & Jabatan</th><th>Aksi</th></tr>
-</thead>
+<thead><tr><th>Nama & Jabatan</th><th>Aksi</th></tr></thead>
 <tbody id="pengurusTable"></tbody>
 </table>
 </div>
 
-<div class="glass">
+<div class="glass" id="anggotaSection">
 <h2>Daftar Anggota</h2>
 <table>
 <thead>
-<tr>
-<th>No Anggota</th>
-<th>Nama</th>
-<th>Status</th>
-<th>Aksi</th>
-</tr>
+<tr><th>No</th><th>Nama</th><th>Status</th><th>Aksi</th></tr>
 </thead>
 <tbody id="anggotaTable"></tbody>
 </table>
 </div>
+
+<div class="glass" id="adminSection">
+<h2>Manajemen Admin (Super Admin)</h2>
+<input type="text" id="newUser" placeholder="Username">
+<input type="password" id="newPass" placeholder="Password">
+<select id="newRole">
+<option>Ketua</option>
+<option>Sekretaris</option>
+<option>Bendahara</option>
+<option>Korektor Pusaka</option>
+</select>
+<button class="add" onclick="tambahAdmin()">Tambah Admin</button>
+<table>
+<thead><tr><th>Username</th><th>Role</th><th>Aksi</th></tr></thead>
+<tbody id="adminTable"></tbody>
+</table>
+</div>
+
 </div>
 
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-/* ================= MULTI USER ================= */
-const adminUsers=[
-  {username:"Sugeng11",password:"300507Sg#"},
-  {username:"Admin2",password:"12345"},
-  {username:"Bendahara1",password:"bendahara2026"}
-];
+/* ===== ADMIN STORAGE ===== */
+let admins=JSON.parse(localStorage.getItem("admins")||"[]");
+if(admins.length===0){
+admins=[{username:"Sugeng11",password:"300507Sg#",role:"Super Admin"}];
+localStorage.setItem("admins",JSON.stringify(admins));
+}
 
 function login(){
-  const user=username.value;
-  const pass=password.value;
-  const valid=adminUsers.find(a=>a.username===user&&a.password===pass);
-  if(valid){
-    sessionStorage.setItem("adminLogin","true");
-    sessionStorage.setItem("adminUser",user);
-    loginPopup.style.display="none";
-  }else{
-    alert("Username atau Sandi salah!");
-  }
+const user=username.value;
+const pass=password.value;
+const found=admins.find(a=>a.username===user&&a.password===pass);
+if(found){
+sessionStorage.setItem("adminUser",user);
+sessionStorage.setItem("adminRole",found.role);
+loginPopup.style.display="none";
+initRole();
+}else alert("Login gagal");
 }
-function logout(){
-  sessionStorage.clear();
-  location.reload();
+
+function logout(){sessionStorage.clear();location.reload();}
+
+function initRole(){
+const role=sessionStorage.getItem("adminRole");
+roleInfo.innerHTML="<p>Role: <b>"+role+"</b></p>";
+
+if(role!=="Super Admin") adminSection.style.display="none";
+if(role==="Bendahara"){pengurusSection.style.display="none";}
+if(role==="Korektor Pusaka"){anggotaSection.style.display="none";}
+if(role==="Sekretaris"){pengurusSection.style.display="none";}
 }
+
 window.onload=function(){
-  if(sessionStorage.getItem("adminLogin")==="true"){
-    loginPopup.style.display="none";
-  }
+if(sessionStorage.getItem("adminUser")){loginPopup.style.display="none";initRole();}
+loadPengurus();loadAnggota();loadAdminTable();
 }
 
-/* ================= NOTIF ================= */
-function showNotif(msg,color="#00cc66"){
-  notif.innerText=msg;
-  notif.style.background=color;
-  notif.style.display="block";
-  setTimeout(()=>notif.style.display="none",2000);
+/* ===== NOTIF ===== */
+function showNotif(msg,color="#00cc66"){notif.innerText=msg;notif.style.background=color;notif.style.display="block";setTimeout(()=>notif.style.display="none",2000);}
+
+/* ===== ADMIN CRUD ===== */
+function loadAdminTable(){
+adminTable.innerHTML="";
+admins.forEach((a,i)=>{
+if(a.role!=="Super Admin"){
+adminTable.innerHTML+=`<tr><td>${a.username}</td><td>${a.role}</td><td><button class="delete" onclick="hapusAdmin(${i})">Hapus</button></td></tr>`;
+}});
+}
+function tambahAdmin(){
+admins.push({username:newUser.value,password:newPass.value,role:newRole.value});
+localStorage.setItem("admins",JSON.stringify(admins));
+loadAdminTable();showNotif("Admin ditambahkan");
+}
+function hapusAdmin(i){
+admins.splice(i,1);
+localStorage.setItem("admins",JSON.stringify(admins));
+loadAdminTable();showNotif("Admin dihapus","#ff0033");
 }
 
-/* ================= PENGURUS ================= */
+/* ===== PENGURUS ===== */
 function loadPengurus(){
-  const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-  pengurusTable.innerHTML="";
-  data.forEach((item,i)=>{
-    pengurusTable.innerHTML+=`
-      <tr>
-        <td>${item.nama} - <b>${item.jabatan}</b></td>
-        <td><button class="delete" onclick="hapusPengurus(${i})">Hapus</button></td>
-      </tr>`;
-  });
+const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
+pengurusTable.innerHTML="";
+data.forEach((p,i)=>{
+pengurusTable.innerHTML+=`<tr><td>${p.nama} - <b>${p.jabatan}</b></td><td><button class="delete" onclick="hapusPengurus(${i})">Hapus</button></td></tr>`;
+});
 }
 function tambahPengurus(){
-  const nama=namaPengurus.value;
-  const jabatan=jabatanPengurus.value;
-  if(!nama)return;
-  const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-  data.push({nama,jabatan});
-  localStorage.setItem("pengurus",JSON.stringify(data));
-  namaPengurus.value="";
-  loadPengurus();
-  showNotif("Pengurus ditambahkan");
+const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
+data.push({nama:namaPengurus.value,jabatan:jabatanPengurus.value});
+localStorage.setItem("pengurus",JSON.stringify(data));
+loadPengurus();showNotif("Pengurus ditambahkan");
 }
 function hapusPengurus(i){
-  const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-  data.splice(i,1);
-  localStorage.setItem("pengurus",JSON.stringify(data));
-  loadPengurus();
-  showNotif("Pengurus dihapus","#ff0033");
+const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
+data.splice(i,1);
+localStorage.setItem("pengurus",JSON.stringify(data));
+loadPengurus();showNotif("Pengurus dihapus","#ff0033");
 }
 
-/* ================= ANGGOTA ================= */
+/* ===== ANGGOTA ===== */
 async function loadAnggota(){
-  const res=await fetch(WEB_APP_URL);
-  const data=await res.json();
-  anggotaTable.innerHTML="";
-  data.forEach(row=>{
-    anggotaTable.innerHTML+=`
-      <tr>
-        <td>${row["No Anggota"]}</td>
-        <td>${row["Nama Lengkap"]}</td>
-        <td>
-          <select onchange="updateStatus('${row["No Anggota"]}',this.value)">
-            <option value="Aktif" ${row.Status==="Aktif"?"selected":""}>Aktif</option>
-            <option value="Tidak Aktif" ${row.Status==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
-          </select>
-        </td>
-        <td>
-          <button class="delete" onclick="hapusAnggota('${row["No Anggota"]}',this)">Hapus</button>
-        </td>
-      </tr>`;
-  });
+const res=await fetch(WEB_APP_URL);
+const data=await res.json();
+anggotaTable.innerHTML="";
+data.forEach(r=>{
+anggotaTable.innerHTML+=`
+<tr>
+<td>${r["No Anggota"]}</td>
+<td>${r["Nama Lengkap"]}</td>
+<td>${r.Status}</td>
+<td></td>
+</tr>`;
+});
 }
-async function updateStatus(no,status){
-  await fetch(WEB_APP_URL,{
-    method:"POST",
-    body:JSON.stringify({action:"updateStatus",noAnggota:no,status})
-  });
-  showNotif("Status diperbarui");
-}
-async function hapusAnggota(no,btn){
-  if(!confirm("Yakin hapus anggota?"))return;
-  const res=await fetch(WEB_APP_URL,{
-    method:"POST",
-    body:JSON.stringify({action:"delete",noAnggota:no})
-  });
-  const r=await res.json();
-  if(r.status==="success"){
-    btn.closest("tr").remove();
-    showNotif("Anggota dihapus","#ff0033");
-  }
-}
-
-loadPengurus();
-loadAnggota();
 </script>
 
 </body>
