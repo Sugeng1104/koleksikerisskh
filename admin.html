@@ -85,10 +85,10 @@ th,td{
     <h2>Struktur Pengurus</h2>
     <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
     <select id="jabatan">
-      <option>Ketua</option>
-      <option>Sekertaris</option>
-      <option>Bendahara</option>
-      <option>Korektor Pusaka</option>
+     <option>Ketua</option>
+     <option>Sekertaris</option>
+     <option>Bendahara</option>
+     <option>Korektor Pusaka</option>
     </select>
     <button class="tambah" onclick="tambahPengurus()">Tambah</button>
     <ul id="listPengurus"></ul>
@@ -114,7 +114,16 @@ th,td{
 </div>
 
 <script>
-if(localStorage.getItem("isLoggedIn")!=="true"){
+
+//////////////////////////////////////////////////
+// CEK LOGIN
+//////////////////////////////////////////////////
+
+if(
+  localStorage.getItem("isLoggedIn")!=="true" ||
+  !localStorage.getItem("username") ||
+  !localStorage.getItem("role")
+){
   window.location.href="login.html";
 }
 
@@ -128,8 +137,14 @@ if(role==="Super Admin"){
   document.getElementById("menuKelola").style.display="block";
 }
 
+//////////////////////////////////////////////////
+// LOGOUT (FIX - DATA TIDAK TERHAPUS)
+//////////////////////////////////////////////////
+
 function logout(){
-  localStorage.clear();
+  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("username");
+  localStorage.removeItem("role");
   window.location.href="login.html";
 }
 
@@ -137,11 +152,17 @@ function logout(){
 // STRUKTUR PENGURUS
 //////////////////////////////////////////////////
 
-let pengurus=JSON.parse(localStorage.getItem("pengurus"))||[];
+let pengurus = JSON.parse(localStorage.getItem("pengurus")) || [];
 
 function tampilPengurus(){
   const list=document.getElementById("listPengurus");
   list.innerHTML="";
+
+  if(pengurus.length===0){
+    list.innerHTML="<li>Belum ada pengurus</li>";
+    return;
+  }
+
   pengurus.forEach((p,i)=>{
     list.innerHTML+=`
       <li>
@@ -153,12 +174,15 @@ function tampilPengurus(){
 }
 
 function tambahPengurus(){
-  const nama=document.getElementById("namaPengurus").value;
+  const nama=document.getElementById("namaPengurus").value.trim();
   const jabatan=document.getElementById("jabatan").value;
+
   if(nama==="") return alert("Isi nama!");
 
   pengurus.push({nama,jabatan});
   localStorage.setItem("pengurus",JSON.stringify(pengurus));
+
+  document.getElementById("namaPengurus").value="";
   tampilPengurus();
 }
 
@@ -174,12 +198,15 @@ tampilPengurus();
 // DAFTAR ANGGOTA
 //////////////////////////////////////////////////
 
-let anggota=JSON.parse(localStorage.getItem("anggota"))||[
-  {no:"SKH-0001", nama:"Sugeng Hidayat", status:"Aktif"},
-  {no:"SKH-0002", nama:"Muhammad Muslim", status:"Aktif"}
-];
+let anggota = JSON.parse(localStorage.getItem("anggota"));
 
-localStorage.setItem("anggota",JSON.stringify(anggota));
+if(!anggota){
+  anggota = [
+    {no:"SKH-0001", nama:"Sugeng Hidayat", status:"Aktif"},
+    {no:"SKH-0002", nama:"Muhammad Muslim", status:"Aktif"}
+  ];
+  localStorage.setItem("anggota",JSON.stringify(anggota));
+}
 
 function tampilAnggota(){
   const tabel=document.getElementById("tabelAnggota");
@@ -214,11 +241,11 @@ function hapusAnggota(i){
     anggota.splice(i,1);
     localStorage.setItem("anggota",JSON.stringify(anggota));
     tampilAnggota();
-    alert("Berhasil dihapus!");
   }
 }
 
 tampilAnggota();
+
 </script>
 
 </body>
