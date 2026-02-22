@@ -16,9 +16,9 @@
       background:#111;
       padding:30px;
       border-radius:10px;
-      width:300px;
+      width:320px;
     }
-    input{
+    input, select{
       width:100%;
       padding:10px;
       margin:10px 0;
@@ -39,17 +39,27 @@
 <body>
 
 <div class="login-box">
-  <h2>Login Admin</h2>
+  <h2>Login Panel</h2>
+
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
+
+  <select id="role">
+    <option value="">-- Pilih Role --</option>
+    <option value="Super Admin">Super Admin</option>
+    <option value="Admin">Admin</option>
+  </select>
+
   <button onclick="login()">Login</button>
 </div>
 
 <script>
 const defaultUsers = [
-  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" }
+  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
+  { username:"Admin1", password:"admin123", role:"Admin" }
 ];
 
+// Simpan default user jika belum ada
 if(!localStorage.getItem("adminUsers")){
   localStorage.setItem("adminUsers", JSON.stringify(defaultUsers));
 }
@@ -57,10 +67,19 @@ if(!localStorage.getItem("adminUsers")){
 function login(){
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
+  const selectedRole = document.getElementById("role").value;
+
+  if(selectedRole === ""){
+    return alert("Pilih role terlebih dahulu!");
+  }
 
   const users = JSON.parse(localStorage.getItem("adminUsers"));
 
-  const user = users.find(u=>u.username===username && u.password===password);
+  const user = users.find(u =>
+    u.username === username &&
+    u.password === password &&
+    u.role === selectedRole
+  );
 
   if(user){
     localStorage.setItem("isLoggedIn","true");
@@ -68,7 +87,7 @@ function login(){
     localStorage.setItem("role",user.role);
     window.location.href="admin.html";
   }else{
-    alert("Username atau password salah!");
+    alert("Login gagal! Username / Password / Role salah.");
   }
 }
 </script>
