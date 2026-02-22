@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Admin</title>
+  <style>
+    body{
+      background:black;
+      color:#00ffcc;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      font-family:Arial;
+    }
+    .login-box{
+      background:#111;
+      padding:30px;
+      border-radius:10px;
+      width:300px;
+    }
+    input{
+      width:100%;
+      padding:10px;
+      margin:10px 0;
+      background:#222;
+      border:1px solid #00ffcc;
+      color:white;
+    }
+    button{
+      width:100%;
+      padding:10px;
+      background:#00ffcc;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Login Admin</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
+
+<script>
+const defaultUsers = [
+  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" }
+];
+
+if(!localStorage.getItem("adminUsers")){
+  localStorage.setItem("adminUsers", JSON.stringify(defaultUsers));
+}
+
+function login(){
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const users = JSON.parse(localStorage.getItem("adminUsers"));
+
+  const user = users.find(u=>u.username===username && u.password===password);
+
+  if(user){
+    localStorage.setItem("isLoggedIn","true");
+    localStorage.setItem("username",user.username);
+    localStorage.setItem("role",user.role);
+    window.location.href="admin.html";
+  }else{
+    alert("Username atau password salah!");
+  }
+}
+</script>
+
+</body>
+</html>
