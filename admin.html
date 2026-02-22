@@ -1,155 +1,113 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin SKH</title>
+<title>Admin Panel</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#111;color:#eee;padding:30px}
-h1{color:gold}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{border:1px solid #333;padding:8px;text-align:center}
-th{background:#222;color:gold}
-button{padding:6px 12px;margin:4px;border:none;border-radius:4px;font-weight:bold;cursor:pointer}
-.btn-red{background:#b30000;color:white}
-select{padding:5px}
-.back{position:fixed;top:20px;right:30px;background:gold;padding:8px 15px;color:black;text-decoration:none;border-radius:5px;font-weight:bold}
-#notif{
-position:fixed;
-bottom:20px;
-right:20px;
-background:#28a745;
-color:white;
-padding:10px 20px;
-border-radius:6px;
-display:none;
-font-weight:bold;
-}
+body{font-family:Arial;margin:20px;background:#f5f5f5}
+h2{margin-top:40px}
+table{border-collapse:collapse;width:100%;background:white}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th{background:#007bff;color:white}
+button{padding:6px 10px;margin:2px;border:none;border-radius:4px;cursor:pointer}
+.edit{background:orange;color:white}
+.delete{background:red;color:white}
+.save{background:green;color:white}
+.back{background:#444;color:white;margin-top:20px}
 </style>
 </head>
 <body>
 
-<a href="index.html" class="back">Kembali</a>
+<h1>HALAMAN ADMIN</h1>
 
-<h1>ADMIN PANEL SKH</h1>
-
+<h2>Daftar Anggota</h2>
 <table>
 <thead>
 <tr>
-<th>No</th>
-<th>Nama</th>
 <th>No Anggota</th>
+<th>Nama</th>
 <th>Status</th>
 <th>Aksi</th>
 </tr>
 </thead>
-<tbody id="tabelAnggota">
-<tr><td colspan="5">Memuat...</td></tr>
-</tbody>
+<tbody id="anggotaTable"></tbody>
 </table>
 
-<div id="notif"></div>
+<button class="back" onclick="window.location.href='index.html'">Kembali ke Halaman Depan</button>
 
 <script>
-
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
-
-/* ================= NOTIFIKASI ================= */
-
-function showNotif(pesan,color="#28a745"){
-    const notif=document.getElementById("notif");
-    notif.innerText=pesan;
-    notif.style.background=color;
-    notif.style.display="block";
-    setTimeout(()=>notif.style.display="none",3000);
-}
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
 /* ================= LOAD DATA ================= */
-
 async function loadAnggota(){
+  const res = await fetch(WEB_APP_URL);
+  const data = await res.json();
 
-    const res=await fetch(WEB_APP_URL+"?t="+Date.now()); // anti cache
-    const data=await res.json();
+  const tbody = document.getElementById("anggotaTable");
+  tbody.innerHTML = "";
 
-    let html="";
+  data.forEach(row=>{
+    const tr = document.createElement("tr");
 
-    data.forEach((row,i)=>{
+    tr.innerHTML = `
+      <td>${row["No Anggota"]}</td>
+      <td>${row["Nama Lengkap"]}</td>
+      <td>
+        <select onchange="updateStatus('${row["No Anggota"]}',this.value)">
+          <option value="Aktif" ${row.Status==="Aktif"?"selected":""}>Aktif</option>
+          <option value="Tidak Aktif" ${row.Status==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+        </select>
+      </td>
+      <td>
+        <button class="delete" onclick="hapusAnggota('${row["No Anggota"]}',this)">Hapus</button>
+      </td>
+    `;
 
-        html+=`
-        <tr>
-            <td>${i+1}</td>
-            <td>${row["Nama Lengkap"]}</td>
-            <td>${row["No Anggota"]}</td>
-            <td>
-                <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
-                    <option value="Aktif" ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
-                    <option value="Tidak Aktif" ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
-                </select>
-            </td>
-            <td>
-                <button class="btn-red" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
-            </td>
-        </tr>
-        `;
-    });
-
-    document.getElementById("tabelAnggota").innerHTML=html;
+    tbody.appendChild(tr);
+  });
 }
-
 
 /* ================= UPDATE STATUS ================= */
+async function updateStatus(noAnggota,status){
 
-async function ubahStatus(noAnggota,status){
+  await fetch(WEB_APP_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"updateStatus",
+      noAnggota:noAnggota,
+      status:status
+    })
+  });
 
-    const res=await fetch(WEB_APP_URL,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-            action:"updateStatus",
-            noAnggota:noAnggota,
-            status:status
-        })
-    });
-
-    const result=await res.json();
-
-    if(result.status==="success"){
-        showNotif("Status berhasil diperbarui");
-        loadAnggota();
-    }else{
-        showNotif("Gagal memperbarui status","#b30000");
-    }
+  alert("Status berhasil diperbarui");
 }
 
+/* ================= HAPUS ================= */
+async function hapusAnggota(noAnggota,btn){
 
-/* ================= HAPUS ANGGOTA ================= */
+  if(!confirm("Yakin ingin menghapus anggota ini?")) return;
 
-async function hapusAnggota(noAnggota){
+  const res = await fetch(WEB_APP_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"delete",
+      noAnggota:noAnggota
+    })
+  });
 
-    if(!confirm("Yakin ingin menghapus anggota ini?")) return;
+  const result = await res.json();
 
-    const res=await fetch(WEB_APP_URL,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-            action:"delete",
-            noAnggota:noAnggota
-        })
-    });
-
-    const result=await res.json();
-
-    if(result.status==="success"){
-        showNotif("Anggota berhasil dihapus");
-        loadAnggota();
-    }else{
-        showNotif("Gagal menghapus anggota","#b30000");
-    }
+  if(result.status === "success"){
+    btn.closest("tr").remove();
+    alert("Anggota berhasil dihapus");
+  }else{
+    alert("Gagal menghapus: "+result.message);
+  }
 }
 
+/* ================= START ================= */
 loadAnggota();
-
 </script>
 
 </body>
