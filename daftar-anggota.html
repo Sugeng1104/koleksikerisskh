@@ -15,10 +15,10 @@ body{
 }
 .container{ max-width:1100px; margin:auto; }
 
-h1{ 
-    color:gold; 
-    text-align:center; 
-    margin-bottom:40px; 
+h1{
+    color:gold;
+    text-align:center;
+    margin-bottom:40px;
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
@@ -30,15 +30,9 @@ h1{
     box-shadow:0 0 20px rgba(212,175,55,0.3);
 }
 
-h2{
-    color:gold;
-    margin-bottom:15px;
-}
+h2{ color:gold; margin-bottom:15px; }
 
-.pengurus-list{
-    font-size:18px;
-    line-height:1.8;
-}
+.pengurus-list{ font-size:18px; line-height:1.8; }
 
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
 
@@ -81,9 +75,7 @@ th{ background:#222; color:gold; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
 
-.button-group{
-    margin-top:15px;
-}
+.button-group{ margin-top:15px; }
 
 #modalDaftar{
     display:none;
@@ -120,11 +112,8 @@ th{ background:#222; color:gold; }
 <!-- ================= PENGURUS ================= -->
 <div class="card">
 <h2>Struktur Pengurus</h2>
-<div class="pengurus-list">
-Ketua : <strong>Sugeng Hidayat</strong><br>
-Sekretaris : -<br>
-Bendahara : -<br>
-Kurator Pusaka : -
+<div class="pengurus-list" id="strukturPengurus">
+Memuat struktur...
 </div>
 </div>
 
@@ -179,8 +168,31 @@ Kurator Pusaka : -
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
+/* ================= LOAD STRUKTUR ================= */
+
+function loadStruktur(){
+
+    const data = JSON.parse(localStorage.getItem("strukturSKH"));
+
+    if(!data){
+        document.getElementById("strukturPengurus").innerHTML="Belum ditentukan.";
+        return;
+    }
+
+    document.getElementById("strukturPengurus").innerHTML=`
+    Ketua : <strong>${data.ketua||"-"}</strong><br>
+    Sekretaris : ${data.sekretaris||"-"}<br>
+    Bendahara : ${data.bendahara||"-"}<br>
+    Kurator Pusaka : ${data.kurator||"-"}
+    `;
+}
+
+loadStruktur();
+
+/* ================= LOAD ANGGOTA ================= */
+
 function convertDriveLink(url){
-    if(!url) return "";
+    if(!url) return "https://via.placeholder.com/55";
     const match = url.match(/\/d\/(.*?)\//);
     if(match){
         return "https://drive.google.com/uc?export=view&id=" + match[1];
@@ -189,30 +201,38 @@ function convertDriveLink(url){
 }
 
 async function loadAnggota(){
-    const res = await fetch(WEB_APP_URL);
-    const data = await res.json();
+    try{
+        const res = await fetch(WEB_APP_URL);
+        const data = await res.json();
 
-    let html="";
+        let html="";
 
-    data.reverse().forEach(row=>{
+        data.reverse().forEach(row=>{
 
-        const foto = convertDriveLink(row["Foto"]);
-        const status = row["Status"] || "Non Aktif";
-        const statusClass = status==="Aktif" ? "status-aktif":"status-nonaktif";
+            const foto = convertDriveLink(row["Foto"]);
+            const status = row["Status"] || "Tidak Aktif";
+            const statusClass = status==="Aktif" ? "status-aktif":"status-nonaktif";
 
-        html+=`
-        <tr>
-            <td><img src="${foto}" class="foto-kecil"></td>
-            <td>${row["Nama Lengkap"]}</td>
-            <td>${row["No Anggota"]}</td>
-            <td><span class="${statusClass}">${status}</span></td>
-        </tr>`;
-    });
+            html+=`
+            <tr>
+                <td><img src="${foto}" class="foto-kecil"></td>
+                <td>${row["Nama Lengkap"]||"-"}</td>
+                <td>${row["No Anggota"]||"-"}</td>
+                <td><span class="${statusClass}">${status}</span></td>
+            </tr>`;
+        });
 
-    document.getElementById("listAnggota").innerHTML=html;
+        document.getElementById("listAnggota").innerHTML=html;
+
+    }catch(error){
+        document.getElementById("listAnggota").innerHTML=
+        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+    }
 }
 
 loadAnggota();
+
+/* ================= FORM ================= */
 
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
@@ -224,9 +244,11 @@ function tutupForm(){
 
 function kirim(){
 
+    const nama=document.getElementById("nama").value.trim();
     const file=document.getElementById("foto").files[0];
-    if(!file){
-        alert("Foto wajib diupload");
+
+    if(!nama || !file){
+        alert("Nama dan Foto wajib diisi");
         return;
     }
 
@@ -237,7 +259,8 @@ function kirim(){
         await fetch(WEB_APP_URL,{
             method:"POST",
             body:JSON.stringify({
-                nama:document.getElementById("nama").value,
+                action:"add",
+                nama:nama,
                 gelar:document.getElementById("gelar").value,
                 alamat:document.getElementById("alamat").value,
                 nohp:document.getElementById("nohp").value,
@@ -255,5 +278,6 @@ function kirim(){
 }
 
 </script>
+
 </body>
 </html>
