@@ -49,6 +49,15 @@ button.hapus{
   border:none;
   padding:6px 10px;
 }
+table{
+  width:100%;
+  margin-top:15px;
+  border-collapse:collapse;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #333;
+}
 </style>
 </head>
 <body>
@@ -71,6 +80,7 @@ button.hapus{
 <div class="content">
   <h1>Dashboard Admin</h1>
 
+  <!-- STRUKTUR PENGURUS -->
   <div class="card">
     <h2>Struktur Pengurus</h2>
     <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
@@ -82,6 +92,23 @@ button.hapus{
     </select>
     <button class="tambah" onclick="tambahPengurus()">Tambah</button>
     <ul id="listPengurus"></ul>
+  </div>
+
+  <!-- DAFTAR ANGGOTA -->
+  <div class="card">
+    <h2>Daftar Anggota</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>No Anggota</th>
+          <th>Nama</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tabelAnggota"></tbody>
+    </table>
   </div>
 
 </div>
@@ -105,6 +132,10 @@ function logout(){
   localStorage.clear();
   window.location.href="login.html";
 }
+
+//////////////////////////////////////////////////
+// STRUKTUR PENGURUS
+//////////////////////////////////////////////////
 
 let pengurus=JSON.parse(localStorage.getItem("pengurus"))||[];
 
@@ -138,6 +169,56 @@ function hapusPengurus(i){
 }
 
 tampilPengurus();
+
+//////////////////////////////////////////////////
+// DAFTAR ANGGOTA
+//////////////////////////////////////////////////
+
+let anggota=JSON.parse(localStorage.getItem("anggota"))||[
+  {no:"SKH-0001", nama:"Sugeng Hidayat", status:"Aktif"},
+  {no:"SKH-0002", nama:"Muhammad Muslim", status:"Aktif"}
+];
+
+localStorage.setItem("anggota",JSON.stringify(anggota));
+
+function tampilAnggota(){
+  const tabel=document.getElementById("tabelAnggota");
+  tabel.innerHTML="";
+
+  anggota.forEach((a,i)=>{
+    tabel.innerHTML+=`
+      <tr>
+        <td>${a.no}</td>
+        <td>${a.nama}</td>
+        <td>
+          <select onchange="ubahStatus(${i}, this.value)">
+            <option ${a.status==="Aktif"?"selected":""}>Aktif</option>
+            <option ${a.status==="Nonaktif"?"selected":""}>Nonaktif</option>
+          </select>
+        </td>
+        <td>
+          <button class="hapus" onclick="hapusAnggota(${i})">Hapus</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function ubahStatus(i,status){
+  anggota[i].status=status;
+  localStorage.setItem("anggota",JSON.stringify(anggota));
+}
+
+function hapusAnggota(i){
+  if(confirm("Yakin ingin menghapus anggota ini?")){
+    anggota.splice(i,1);
+    localStorage.setItem("anggota",JSON.stringify(anggota));
+    tampilAnggota();
+    alert("Berhasil dihapus!");
+  }
+}
+
+tampilAnggota();
 </script>
 
 </body>
