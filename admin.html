@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin SKH</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#111;
+    color:#eee;
+    padding:30px;
+}
+
+h2{
+    color:gold;
+    margin-top:40px;
+}
+
+button{
+    padding:6px 12px;
+    margin:4px;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-gold{
+    background:gold;
+}
+
+.btn-red{
+    background:#b30000;
+    color:white;
+}
+
+.btn-green{
+    background:#006600;
+    color:white;
+}
+
+input, select{
+    padding:6px;
+    margin:5px 0;
+    border-radius:4px;
+    border:none;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th, td{
+    border:1px solid #333;
+    padding:8px;
+    text-align:center;
+}
+
+th{
+    background:#222;
+    color:gold;
+}
+
+tr:nth-child(even){
+    background:#1a1a1a;
+}
+
+.back{
+    position:fixed;
+    top:20px;
+    right:30px;
+    background:gold;
+    padding:8px 15px;
+    color:black;
+    text-decoration:none;
+    font-weight:bold;
+    border-radius:5px;
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html" class="back">Kembali</a>
+
+<h1>ADMIN PANEL SKH</h1>
+
+<!-- ===================== PENGURUS ===================== -->
+<h2>Kelola Pengurus</h2>
+
+<input type="text" id="namaPengurus" placeholder="Nama Pengurus">
+<button class="btn-gold" onclick="tambahPengurus()">Tambah</button>
+
+<ul id="listPengurus"></ul>
+
+
+<!-- ===================== ANGGOTA ===================== -->
+<h2>Data Anggota</h2>
+
+<table id="tabelAnggota">
+<thead>
+<tr>
+<th>No</th>
+<th>Nama</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+
+const scriptURL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+
+/* ===================== PENGURUS ===================== */
+
+function loadPengurus(){
+    const data = JSON.parse(localStorage.getItem("pengurusSKH")) || [];
+    const list = document.getElementById("listPengurus");
+    list.innerHTML="";
+
+    data.forEach((nama,index)=>{
+        const li = document.createElement("li");
+        li.innerHTML = `
+            ${nama}
+            <button class="btn-green" onclick="editPengurus(${index})">Edit</button>
+            <button class="btn-red" onclick="hapusPengurus(${index})">Hapus</button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+function tambahPengurus(){
+    const nama = document.getElementById("namaPengurus").value.trim();
+    if(!nama) return alert("Isi nama dulu!");
+
+    const data = JSON.parse(localStorage.getItem("pengurusSKH")) || [];
+    data.push(nama);
+    localStorage.setItem("pengurusSKH", JSON.stringify(data));
+    document.getElementById("namaPengurus").value="";
+    loadPengurus();
+}
+
+function editPengurus(index){
+    const data = JSON.parse(localStorage.getItem("pengurusSKH"));
+    const namaBaru = prompt("Edit nama:", data[index]);
+    if(namaBaru){
+        data[index] = namaBaru;
+        localStorage.setItem("pengurusSKH", JSON.stringify(data));
+        loadPengurus();
+    }
+}
+
+function hapusPengurus(index){
+    if(!confirm("Yakin hapus?")) return;
+    const data = JSON.parse(localStorage.getItem("pengurusSKH"));
+    data.splice(index,1);
+    localStorage.setItem("pengurusSKH", JSON.stringify(data));
+    loadPengurus();
+}
+
+
+/* ===================== ANGGOTA ===================== */
+
+async function loadAnggota(){
+    const res = await fetch(scriptURL);
+    const data = await res.json();
+
+    const tbody = document.querySelector("#tabelAnggota tbody");
+    tbody.innerHTML="";
+
+    data.forEach((item,index)=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML=`
+            <td>${index+1}</td>
+            <td>${item.nama || "-"}</td>
+            <td>
+                <select onchange="ubahStatus(${index}, this.value)">
+                    <option value="Aktif" ${item.status==="Aktif"?"selected":""}>Aktif</option>
+                    <option value="Tidak Aktif" ${item.status==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn-red" onclick="hapusAnggota(${index})">Hapus</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function ubahStatus(index,status){
+    alert("Fungsi ubah status perlu dihubungkan ke Google Apps Script (mode POST).");
+}
+
+function hapusAnggota(index){
+    alert("Fungsi hapus perlu dihubungkan ke Google Apps Script (mode POST).");
+}
+
+loadPengurus();
+loadAnggota();
+
+</script>
+
+</body>
+</html>
