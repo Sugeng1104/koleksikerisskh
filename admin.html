@@ -2,66 +2,42 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin SKH</title>
 
 <style>
-body{
-background:#000;
-color:white;
-font-family:Georgia,serif;
-padding:40px;
-}
-
-h1{
-color:gold;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
-
-th,td{
-border:1px solid #333;
-padding:10px;
-text-align:center;
-}
-
-th{
-background:#111;
-color:gold;
-}
-
-select{
-padding:5px;
-}
-
-button{
-padding:6px 12px;
-border:none;
-cursor:pointer;
-border-radius:5px;
-font-weight:bold;
-}
-
-.btn-hapus{
-background:red;
-color:white;
-}
-
-.btn-kembali{
-background:gold;
-color:black;
-margin-top:30px;
-padding:10px 20px;
-}
+body{margin:0;font-family:Arial;background:#111;color:#eee;padding:30px}
+h1,h2{color:gold}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{border:1px solid #333;padding:8px;text-align:center}
+th{background:#222;color:gold}
+button{padding:6px 12px;margin:4px;border:none;border-radius:4px;font-weight:bold;cursor:pointer}
+.btn-gold{background:gold}
+.btn-red{background:#b30000;color:white}
+select{padding:5px}
+.back{position:fixed;top:20px;right:30px;background:gold;padding:8px 15px;color:black;text-decoration:none;border-radius:5px;font-weight:bold}
 </style>
 </head>
-
 <body>
 
-<h1>Data Anggota</h1>
+<a href="index.html" class="back">Kembali</a>
+
+<h1>ADMIN PANEL SKH</h1>
+
+<!-- ================= PENGURUS ================= -->
+<h2>Kelola Struktur Pengurus</h2>
+
+<table>
+<tr><td>Ketua</td><td><select id="ketua"></select></td></tr>
+<tr><td>Sekretaris</td><td><select id="sekretaris"></select></td></tr>
+<tr><td>Bendahara</td><td><select id="bendahara"></select></td></tr>
+<tr><td>Kurator Pusaka</td><td><select id="kurator"></select></td></tr>
+</table>
+
+<button class="btn-gold" onclick="simpanPengurus()">Simpan Struktur</button>
+
+<!-- ================= ANGGOTA ================= -->
+<h2>Data Anggota</h2>
 
 <table>
 <thead>
@@ -73,79 +49,131 @@ padding:10px 20px;
 <th>Aksi</th>
 </tr>
 </thead>
-<tbody id="dataBody">
+<tbody id="tabelAnggota">
 <tr><td colspan="5">Memuat...</td></tr>
 </tbody>
 </table>
 
-<a href="index.html">
-<button class="btn-kembali">Kembali ke Halaman Depan</button>
-</a>
-
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-async function loadData(){
-const res = await fetch(WEB_APP_URL);
-const data = await res.json();
+let anggotaGlobal=[];
 
-let html="";
-data.forEach((row,index)=>{
+/* ================= LOAD ANGGOTA ================= */
 
-html+=`
-<tr>
-<td>${index+1}</td>
-<td>${row["Nama Lengkap"]}</td>
-<td>${row["No Anggota"]}</td>
-<td>
-<select onchange="updateStatus('${row["No Anggota"]}', this.value)">
-<option ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
-<option ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
-</select>
-</td>
-<td>
-<button class="btn-hapus" onclick="hapus('${row["No Anggota"]}')">Hapus</button>
-</td>
-</tr>
-`;
-});
+async function loadAnggota(){
 
-document.getElementById("dataBody").innerHTML=html;
+    const res=await fetch(WEB_APP_URL);
+    const data=await res.json();
+
+    anggotaGlobal=data;
+    tampilTabel(data);
+    isiDropdownPengurus();
 }
 
-async function updateStatus(noAnggota,status){
+function tampilTabel(data){
 
-await fetch(WEB_APP_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"updateStatus",
-noAnggota:noAnggota,
-status:status
-})
-});
+    let html="";
 
-loadData();
+    data.forEach((row,i)=>{
+
+        html+=`
+        <tr>
+            <td>${i+1}</td>
+            <td>${row["Nama Lengkap"]}</td>
+            <td>${row["No Anggota"]}</td>
+            <td>
+                <select onchange="ubahStatus('${row["No Anggota"]}',this.value)">
+                    <option ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
+                    <option ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn-red" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("tabelAnggota").innerHTML=html;
 }
 
-async function hapus(noAnggota){
+/* ================= UPDATE STATUS ================= */
 
-if(!confirm("Yakin ingin menghapus anggota ini?")) return;
+async function ubahStatus(noAnggota,status){
 
-await fetch(WEB_APP_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"delete",
-noAnggota:noAnggota
-})
-});
+    await fetch(WEB_APP_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"updateStatus",
+            noAnggota:noAnggota,
+            status:status
+        })
+    });
 
-loadData();
+    loadAnggota();
 }
 
-loadData();
+/* ================= HAPUS ================= */
+
+async function hapusAnggota(noAnggota){
+
+    if(!confirm("Yakin hapus anggota?")) return;
+
+    await fetch(WEB_APP_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"delete",
+            noAnggota:noAnggota
+        })
+    });
+
+    loadAnggota();
+}
+
+/* ================= PENGURUS ================= */
+
+function isiDropdownPengurus(){
+
+    const aktif=anggotaGlobal.filter(a=>a["Status"]==="Aktif");
+
+    ["ketua","sekretaris","bendahara","kurator"].forEach(id=>{
+        const select=document.getElementById(id);
+        select.innerHTML="<option value=''>-- Pilih --</option>";
+        aktif.forEach(a=>{
+            select.innerHTML+=`<option value="${a["Nama Lengkap"]}">${a["Nama Lengkap"]}</option>`;
+        });
+    });
+
+    loadStruktur();
+}
+
+function simpanPengurus(){
+
+    const data={
+        ketua:ketua.value,
+        sekretaris:sekretaris.value,
+        bendahara:bendahara.value,
+        kurator:kurator.value
+    };
+
+    localStorage.setItem("strukturSKH",JSON.stringify(data));
+    alert("Struktur disimpan!");
+}
+
+function loadStruktur(){
+
+    const data=JSON.parse(localStorage.getItem("strukturSKH"));
+    if(!data) return;
+
+    ketua.value=data.ketua||"";
+    sekretaris.value=data.sekretaris||"";
+    bendahara.value=data.bendahara||"";
+    kurator.value=data.kurator||"";
+}
+
+loadAnggota();
 
 </script>
-
 </body>
 </html>
