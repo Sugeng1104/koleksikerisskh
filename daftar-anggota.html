@@ -15,7 +15,12 @@ body{
 }
 .container{ max-width:1100px; margin:auto; }
 
-h1{ color:gold; text-align:center; margin-bottom:40px; }
+h1{ 
+    color:gold; 
+    text-align:center; 
+    margin-bottom:40px; 
+    text-shadow:0 0 10px rgba(212,175,55,0.6);
+}
 
 .card{
     background:#111;
@@ -23,6 +28,16 @@ h1{ color:gold; text-align:center; margin-bottom:40px; }
     border-radius:15px;
     margin-bottom:25px;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+h2{
+    color:gold;
+    margin-bottom:15px;
+}
+
+.pengurus-list{
+    font-size:18px;
+    line-height:1.8;
 }
 
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
@@ -64,7 +79,6 @@ th{ background:#222; color:gold; }
 
 .btn-blue{ background:#007bff; color:white; }
 .btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
 
 #modalDaftar{
     display:none;
@@ -98,6 +112,18 @@ th{ background:#222; color:gold; }
 
 <h1>Komunitas Keris SKH</h1>
 
+<!-- ================= PENGURUS ================= -->
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<div class="pengurus-list">
+Ketua : <strong>Sugeng Hidayat</strong><br>
+Sekretaris : -<br>
+Bendahara : -<br>
+Kurator Pusaka : -
+</div>
+</div>
+
+<!-- ================= ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -124,6 +150,7 @@ th{ background:#222; color:gold; }
 </div>
 </div>
 
+<!-- ================= MODAL DAFTAR ================= -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
@@ -133,7 +160,7 @@ th{ background:#222; color:gold; }
 <input type="text" id="nohp" placeholder="No HP">
 <input type="file" id="foto">
 <button class="btn btn-blue" onclick="kirim()">Kirim</button>
-<button class="btn btn-gold" onclick="tutupForm()">Batal</button>
+<button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
 </div>
 
@@ -187,6 +214,11 @@ function tutupForm(){
 function kirim(){
 
     const file=document.getElementById("foto").files[0];
+    if(!file){
+        alert("Foto wajib diupload");
+        return;
+    }
+
     const reader=new FileReader();
 
     reader.onload=async function(){
