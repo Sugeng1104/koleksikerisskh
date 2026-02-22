@@ -212,6 +212,9 @@ function previewFoto(event){
 }
 
 /* KIRIM DATA */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
 async function kirim(){
 
     const nama = document.getElementById("namaLengkap").value.trim();
@@ -228,38 +231,74 @@ async function kirim(){
     const reader = new FileReader();
 
     reader.onload = async function(){
-        try {
-            const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI", {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({
-                    nama: nama,
-                    gelar: gelar,
-                    alamat: alamat,
-                    nohp: nohp,
-                    foto: reader.result,
-                    mimeType: fileInput.type
-                })
-            });
 
-            const result = await response.json();
+        const response = await fetch("ISI_URL_WEBAPP_ANDA_DISINI", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+                nama: nama,
+                gelar: gelar,
+                alamat: alamat,
+                nohp: nohp,
+                foto: reader.result,
+                mimeType: fileInput.type
+            })
+        });
 
-            if(result.status === "success"){
-                alert("✅ Pendaftaran Berhasil!\nNomor Anggota: " + result.nomor);
-                tutupForm();
-                loadAnggota();
-            } else {
-                alert("❌ Gagal: " + result.message);
-            }
+        const result = await response.json();
 
-        } catch(error){
-            alert("Koneksi ke server gagal.");
-            console.error(error);
+        if(result.status === "success"){
+
+            generateCard(nama, gelar, result.nomor, result.foto);
+
+            window.open(result.wa, "_blank");
+            window.open(result.waAdmin, "_blank");
+
+        } else {
+            alert("Gagal: " + result.message);
         }
     };
 
     reader.readAsDataURL(fileInput);
 }
+
+/* GENERATE KARTU */
+function generateCard(nama, gelar, nomor, foto){
+
+    const card = document.createElement("div");
+    card.style.width = "400px";
+    card.style.padding = "20px";
+    card.style.background = "black";
+    card.style.color = "gold";
+    card.style.textAlign = "center";
+    card.innerHTML = `
+        <h2>KARTU ANGGOTA SKH</h2>
+        <img src="${foto}" width="100"><br><br>
+        <strong>${nama}</strong><br>
+        ${gelar}<br><br>
+        Nomor: ${nomor}
+        <div id="qrcode"></div>
+    `;
+
+    document.body.appendChild(card);
+
+    new QRCode(card.querySelector("#qrcode"), {
+        text: nomor,
+        width: 100,
+        height: 100
+    });
+
+    setTimeout(()=>{
+        html2canvas(card).then(canvas=>{
+            const link = document.createElement("a");
+            link.download = nomor + ".png";
+            link.href = canvas.toDataURL();
+            link.click();
+            card.remove();
+        });
+    },1000);
+}
+</script>
 
 /* LOAD DATA ANGGOTA */
 async function loadAnggota(){
