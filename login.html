@@ -59,14 +59,23 @@ const defaultUsers = [
   { username:"Admin1", password:"admin123", role:"Admin" }
 ];
 
-// Simpan default user jika belum ada
-if(!localStorage.getItem("adminUsers")){
-  localStorage.setItem("adminUsers", JSON.stringify(defaultUsers));
-}
+// Ambil data lama jika ada
+let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
+
+// Pastikan default user selalu ada
+defaultUsers.forEach(defUser => {
+  const exists = storedUsers.find(u => u.username === defUser.username);
+  if(!exists){
+    storedUsers.push(defUser);
+  }
+});
+
+// Simpan kembali ke localStorage
+localStorage.setItem("adminUsers", JSON.stringify(storedUsers));
 
 function login(){
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
   const selectedRole = document.getElementById("role").value;
 
   if(selectedRole === ""){
