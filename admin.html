@@ -7,15 +7,25 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#111;color:#eee;padding:30px}
-h1,h2{color:gold}
-table{width:100%;border-collapse:collapse;margin-top:15px}
+h1{color:gold}
+table{width:100%;border-collapse:collapse;margin-top:20px}
 th,td{border:1px solid #333;padding:8px;text-align:center}
 th{background:#222;color:gold}
 button{padding:6px 12px;margin:4px;border:none;border-radius:4px;font-weight:bold;cursor:pointer}
-.btn-gold{background:gold}
 .btn-red{background:#b30000;color:white}
 select{padding:5px}
 .back{position:fixed;top:20px;right:30px;background:gold;padding:8px 15px;color:black;text-decoration:none;border-radius:5px;font-weight:bold}
+#notif{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#28a745;
+color:white;
+padding:10px 20px;
+border-radius:6px;
+display:none;
+font-weight:bold;
+}
 </style>
 </head>
 <body>
@@ -23,8 +33,6 @@ select{padding:5px}
 <a href="index.html" class="back">Kembali</a>
 
 <h1>ADMIN PANEL SKH</h1>
-
-<h2>Data Anggota</h2>
 
 <table>
 <thead>
@@ -41,15 +49,27 @@ select{padding:5px}
 </tbody>
 </table>
 
+<div id="notif"></div>
+
 <script>
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+
+/* ================= NOTIFIKASI ================= */
+
+function showNotif(pesan,color="#28a745"){
+    const notif=document.getElementById("notif");
+    notif.innerText=pesan;
+    notif.style.background=color;
+    notif.style.display="block";
+    setTimeout(()=>notif.style.display="none",3000);
+}
 
 /* ================= LOAD DATA ================= */
 
 async function loadAnggota(){
 
-    const res=await fetch(WEB_APP_URL);
+    const res=await fetch(WEB_APP_URL+"?t="+Date.now()); // anti cache
     const data=await res.json();
 
     let html="";
@@ -82,11 +102,9 @@ async function loadAnggota(){
 
 async function ubahStatus(noAnggota,status){
 
-    await fetch(WEB_APP_URL,{
+    const res=await fetch(WEB_APP_URL,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
             action:"updateStatus",
             noAnggota:noAnggota,
@@ -94,7 +112,14 @@ async function ubahStatus(noAnggota,status){
         })
     });
 
-    loadAnggota();
+    const result=await res.json();
+
+    if(result.status==="success"){
+        showNotif("Status berhasil diperbarui");
+        loadAnggota();
+    }else{
+        showNotif("Gagal memperbarui status","#b30000");
+    }
 }
 
 
@@ -104,18 +129,23 @@ async function hapusAnggota(noAnggota){
 
     if(!confirm("Yakin ingin menghapus anggota ini?")) return;
 
-    await fetch(WEB_APP_URL,{
+    const res=await fetch(WEB_APP_URL,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
             action:"delete",
             noAnggota:noAnggota
         })
     });
 
-    loadAnggota();
+    const result=await res.json();
+
+    if(result.status==="success"){
+        showNotif("Anggota berhasil dihapus");
+        loadAnggota();
+    }else{
+        showNotif("Gagal menghapus anggota","#b30000");
+    }
 }
 
 loadAnggota();
