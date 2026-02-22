@@ -24,19 +24,6 @@ select{padding:5px}
 
 <h1>ADMIN PANEL SKH</h1>
 
-<!-- ================= PENGURUS ================= -->
-<h2>Kelola Struktur Pengurus</h2>
-
-<table>
-<tr><td>Ketua</td><td><select id="ketua"></select></td></tr>
-<tr><td>Sekretaris</td><td><select id="sekretaris"></select></td></tr>
-<tr><td>Bendahara</td><td><select id="bendahara"></select></td></tr>
-<tr><td>Kurator Pusaka</td><td><select id="kurator"></select></td></tr>
-</table>
-
-<button class="btn-gold" onclick="simpanPengurus()">Simpan Struktur</button>
-
-<!-- ================= ANGGOTA ================= -->
 <h2>Data Anggota</h2>
 
 <table>
@@ -58,21 +45,12 @@ select{padding:5px}
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-let anggotaGlobal=[];
-
-/* ================= LOAD ANGGOTA ================= */
+/* ================= LOAD DATA ================= */
 
 async function loadAnggota(){
 
     const res=await fetch(WEB_APP_URL);
     const data=await res.json();
-
-    anggotaGlobal=data;
-    tampilTabel(data);
-    isiDropdownPengurus();
-}
-
-function tampilTabel(data){
 
     let html="";
 
@@ -84,19 +62,21 @@ function tampilTabel(data){
             <td>${row["Nama Lengkap"]}</td>
             <td>${row["No Anggota"]}</td>
             <td>
-                <select onchange="ubahStatus('${row["No Anggota"]}',this.value)">
-                    <option ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
-                    <option ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+                <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
+                    <option value="Aktif" ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
+                    <option value="Tidak Aktif" ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
                 </select>
             </td>
             <td>
                 <button class="btn-red" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
             </td>
-        </tr>`;
+        </tr>
+        `;
     });
 
     document.getElementById("tabelAnggota").innerHTML=html;
 }
+
 
 /* ================= UPDATE STATUS ================= */
 
@@ -104,6 +84,9 @@ async function ubahStatus(noAnggota,status){
 
     await fetch(WEB_APP_URL,{
         method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
         body:JSON.stringify({
             action:"updateStatus",
             noAnggota:noAnggota,
@@ -114,14 +97,18 @@ async function ubahStatus(noAnggota,status){
     loadAnggota();
 }
 
-/* ================= HAPUS ================= */
+
+/* ================= HAPUS ANGGOTA ================= */
 
 async function hapusAnggota(noAnggota){
 
-    if(!confirm("Yakin hapus anggota?")) return;
+    if(!confirm("Yakin ingin menghapus anggota ini?")) return;
 
     await fetch(WEB_APP_URL,{
         method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
         body:JSON.stringify({
             action:"delete",
             noAnggota:noAnggota
@@ -131,49 +118,9 @@ async function hapusAnggota(noAnggota){
     loadAnggota();
 }
 
-/* ================= PENGURUS ================= */
-
-function isiDropdownPengurus(){
-
-    const aktif=anggotaGlobal.filter(a=>a["Status"]==="Aktif");
-
-    ["ketua","sekretaris","bendahara","kurator"].forEach(id=>{
-        const select=document.getElementById(id);
-        select.innerHTML="<option value=''>-- Pilih --</option>";
-        aktif.forEach(a=>{
-            select.innerHTML+=`<option value="${a["Nama Lengkap"]}">${a["Nama Lengkap"]}</option>`;
-        });
-    });
-
-    loadStruktur();
-}
-
-function simpanPengurus(){
-
-    const data={
-        ketua:ketua.value,
-        sekretaris:sekretaris.value,
-        bendahara:bendahara.value,
-        kurator:kurator.value
-    };
-
-    localStorage.setItem("strukturSKH",JSON.stringify(data));
-    alert("Struktur disimpan!");
-}
-
-function loadStruktur(){
-
-    const data=JSON.parse(localStorage.getItem("strukturSKH"));
-    if(!data) return;
-
-    ketua.value=data.ketua||"";
-    sekretaris.value=data.sekretaris||"";
-    bendahara.value=data.bendahara||"";
-    kurator.value=data.kurator||"";
-}
-
 loadAnggota();
 
 </script>
+
 </body>
 </html>
