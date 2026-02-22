@@ -6,206 +6,176 @@
 <title>Admin SKH</title>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:#111;
-    color:#eee;
-    padding:30px;
-}
-
-h2{
-    color:gold;
-    margin-top:40px;
-}
-
-button{
-    padding:6px 12px;
-    margin:4px;
-    border:none;
-    border-radius:4px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.btn-gold{
-    background:gold;
-}
-
-.btn-red{
-    background:#b30000;
-    color:white;
-}
-
-.btn-green{
-    background:#006600;
-    color:white;
-}
-
-input, select{
-    padding:6px;
-    margin:5px 0;
-    border-radius:4px;
-    border:none;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:15px;
-}
-
-th, td{
-    border:1px solid #333;
-    padding:8px;
-    text-align:center;
-}
-
-th{
-    background:#222;
-    color:gold;
-}
-
-tr:nth-child(even){
-    background:#1a1a1a;
-}
-
-.back{
-    position:fixed;
-    top:20px;
-    right:30px;
-    background:gold;
-    padding:8px 15px;
-    color:black;
-    text-decoration:none;
-    font-weight:bold;
-    border-radius:5px;
-}
+body{margin:0;font-family:Arial;background:#111;color:#eee;padding:30px}
+h1,h2{color:gold}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{border:1px solid #333;padding:8px;text-align:center}
+th{background:#222;color:gold}
+button{padding:6px 12px;margin:4px;border:none;border-radius:4px;font-weight:bold;cursor:pointer}
+.btn-gold{background:gold}
+.btn-red{background:#b30000;color:white}
+select{padding:5px}
+.back{position:fixed;top:20px;right:30px;background:gold;padding:8px 15px;color:black;text-decoration:none;border-radius:5px;font-weight:bold}
 </style>
 </head>
-
 <body>
 
 <a href="index.html" class="back">Kembali</a>
 
 <h1>ADMIN PANEL SKH</h1>
 
-<!-- ===================== PENGURUS ===================== -->
-<h2>Kelola Pengurus</h2>
+<!-- ================= PENGURUS ================= -->
+<h2>Kelola Struktur Pengurus</h2>
 
-<input type="text" id="namaPengurus" placeholder="Nama Pengurus">
-<button class="btn-gold" onclick="tambahPengurus()">Tambah</button>
+<table>
+<tr><td>Ketua</td><td><select id="ketua"></select></td></tr>
+<tr><td>Sekretaris</td><td><select id="sekretaris"></select></td></tr>
+<tr><td>Bendahara</td><td><select id="bendahara"></select></td></tr>
+<tr><td>Kurator Pusaka</td><td><select id="kurator"></select></td></tr>
+</table>
 
-<ul id="listPengurus"></ul>
+<button class="btn-gold" onclick="simpanPengurus()">Simpan Struktur</button>
 
-
-<!-- ===================== ANGGOTA ===================== -->
+<!-- ================= ANGGOTA ================= -->
 <h2>Data Anggota</h2>
 
-<table id="tabelAnggota">
+<table>
 <thead>
 <tr>
 <th>No</th>
 <th>Nama</th>
+<th>No Anggota</th>
 <th>Status</th>
 <th>Aksi</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="tabelAnggota">
+<tr><td colspan="5">Memuat...</td></tr>
+</tbody>
 </table>
 
 <script>
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
-/* ===================== PENGURUS ===================== */
+let anggotaGlobal=[];
 
-function loadPengurus(){
-    const data = JSON.parse(localStorage.getItem("pengurusSKH")) || [];
-    const list = document.getElementById("listPengurus");
-    list.innerHTML="";
-
-    data.forEach((nama,index)=>{
-        const li = document.createElement("li");
-        li.innerHTML = `
-            ${nama}
-            <button class="btn-green" onclick="editPengurus(${index})">Edit</button>
-            <button class="btn-red" onclick="hapusPengurus(${index})">Hapus</button>
-        `;
-        list.appendChild(li);
-    });
-}
-
-function tambahPengurus(){
-    const nama = document.getElementById("namaPengurus").value.trim();
-    if(!nama) return alert("Isi nama dulu!");
-
-    const data = JSON.parse(localStorage.getItem("pengurusSKH")) || [];
-    data.push(nama);
-    localStorage.setItem("pengurusSKH", JSON.stringify(data));
-    document.getElementById("namaPengurus").value="";
-    loadPengurus();
-}
-
-function editPengurus(index){
-    const data = JSON.parse(localStorage.getItem("pengurusSKH"));
-    const namaBaru = prompt("Edit nama:", data[index]);
-    if(namaBaru){
-        data[index] = namaBaru;
-        localStorage.setItem("pengurusSKH", JSON.stringify(data));
-        loadPengurus();
-    }
-}
-
-function hapusPengurus(index){
-    if(!confirm("Yakin hapus?")) return;
-    const data = JSON.parse(localStorage.getItem("pengurusSKH"));
-    data.splice(index,1);
-    localStorage.setItem("pengurusSKH", JSON.stringify(data));
-    loadPengurus();
-}
-
-
-/* ===================== ANGGOTA ===================== */
+/* ================= LOAD ANGGOTA ================= */
 
 async function loadAnggota(){
-    const res = await fetch(scriptURL);
-    const data = await res.json();
 
-    const tbody = document.querySelector("#tabelAnggota tbody");
-    tbody.innerHTML="";
+    const res=await fetch(WEB_APP_URL);
+    const data=await res.json();
 
-    data.forEach((item,index)=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML=`
-            <td>${index+1}</td>
-            <td>${item.nama || "-"}</td>
+    anggotaGlobal=data;
+    tampilTabel(data);
+    isiDropdownPengurus();
+}
+
+function tampilTabel(data){
+
+    let html="";
+
+    data.forEach((row,i)=>{
+
+        html+=`
+        <tr>
+            <td>${i+1}</td>
+            <td>${row["Nama Lengkap"]}</td>
+            <td>${row["No Anggota"]}</td>
             <td>
-                <select onchange="ubahStatus(${index}, this.value)">
-                    <option value="Aktif" ${item.status==="Aktif"?"selected":""}>Aktif</option>
-                    <option value="Tidak Aktif" ${item.status==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+                <select onchange="ubahStatus(${row.rowIndex},this.value)">
+                    <option ${row["Status"]==="Aktif"?"selected":""}>Aktif</option>
+                    <option ${row["Status"]==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
                 </select>
             </td>
             <td>
-                <button class="btn-red" onclick="hapusAnggota(${index})">Hapus</button>
+                <button class="btn-red" onclick="hapusAnggota(${row.rowIndex})">Hapus</button>
             </td>
-        `;
-        tbody.appendChild(tr);
+        </tr>`;
     });
+
+    document.getElementById("tabelAnggota").innerHTML=html;
 }
 
-function ubahStatus(index,status){
-    alert("Fungsi ubah status perlu dihubungkan ke Google Apps Script (mode POST).");
+/* ================= UPDATE STATUS ================= */
+
+async function ubahStatus(rowIndex,status){
+
+    await fetch(WEB_APP_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"updateStatus",
+            rowIndex:rowIndex,
+            status:status
+        })
+    });
+
+    alert("Status diperbarui");
+    loadAnggota();
 }
 
-function hapusAnggota(index){
-    alert("Fungsi hapus perlu dihubungkan ke Google Apps Script (mode POST).");
+/* ================= HAPUS ================= */
+
+async function hapusAnggota(rowIndex){
+
+    if(!confirm("Yakin hapus anggota?")) return;
+
+    await fetch(WEB_APP_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"delete",
+            rowIndex:rowIndex
+        })
+    });
+
+    alert("Anggota dihapus");
+    loadAnggota();
 }
 
-loadPengurus();
+/* ================= PENGURUS ================= */
+
+function isiDropdownPengurus(){
+
+    const aktif=anggotaGlobal.filter(a=>a["Status"]==="Aktif");
+
+    ["ketua","sekretaris","bendahara","kurator"].forEach(id=>{
+        const select=document.getElementById(id);
+        select.innerHTML="<option value=''>-- Pilih --</option>";
+        aktif.forEach(a=>{
+            select.innerHTML+=`<option value="${a["Nama Lengkap"]}">${a["Nama Lengkap"]}</option>`;
+        });
+    });
+
+    loadStruktur();
+}
+
+function simpanPengurus(){
+
+    const data={
+        ketua:ketua.value,
+        sekretaris:sekretaris.value,
+        bendahara:bendahara.value,
+        kurator:kurator.value
+    };
+
+    localStorage.setItem("strukturSKH",JSON.stringify(data));
+    alert("Struktur disimpan!");
+}
+
+function loadStruktur(){
+
+    const data=JSON.parse(localStorage.getItem("strukturSKH"));
+    if(!data) return;
+
+    ketua.value=data.ketua||"";
+    sekretaris.value=data.sekretaris||"";
+    bendahara.value=data.bendahara||"";
+    kurator.value=data.kurator||"";
+}
+
 loadAnggota();
 
 </script>
-
 </body>
 </html>
