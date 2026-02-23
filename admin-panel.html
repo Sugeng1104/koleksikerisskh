@@ -2,17 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel SKH</title>
+<title>Admin Panel SKH Level 3</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
     font-family:Georgia,serif;
-    background:#111;
+    background:#0f172a;
     color:white;
     padding:40px;
 }
 .card{
-    max-width:700px;
+    max-width:900px;
     margin:auto;
     background:#1e293b;
     padding:25px;
@@ -35,53 +36,32 @@ button{
     cursor:pointer;
     margin-top:5px;
 }
-.logout{
-    background:red;
-    color:white;
-}
-.preview{
-    margin-top:10px;
-    text-align:center;
-}
-.preview img{
-    max-width:200px;
-    border-radius:10px;
-    margin-top:10px;
-    border:2px solid gold;
-}
-.list{
-    margin-top:30px;
-}
+.logout{background:red;color:white;}
+.preview img{max-width:200px;border-radius:10px;margin-top:10px;border:2px solid gold;}
 .item{
-    background:#0f172a;
+    background:#111827;
     padding:10px;
     border-radius:10px;
-    margin-bottom:10px;
+    margin-top:10px;
 }
-.item img{
-    width:80px;
-    height:80px;
-    object-fit:cover;
-    border-radius:8px;
-    margin-right:10px;
-}
-.flex{
-    display:flex;
-    align-items:center;
-}
-.hapus{
-    background:red;
-    color:white;
-    padding:5px 10px;
-    border-radius:6px;
-    margin-left:auto;
+.flex{display:flex;align-items:center;}
+.item img{width:80px;height:80px;object-fit:cover;border-radius:8px;margin-right:10px;}
+.hapus{background:red;color:white;margin-left:auto;}
+.edit{background:orange;color:black;margin-left:5px;}
+canvas{background:white;border-radius:10px;margin-top:20px;}
+.dropzone{
+    border:2px dashed gold;
+    padding:15px;
+    text-align:center;
+    margin-top:10px;
+    cursor:pointer;
 }
 </style>
 </head>
 <body>
 
 <div class="card">
-<h2>Tambah Koleksi Pusaka SKH</h2>
+<h2>Admin Koleksi Pusaka SKH - Level 3</h2>
 
 <input id="nomor" placeholder="Nomor Sertifikat">
 <input id="nama" placeholder="Nama Pusaka">
@@ -89,236 +69,215 @@ button{
 <input id="jenis" placeholder="Jenis">
 <input id="periode" placeholder="Periode">
 <textarea id="deskripsi" placeholder="Deskripsi"></textarea>
-<input type="file" id="foto" accept="image/*">
+
+<div class="dropzone" id="dropzone">
+Drag & Drop Foto di sini atau klik untuk pilih
+<input type="file" id="foto" accept="image/*" style="display:none">
+</div>
 
 <div class="preview" id="preview"></div>
 
-<button onclick="simpan()">Simpan</button>
+<button onclick="simpan()">Simpan / Update</button>
 <button class="logout" onclick="logout()">Logout</button>
 
-<div class="list" id="daftarKoleksi"></div>
+<hr>
+
+<h3>Statistik Koleksi</h3>
+<canvas id="chart" height="120"></canvas>
+
+<hr>
+
+<h3>Daftar Koleksi</h3>
+<div id="daftarKoleksi"></div>
 
 </div>
 
 <script>
-
 //////////////////////////////////////////////////
-// VALIDASI LOGIN
+// LOGIN CHECK
 //////////////////////////////////////////////////
-
-if(localStorage.getItem("adminLogin") !== "true"){
+if(localStorage.getItem("adminLogin")!=="true"){
     window.location.replace("index.html");
+}
+
+//////////////////////////////////////////////////
+// ENKRIPSI RINGAN
+//////////////////////////////////////////////////
+function encrypt(data){
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+}
+function decrypt(data){
+    return JSON.parse(decodeURIComponent(escape(atob(data))));
 }
 
 //////////////////////////////////////////////////
 // DATABASE
 //////////////////////////////////////////////////
-
 function getDB(){
-    return JSON.parse(localStorage.getItem("dataPusaka") || "[]");
+    let raw=localStorage.getItem("dataPusaka");
+    if(!raw) return [];
+    return decrypt(raw);
 }
-
 function setDB(data){
-    localStorage.setItem("dataPusaka", JSON.stringify(data));
+    localStorage.setItem("dataPusaka", encrypt(data));
 }
 
-let modeEdit = false;
-let indexEdit = null;
+//////////////////////////////////////////////////
+// HASH GENERATOR
+//////////////////////////////////////////////////
+function generateHash(nomor,nama){
+    return btoa(nomor+nama+Date.now()).substring(0,20);
+}
 
 //////////////////////////////////////////////////
-// PREVIEW FOTO
+// DRAG DROP
 //////////////////////////////////////////////////
+const dropzone=document.getElementById("dropzone");
+const fileInput=document.getElementById("foto");
 
-document.getElementById("foto").addEventListener("change", function(){
-    const file = this.files[0];
+dropzone.onclick=()=>fileInput.click();
+dropzone.ondragover=e=>{e.preventDefault();dropzone.style.background="#334155";}
+dropzone.ondragleave=e=>{dropzone.style.background="transparent";}
+dropzone.ondrop=e=>{
+    e.preventDefault();
+    fileInput.files=e.dataTransfer.files;
+    previewImage();
+};
+fileInput.addEventListener("change",previewImage);
+
+function previewImage(){
+    const file=fileInput.files[0];
     if(!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e){
-        document.getElementById("preview").innerHTML =
+    const reader=new FileReader();
+    reader.onload=e=>{
+        document.getElementById("preview").innerHTML=
         `<img src="${e.target.result}">`;
     };
     reader.readAsDataURL(file);
-});
+}
 
 //////////////////////////////////////////////////
-// SIMPAN / UPDATE DATA
+// SIMPAN / UPDATE
 //////////////////////////////////////////////////
+let editIndex=null;
 
 function simpan(){
+    let db=getDB();
 
-    let db = getDB();
+    let nomor=document.getElementById("nomor").value.trim();
+    let nama=document.getElementById("nama").value.trim();
+    let pemilik=document.getElementById("pemilik").value.trim();
+    let jenis=document.getElementById("jenis").value.trim();
+    let periode=document.getElementById("periode").value.trim();
+    let deskripsi=document.getElementById("deskripsi").value.trim();
+    let file=fileInput.files[0];
 
-    let nomor = document.getElementById("nomor").value.trim();
-    let nama = document.getElementById("nama").value.trim();
-    let pemilik = document.getElementById("pemilik").value.trim();
-    let jenis = document.getElementById("jenis").value.trim();
-    let periode = document.getElementById("periode").value.trim();
-    let deskripsi = document.getElementById("deskripsi").value.trim();
-    let file = document.getElementById("foto").files[0];
-
-    if(!nomor || !nama){
+    if(!nomor||!nama){
         alert("Nomor dan Nama wajib diisi!");
         return;
     }
 
-    // MODE TAMBAH BARU
-    if(!modeEdit){
+    function saveData(fotoData){
 
-        if(!file){
-            alert("Foto wajib diisi!");
-            return;
-        }
-
-        if(db.find(d => d.nomor === nomor)){
-            alert("Nomor sudah ada!");
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function(e){
-
-            db.push({
-                nomor,
-                nama,
-                pemilik,
-                jenis,
-                periode,
-                deskripsi,
-                foto: e.target.result,
-                timestamp: Date.now()
-            });
-
-            setDB(db);
-            resetForm();
-            tampilkanData();
-            alert("Data berhasil disimpan!");
+        let dataObj={
+            nomor,nama,pemilik,jenis,periode,deskripsi,
+            foto:fotoData,
+            hash:generateHash(nomor,nama),
+            timestamp:Date.now()
         };
 
-        reader.readAsDataURL(file);
+        if(editIndex!==null){
+            db[editIndex]=dataObj;
+            logAction("UPDATE",nomor);
+            editIndex=null;
+        }else{
+            db.push(dataObj);
+            logAction("CREATE",nomor);
+        }
+
+        setDB(db);
+        tampilkanData();
+        resetForm();
     }
 
-    // MODE UPDATE
-    else{
-
-        let dataLama = db[indexEdit];
-
-        if(file){
-            const reader = new FileReader();
-            reader.onload = function(e){
-                dataLama.foto = e.target.result;
-                simpanUpdate(db, dataLama, nomor,nama,pemilik,jenis,periode,deskripsi);
-            };
-            reader.readAsDataURL(file);
+    if(file){
+        const reader=new FileReader();
+        reader.onload=e=>saveData(e.target.result);
+        reader.readAsDataURL(file);
+    }else{
+        if(editIndex!==null){
+            saveData(db[editIndex].foto);
         }else{
-            simpanUpdate(db, dataLama, nomor,nama,pemilik,jenis,periode,deskripsi);
+            alert("Foto wajib diisi!");
         }
     }
 }
 
-function simpanUpdate(db, dataLama, nomor,nama,pemilik,jenis,periode,deskripsi){
-
-    dataLama.nama = nama;
-    dataLama.pemilik = pemilik;
-    dataLama.jenis = jenis;
-    dataLama.periode = periode;
-    dataLama.deskripsi = deskripsi;
-    dataLama.updateAt = Date.now();
-
-    setDB(db);
-    resetForm();
-    tampilkanData();
-    alert("Data berhasil diperbarui!");
-}
-
 //////////////////////////////////////////////////
-// EDIT DATA
+// LOG HISTORI
 //////////////////////////////////////////////////
-
-function edit(index){
-
-    let db = getDB();
-    let item = db[index];
-
-    document.getElementById("nomor").value = item.nomor;
-    document.getElementById("nama").value = item.nama;
-    document.getElementById("pemilik").value = item.pemilik;
-    document.getElementById("jenis").value = item.jenis;
-    document.getElementById("periode").value = item.periode;
-    document.getElementById("deskripsi").value = item.deskripsi;
-
-    document.getElementById("nomor").disabled = true;
-
-    document.getElementById("preview").innerHTML =
-    `<img src="${item.foto}">`;
-
-    modeEdit = true;
-    indexEdit = index;
-
-    window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function batalEdit(){
-    resetForm();
-}
-
-function resetForm(){
-    document.getElementById("nomor").value="";
-    document.getElementById("nama").value="";
-    document.getElementById("pemilik").value="";
-    document.getElementById("jenis").value="";
-    document.getElementById("periode").value="";
-    document.getElementById("deskripsi").value="";
-    document.getElementById("foto").value="";
-    document.getElementById("preview").innerHTML="";
-    document.getElementById("nomor").disabled=false;
-
-    modeEdit=false;
-    indexEdit=null;
+function logAction(type,nomor){
+    let log=JSON.parse(localStorage.getItem("logSKH")||"[]");
+    log.push({
+        type,nomor,
+        time:new Date().toLocaleString()
+    });
+    localStorage.setItem("logSKH",JSON.stringify(log));
 }
 
 //////////////////////////////////////////////////
 // TAMPILKAN DATA
 //////////////////////////////////////////////////
-
 function tampilkanData(){
-
-    let db = getDB();
-    let container = document.getElementById("daftarKoleksi");
-    container.innerHTML = "<h3>Daftar Koleksi</h3>";
-
-    if(db.length===0){
-        container.innerHTML += "<p>Belum ada koleksi.</p>";
-        return;
-    }
+    let db=getDB();
+    let container=document.getElementById("daftarKoleksi");
+    container.innerHTML="";
 
     db.forEach((item,index)=>{
-        container.innerHTML += `
+        container.innerHTML+=`
         <div class="item">
             <div class="flex">
                 <img src="${item.foto}">
                 <div>
                     <strong>${item.nama}</strong><br>
-                    Pemilik: ${item.pemilik || "-"}<br>
-                    Jenis: ${item.jenis || "-"}<br>
+                    Pemilik: ${item.pemilik||"-"}<br>
+                    Jenis: ${item.jenis||"-"}<br>
                     <small>No: ${item.nomor}</small>
                 </div>
-                <button onclick="edit(${index})">Edit</button>
+                <button class="edit" onclick="editData(${index})">Edit</button>
                 <button class="hapus" onclick="hapus(${index})">Hapus</button>
             </div>
-        </div>
-        `;
+        </div>`;
     });
+
+    updateChart();
 }
 
 //////////////////////////////////////////////////
-// HAPUS DATA
+// EDIT
 //////////////////////////////////////////////////
+function editData(index){
+    let db=getDB();
+    let item=db[index];
 
+    document.getElementById("nomor").value=item.nomor;
+    document.getElementById("nama").value=item.nama;
+    document.getElementById("pemilik").value=item.pemilik;
+    document.getElementById("jenis").value=item.jenis;
+    document.getElementById("periode").value=item.periode;
+    document.getElementById("deskripsi").value=item.deskripsi;
+    document.getElementById("preview").innerHTML=`<img src="${item.foto}">`;
+
+    editIndex=index;
+}
+
+//////////////////////////////////////////////////
+// HAPUS
+//////////////////////////////////////////////////
 function hapus(index){
-    let db = getDB();
-    if(confirm("Yakin ingin menghapus koleksi ini?")){
+    if(confirm("Yakin hapus data?")){
+        let db=getDB();
+        logAction("DELETE",db[index].nomor);
         db.splice(index,1);
         setDB(db);
         tampilkanData();
@@ -326,16 +285,53 @@ function hapus(index){
 }
 
 //////////////////////////////////////////////////
+// RESET FORM
+//////////////////////////////////////////////////
+function resetForm(){
+    document.querySelectorAll("input,textarea").forEach(el=>el.value="");
+    document.getElementById("preview").innerHTML="";
+}
+
+//////////////////////////////////////////////////
+// CHART STATISTIK
+//////////////////////////////////////////////////
+let chart;
+
+function updateChart(){
+    let db=getDB();
+    let map={};
+    db.forEach(item=>{
+        let j=item.jenis||"Lainnya";
+        map[j]=(map[j]||0)+1;
+    });
+
+    let labels=Object.keys(map);
+    let data=Object.values(map);
+
+    if(chart) chart.destroy();
+
+    chart=new Chart(document.getElementById("chart"),{
+        type:"bar",
+        data:{
+            labels:labels,
+            datasets:[{
+                label:"Jumlah Koleksi",
+                data:data,
+                backgroundColor:"gold"
+            }]
+        }
+    });
+}
+
+//////////////////////////////////////////////////
 // LOGOUT
 //////////////////////////////////////////////////
-
 function logout(){
     localStorage.removeItem("adminLogin");
     window.location.replace("index.html");
 }
 
 tampilkanData();
-
 </script>
 
 </body>
