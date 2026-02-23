@@ -25,7 +25,6 @@ h2{
     margin:auto;
 }
 
-/* Input Verifikasi */
 .verify-box{
     background:#1e293b;
     padding:20px;
@@ -52,12 +51,11 @@ h2{
     cursor:pointer;
 }
 
-/* Card Result */
 .card{
     background:#1e293b;
     padding:20px;
     border-radius:10px;
-    margin-bottom:15px;
+    margin-top:15px;
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -91,22 +89,15 @@ button.action{
 
 <h2>Admin Sertifikat Nasional SKH</h2>
 
-<!-- VERIFIKASI -->
 <div class="verify-box">
     <input id="inputNomor" placeholder="Masukkan Nomor Sertifikat (contoh: 001)">
     <button onclick="verifikasi()">Verifikasi Sertifikat</button>
     <div id="resultArea"></div>
 </div>
 
-<!-- LIST SEMUA DATA -->
-<div id="listArea"></div>
-
 </div>
 
 <script>
-//////////////////////////////////////////////////
-// DECRYPT
-//////////////////////////////////////////////////
 function decrypt(data){
     try{
         return JSON.parse(decodeURIComponent(escape(atob(data))));
@@ -118,12 +109,8 @@ function decrypt(data){
 let raw = localStorage.getItem("dataPusaka");
 let db = raw ? decrypt(raw) : [];
 
-let listArea = document.getElementById("listArea");
 let resultArea = document.getElementById("resultArea");
 
-//////////////////////////////////////////////////
-// VERIFIKASI BY INPUT
-//////////////////////////////////////////////////
 function verifikasi(){
 
     let nomor = document.getElementById("inputNomor").value.trim();
@@ -140,14 +127,6 @@ function verifikasi(){
         resultArea.innerHTML = "<div class='error'>Sertifikat tidak ditemukan / tidak valid.</div>";
         return;
     }
-
-    tampilCard(data, resultArea);
-}
-
-//////////////////////////////////////////////////
-// TAMPIL CARD
-//////////////////////////////////////////////////
-function tampilCard(data, target){
 
     let div = document.createElement("div");
     div.className = "card";
@@ -167,21 +146,9 @@ function tampilCard(data, target){
         </div>
     `;
 
-    target.appendChild(div);
+    resultArea.appendChild(div);
 }
 
-//////////////////////////////////////////////////
-// LIST SEMUA DATA (OTOMATIS)
-//////////////////////////////////////////////////
-if(db.length > 0){
-    db.forEach(item=>{
-        tampilCard(item, listArea);
-    });
-}
-
-//////////////////////////////////////////////////
-// CETAK KE ARSIP
-//////////////////////////////////////////////////
 function previewSertifikat(nomor){
     window.open("arsip.html?nomor=" + encodeURIComponent(nomor), "_blank");
 }
