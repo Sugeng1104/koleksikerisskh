@@ -3,45 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arsip Resmi Koleksi Keris SKH</title>
+<title>Arsip Digital Koleksi Keris SKH</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 body{
     font-family:Georgia,serif;
-    background:#0f172a;
-    color:#f1f5f9;
+    background:#0b1120;
+    color:#f8fafc;
     margin:0;
-    padding-top:60px;
-}
-
-/* CENTER ATAS */
-.wrapper{
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-}
-
-.card{
-    width:10cm;
-    background:#1e293b;
-    padding:25px;
-    border-radius:14px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.4);
+    padding:40px 20px;
 }
 
 h1{
     text-align:center;
-    margin-bottom:30px;
-    letter-spacing:2px;
+    letter-spacing:4px;
+    color:#d4af37;
+}
+
+.container{
+    display:flex;
+    justify-content:center;
+    margin-top:30px;
+}
+
+.card{
+    width:100%;
+    max-width:450px;
+    background:#1e293b;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.6);
 }
 
 input{
     width:100%;
     padding:10px;
-    margin:6px 0;
-    border-radius:8px;
+    margin:10px 0;
+    border-radius:6px;
     border:none;
 }
 
@@ -49,7 +49,7 @@ button{
     width:100%;
     padding:10px;
     border:none;
-    border-radius:8px;
+    border-radius:6px;
     background:#d4af37;
     color:black;
     font-weight:bold;
@@ -59,77 +59,112 @@ button{
 .certificate{
     border:4px double #d4af37;
     padding:30px;
-    margin-top:20px;
+    margin-top:30px;
     position:relative;
+    background:#0f172a;
 }
 
 .watermark{
     position:absolute;
-    top:40%;
-    left:20%;
-    font-size:80px;
-    opacity:0.05;
-    transform:rotate(-25deg);
+    top:35%;
+    left:10%;
+    font-size:100px;
+    opacity:0.04;
+    transform:rotate(-30deg);
 }
 
-.hash{
+.valid{color:#22c55e;font-weight:bold;}
+.invalid{color:#ef4444;font-weight:bold;}
+
+.meta{
     font-size:12px;
-    color:#cbd5e1;
-    margin-top:15px;
+    color:#94a3b8;
+    margin-top:10px;
+    word-break:break-all;
+}
+
+.sign{
+    margin-top:30px;
+    text-align:right;
 }
 </style>
 </head>
 
 <body>
 
-<h1>ARSIP RESMI KOLEKSI KERIS SKH</h1>
+<h1>ARSIP DIGITAL KOLEKSI KERIS SKH</h1>
 
-<div class="wrapper">
-    <div class="card">
-        <h3>Verifikasi Publik</h3>
-        <input id="cari" placeholder="Masukkan Nomor Sertifikat">
-        <button onclick="verifikasi()">Verifikasi</button>
-        <div id="hasil"></div>
-    </div>
+<div class="container">
+<div class="card">
+<h3>Verifikasi Sertifikat Digital</h3>
+<input id="cari" placeholder="Masukkan Nomor Sertifikat">
+<button onclick="verifikasi()">Verifikasi</button>
+<div id="hasil"></div>
+</div>
 </div>
 
 <script>
-const secretKey="SKH2026BLOCK";
+async function sha256(message){
+ const msgBuffer = new TextEncoder().encode(message);
+ const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+ const hashArray = Array.from(new Uint8Array(hashBuffer));
+ return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 function getDB(){
  return JSON.parse(localStorage.getItem("koleksiSKH")||"[]");
 }
 
-function verifikasi(){
+async function verifikasi(){
+ let nomor=document.getElementById("cari").value.trim();
  let db=getDB();
- let nomor=document.getElementById("cari").value;
- let data=db.find(d=>d.nomor===nomor);
  let hasil=document.getElementById("hasil");
  hasil.innerHTML="";
 
+ let data=db.find(d=>d.nomor===nomor);
+
  if(!data){
-  hasil.innerHTML="<p style='color:red'><b>TIDAK VALID</b></p>";
+  hasil.innerHTML="<p class='invalid'>SERTIFIKAT TIDAK VALID</p>";
   return;
  }
 
+ let rawData=data.nomor+data.nama+data.jenis+data.periode+data.deskripsi+data.timestamp;
+ let recalculatedHash=await sha256(rawData);
+
+ let status = (recalculatedHash===data.hash) ? "VALID" : "TIDAK VALID";
+ let statusClass = (status==="VALID") ? "valid" : "invalid";
+
  hasil.innerHTML=`
  <div class='certificate'>
- <div class='watermark'>KERIS</div>
- <h2>SERTIFIKAT AUTENTIKASI</h2>
- <b>Status:</b> VALID<br><br>
+ <div class='watermark'>SKH</div>
+ <h2 style='text-align:center;color:#d4af37;'>SERTIFIKAT AUTENTIKASI DIGITAL</h2>
+ <p class='${statusClass}'>STATUS: ${status}</p>
+ <hr>
  <b>Nomor:</b> ${data.nomor}<br>
- <b>Nama:</b> ${data.nama}<br>
+ <b>Nama Pusaka:</b> ${data.nama}<br>
  <b>Jenis:</b> ${data.jenis}<br>
- <b>Periode:</b> ${data.periode}<br><br>
- <b>Deskripsi:</b><br>${data.deskripsi}<br><br>
+ <b>Periode:</b> ${data.periode}<br>
+ <b>Tanggal Terbit:</b> ${new Date(data.timestamp).toLocaleString()}<br><br>
+ <b>Deskripsi:</b><br>${data.deskripsi}<br>
+
  <div id='qr'></div>
- <div class='hash'>Digital Hash:<br>${data.hash}</div>
+
+ <div class='meta'>
+ SHA-256 Digital Hash:<br>${data.hash}
+ </div>
+
+ <div class='sign'>
+ Disahkan oleh:<br>
+ Ketua SKH<br>
+ <b>Ttd Digital Terverifikasi</b>
+ </div>
+
  <br><button onclick='window.print()'>Cetak / Simpan PDF</button>
  </div>
  `;
 
  new QRCode(document.getElementById("qr"),{
-  text: window.location.href.split("?")[0]+"?verify="+data.nomor,
+  text: window.location.origin+window.location.pathname+"?verify="+data.nomor,
   width:120,height:120
  });
 }
