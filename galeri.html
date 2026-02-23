@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SKH Museum Nasional Digital</title>
 
-<!-- QR & HASH ENGINE -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 body{
@@ -17,26 +15,22 @@ body{
     color:white;
     overflow-x:hidden;
 }
-
 .container{
     max-width:1400px;
     margin:auto;
     padding:40px;
 }
-
 h1{
     text-align:center;
     font-size:38px;
     color:gold;
     text-shadow:0 0 20px gold;
 }
-
 .gallery{
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:25px;
 }
-
 .card{
     background:#111;
     border-radius:15px;
@@ -44,24 +38,19 @@ h1{
     transition:0.4s;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
     cursor:pointer;
-    position:relative;
 }
-
 .card:hover{
     transform:scale(1.05);
     box-shadow:0 0 40px gold;
 }
-
 .img-wrapper{
     position:relative;
 }
-
 .img-wrapper img{
     width:100%;
     height:240px;
     object-fit:cover;
 }
-
 .watermark{
     position:absolute;
     bottom:10px;
@@ -72,54 +61,57 @@ h1{
     border-radius:6px;
     color:gold;
 }
-
 .card-body{
     padding:15px;
 }
-
 .card-body h3{
     margin:5px 0;
     color:gold;
 }
-
 .card-body p{
     font-size:14px;
     color:#ddd;
 }
 
-.qr-box{
-    position:absolute;
-    top:10px;
-    right:10px;
-    background:#000;
-    padding:5px;
-    border-radius:8px;
-}
-
-.verify{
-    font-size:11px;
-    color:#00ff88;
-    margin-top:5px;
-}
-
-.top-buttons{
+/* MODAL */
+.modal{
+    display:none;
     position:fixed;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.95);
+    z-index:2000;
+    overflow:auto;
+}
+.modal-content{
+    max-width:1000px;
+    margin:60px auto;
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 0 40px gold;
+}
+.modal img{
+    width:100%;
+    max-height:500px;
+    object-fit:contain;
+    cursor:zoom-in;
+}
+.close-btn{
+    position:absolute;
     top:20px;
-    right:20px;
-    display:flex;
-    gap:10px;
-    z-index:1000;
-}
-
-.top-buttons button{
-    padding:8px 14px;
-    background:gold;
-    border:none;
-    border-radius:6px;
+    right:30px;
+    font-size:30px;
+    color:gold;
     cursor:pointer;
-    font-weight:bold;
 }
-
+.qr-box{
+    margin-top:20px;
+    background:#000;
+    padding:15px;
+    display:inline-block;
+}
 .back-home-btn{
     position:fixed;
     bottom:25px;
@@ -132,12 +124,9 @@ h1{
     text-decoration:none;
     box-shadow:0 0 20px rgba(37,99,235,0.7);
     transition:0.3s;
-    z-index:1000;
 }
-
 .back-home-btn:hover{
     transform:scale(1.08);
-    box-shadow:0 0 35px rgba(37,99,235,1);
 }
 
 @media(max-width:900px){
@@ -151,10 +140,6 @@ h1{
 
 <body>
 
-<div class="top-buttons">
-    <button onclick="window.print()">Cetak Katalog</button>
-</div>
-
 <div class="container">
 <h1>SKH MUSEUM NASIONAL DIGITAL</h1>
 <div class="gallery" id="galleryContainer"></div>
@@ -162,23 +147,16 @@ h1{
 
 <a href="index.html" class="back-home-btn">🏠 Halaman Depan</a>
 
+<!-- MODAL DETAIL -->
+<div id="modal" class="modal">
+<span class="close-btn" onclick="closeModal()">✖</span>
+<div class="modal-content" id="modalContent"></div>
+</div>
+
 <script>
 
 //////////////////////////////////////////////////
-// SECRET KEY (SERAGAM SEMUA HALAMAN)
-//////////////////////////////////////////////////
-const SECRET_KEY = "SKH_MUSEUM_NASIONAL_2026";
-
-//////////////////////////////////////////////////
-// HASH GENERATOR (Blockchain Style)
-//////////////////////////////////////////////////
-function generateEncryptedData(item){
-    const raw = item.hash + "|" + item.nama + "|" + (item.jenis||"") + "|" + SECRET_KEY;
-    return CryptoJS.SHA256(raw).toString();
-}
-
-//////////////////////////////////////////////////
-// DECRYPT DATA
+// DECRYPT (SINKRON ADMIN)
 //////////////////////////////////////////////////
 function decrypt(data){
     try{
@@ -197,7 +175,6 @@ dataPusaka.sort((a,b)=>b.timestamp-a.timestamp);
 // RENDER GALERI
 //////////////////////////////////////////////////
 function renderGallery(){
-
     const container=document.getElementById("galleryContainer");
     container.innerHTML="";
 
@@ -206,45 +183,71 @@ function renderGallery(){
         return;
     }
 
-    dataPusaka.forEach((item,index)=>{
-
-        const hashQR = generateEncryptedData(item);
-
+    dataPusaka.forEach(item=>{
         container.innerHTML+=`
         <div class="card" onclick="openDetail('${item.hash}')">
             <div class="img-wrapper">
                 <img src="${item.foto}">
                 <div class="watermark">SKH ARCHIVE</div>
-                <div class="qr-box">
-                    <div id="qr${index}"></div>
-                    <div class="verify">Verified</div>
-                </div>
             </div>
             <div class="card-body">
                 <h3>${item.nama}</h3>
                 <p>Pemilik: ${item.pemilik||"-"}</p>
                 <p>Jenis: ${item.jenis||"-"}</p>
             </div>
-        </div>
-        `;
-
-        setTimeout(()=>{
-            new QRCode(document.getElementById("qr"+index),{
-                text: hashQR,
-                width:70,
-                height:70,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        },100);
-
+        </div>`;
     });
 }
 
 //////////////////////////////////////////////////
-// OPEN DETAIL
+// MODAL DETAIL + QR
 //////////////////////////////////////////////////
 function openDetail(hash){
-    window.location.href="detail.html?id="+hash;
+
+    let item=dataPusaka.find(x=>x.hash===hash);
+    if(!item) return;
+
+    const modal=document.getElementById("modal");
+    const content=document.getElementById("modalContent");
+
+    content.innerHTML=`
+        <h2 style="color:gold">${item.nama}</h2>
+        <img src="${item.foto}" onclick="zoomImage(this)">
+        <p><strong>Nomor Sertifikat:</strong> ${item.nomor}</p>
+        <p><strong>Pemilik:</strong> ${item.pemilik||"-"}</p>
+        <p><strong>Jenis:</strong> ${item.jenis||"-"}</p>
+        <p><strong>Periode:</strong> ${item.periode||"-"}</p>
+        <p>${item.deskripsi||""}</p>
+
+        <div class="qr-box">
+            <div id="qrcode"></div>
+        </div>
+    `;
+
+    modal.style.display="block";
+
+    new QRCode(document.getElementById("qrcode"),{
+        text:"verifikasi.html?id="+item.hash,
+        width:150,
+        height:150
+    });
+}
+
+function closeModal(){
+    document.getElementById("modal").style.display="none";
+}
+
+//////////////////////////////////////////////////
+// ZOOM FOTO
+//////////////////////////////////////////////////
+function zoomImage(img){
+    if(img.style.transform==="scale(1.5)"){
+        img.style.transform="scale(1)";
+        img.style.cursor="zoom-in";
+    }else{
+        img.style.transform="scale(1.5)";
+        img.style.cursor="zoom-out";
+    }
 }
 
 renderGallery();
