@@ -53,28 +53,40 @@ button{
     color:black;
     font-weight:bold;
     cursor:pointer;
+    margin-top:10px;
 }
 
 .certificate{
-    border:6px double gold;
-    padding:30px;
+    border:6px double #b8860b;
+    padding:35px;
     margin-top:30px;
     position:relative;
-    background:linear-gradient(#111,#1e293b);
-    color:white;
+    background:#f8f4e8; /* PUTIH TULANG */
+    color:#111;
     page-break-inside:avoid;
 }
 
+/* LEVEL */
 .level{
     text-align:center;
     font-weight:bold;
-    font-size:18px;
-    letter-spacing:3px;
-    color:#22c55e;
+    font-size:14px;
+    letter-spacing:2px;
+    color:#065f46;
+    margin-bottom:6px;
 }
 
+/* JUDUL */
+.judul{
+    text-align:center;
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+/* NAMA PUSAKA */
 .nama-pusaka{
-    font-size:26px;
+    font-size:24px;
     font-weight:bold;
     text-align:center;
     margin:15px 0;
@@ -84,21 +96,28 @@ button{
     color:black;
 }
 
+/* WATERMARK LAYAR */
 .watermark{
     position:absolute;
     top:35%;
     left:15%;
-    font-size:120px;
+    font-size:100px;
     opacity:0.05;
     transform:rotate(-30deg);
 }
 
+/* WATERMARK PRINT */
+.print-watermark{
+    display:none;
+}
+
+/* HOLOGRAM */
 .hologram{
     position:absolute;
-    top:20px;
-    right:20px;
-    width:100px;
-    height:100px;
+    top:18px;
+    right:18px;
+    width:80px;
+    height:80px;
     border-radius:50%;
     background:radial-gradient(circle,#ffd700,#b8860b,#ffd700);
     display:flex;
@@ -106,30 +125,51 @@ button{
     justify-content:center;
     font-weight:bold;
     color:black;
-    font-size:12px;
+    font-size:10px;
     text-align:center;
-    box-shadow:0 0 20px gold;
+    box-shadow:0 0 15px gold;
 }
 
+/* TTD */
 .sign{
     margin-top:40px;
     text-align:right;
 }
 
+/* META HASH */
 .meta{
-    font-size:12px;
-    color:#94a3b8;
+    font-size:11px;
     margin-top:15px;
     word-break:break-all;
 }
 
+/* PRINT SETTING */
 @media print{
     body{
         background:white;
         padding:0;
     }
+
     button{
         display:none;
+    }
+
+    .certificate{
+        margin:0;
+        border:6px double #b8860b;
+        background:#fdf8ec;
+    }
+
+    .print-watermark{
+        display:block;
+        position:absolute;
+        top:40%;
+        left:10%;
+        font-size:90px;
+        color:black;
+        opacity:0.04;
+        transform:rotate(-30deg);
+        pointer-events:none;
     }
 }
 </style>
@@ -179,7 +219,7 @@ function getDB(){
 }
 
 //////////////////////////////////////////////////
-// CETAK
+// CETAK SERTIFIKAT
 //////////////////////////////////////////////////
 function cetak(){
 
@@ -206,12 +246,14 @@ function cetak(){
 
     hasil.innerHTML=`
     <div class='certificate'>
+
         <div class='watermark'>SKH</div>
+        <div class='print-watermark'>Komunitas SKH</div>
         <div class='hologram'>NASIONAL<br>RESMI</div>
 
         <div class='level'>LEVEL NASIONAL RESMI – TERDAFTAR</div>
 
-        <h2 style="text-align:center;">SERTIFIKAT DIGITAL AUTENTIK</h2>
+        <div class='judul'>SERTIFIKAT DIGITAL AUTENTIK</div>
 
         <p style="text-align:center;">
         Pusaka berikut telah terdaftar dalam Registrasi Nasional Digital SKH.
@@ -236,8 +278,8 @@ function cetak(){
         Administrator Nasional SKH
         </div>
 
-        <br>
         <button onclick="window.print()">Cetak / Simpan PDF</button>
+
     </div>
     `;
 
