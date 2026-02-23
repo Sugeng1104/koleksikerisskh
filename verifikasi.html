@@ -1,88 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Verifikasi QR SKH</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifikasi Koleksi SKH</title>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <style>
 body{
-    background:black;
-    color:white;
+    margin:0;
+    background:#000;
     font-family:Georgia,serif;
+    color:white;
     text-align:center;
-    padding:30px;
+    padding:40px;
 }
-#reader{
-    width:320px;
-    margin:auto;
-}
-.result{
-    margin-top:20px;
+
+.card{
     background:#111;
-    padding:20px;
-    border-radius:10px;
+    max-width:600px;
+    margin:auto;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 0 30px rgba(212,175,55,0.5);
 }
-img{
-    width:120px;
-    border-radius:10px;
+
+.valid{
+    color:#00ff88;
+    font-size:22px;
 }
-.btn{
-    display:inline-block;
-    margin-top:20px;
-    padding:10px 20px;
-    background:gold;
-    color:black;
-    text-decoration:none;
-    border-radius:8px;
+
+.invalid{
+    color:red;
+    font-size:22px;
+}
+
+h1{
+    color:gold;
 }
 </style>
 </head>
 <body>
 
-<h2 style="color:gold;">Scan QR Anggota SKH</h2>
-
-<div id="reader"></div>
-
-<div id="hasil" class="result"></div>
-
-<a href="daftar-anggota.html" class="btn">⬅ Kembali</a>
+<div class="card">
+    <h1>VERIFIKASI KOLEKSI SKH</h1>
+    <div id="result"></div>
+</div>
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
+const SECRET_KEY = "SKH_MUSEUM_NASIONAL_2026";
 
-function onScanSuccess(decodedText){
-
-    html5QrcodeScanner.clear();
-
-    fetch(WEB_APP_URL)
-    .then(res=>res.json())
-    .then(data=>{
-        const anggota=data.find(a=>a.nomor===decodedText);
-
-        if(anggota){
-            document.getElementById("hasil").innerHTML=`
-                <h3 style="color:#00ff99;">Anggota Valid</h3>
-                <img src="${anggota.foto}"><br><br>
-                <strong>${anggota.nama}</strong><br>
-                No: ${anggota.nomor}
-            `;
-        }else{
-            document.getElementById("hasil").innerHTML=
-            "<h3 style='color:red;'>Tidak Terdaftar</h3>";
-        }
-    });
+function generateEncryptedData(item){
+    const raw = item.hash + "|" + item.nama + "|" + (item.jenis||"") + "|" + SECRET_KEY;
+    return CryptoJS.SHA256(raw).toString();
 }
 
-const html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 250 },
-    false
-);
+function decrypt(data){
+    try{
+        return JSON.parse(decodeURIComponent(escape(atob(data))));
+    }catch{
+        return [];
+    }
+}
 
-html5QrcodeScanner.render(onScanSuccess);
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+let raw = localStorage.getItem("dataPusaka");
+let dataPusaka = raw ? decrypt(raw) : [];
+
+let found = dataPusaka.find(item => item.hash === id);
+
+const resultDiv = document.getElementById("result");
+
+if(found){
+
+    const recalculated = generateEncryptedData(found);
+
+    resultDiv.innerHTML = `
+        <p class="valid">✔ KOLEKSI VALID & TERVERIFIKASI</p>
+        <p><strong>Nama:</strong> ${found.nama}</p>
+        <p><strong>Pemilik:</strong> ${found.pemilik||"-"}</p>
+        <p><strong>Jenis:</strong> ${found.jenis||"-"}</p>
+        <p><strong>Hash Blockchain:</strong><br>${recalculated}</p>
+    `;
+
+}else{
+
+    resultDiv.innerHTML = `
+        <p class="invalid">✖ DATA TIDAK VALID / TIDAK DITEMUKAN</p>
+    `;
+}
 
 </script>
 
