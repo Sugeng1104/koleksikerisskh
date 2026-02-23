@@ -65,6 +65,7 @@ body{
     overflow:hidden;
     transition:0.4s;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
+    cursor:pointer;
 }
 
 .card:hover{
@@ -146,7 +147,7 @@ body{
     cursor:pointer;
 }
 
-/* TOMBOL KEMBALI */
+/* BACK BUTTON PREMIUM */
 .back-home{
     position:fixed;
     bottom:25px;
@@ -162,6 +163,7 @@ body{
 }
 .back-home:hover{
     transform:scale(1.08);
+    box-shadow:0 0 35px rgba(37,99,235,1);
 }
 
 /* RESPONSIVE */
@@ -194,6 +196,7 @@ body{
 
 <div class="gallery" id="gallery"></div>
 
+<!-- DETAIL -->
 <div class="detail-panel" id="detailPanel">
 <div class="detail-content">
 <img id="detailImg">
@@ -210,21 +213,14 @@ body{
 
 <script>
 
-// =====================
-// AMBIL DATA LANGSUNG DARI ADMIN PANEL
-// =====================
-
+// ================= AMBIL DATA DARI ADMIN PANEL =================
 let data = JSON.parse(localStorage.getItem("dataPusaka") || "[]");
 
 const gallery = document.getElementById("gallery");
 const filterJenis = document.getElementById("filterJenis");
 
-// =====================
-// INISIALISASI FILTER JENIS
-// =====================
+// ================= FILTER JENIS =================
 function initFilter(){
-    filterJenis.innerHTML = `<option value="">Semua Jenis</option>`;
-    
     let jenisSet = new Set();
     data.forEach(d=>{
         if(d.jenis && d.jenis.trim()!==""){
@@ -234,89 +230,77 @@ function initFilter(){
 
     jenisSet.forEach(j=>{
         let opt = document.createElement("option");
-        opt.value = j;
-        opt.textContent = j;
+        opt.value=j;
+        opt.textContent=j;
         filterJenis.appendChild(opt);
     });
 }
 
-// =====================
-// RENDER GALERI
-// =====================
+// ================= RENDER =================
 function render(){
 
-    gallery.innerHTML = "";
+    gallery.innerHTML="";
 
-    let search = document.getElementById("searchInput").value.toLowerCase();
-    let jenis = filterJenis.value;
-    let sort = document.getElementById("sortSelect").value;
+    let search=document.getElementById("searchInput").value.toLowerCase();
+    let jenis=filterJenis.value;
+    let sort=document.getElementById("sortSelect").value;
 
-    let filtered = data.filter(d=>{
-        return (!jenis || d.jenis === jenis) &&
+    let filtered=data.filter(d=>{
+        return (!jenis || d.jenis===jenis) &&
         (
             (d.nama && d.nama.toLowerCase().includes(search)) ||
             (d.pemilik && d.pemilik.toLowerCase().includes(search))
         );
     });
 
-    // Sorting
-    if(sort === "az"){
-        filtered.sort((a,b)=> (a.nama || "").localeCompare(b.nama || ""));
+    if(sort==="az"){
+        filtered.sort((a,b)=> (a.nama||"").localeCompare(b.nama||""));
     }else{
-        filtered.sort((a,b)=> (b.timestamp || 0) - (a.timestamp || 0));
+        filtered.sort((a,b)=> (b.timestamp||0)-(a.timestamp||0));
     }
 
-    if(filtered.length === 0){
-        gallery.innerHTML = `
-        <p style="grid-column:1/-1;text-align:center;">
-            Belum ada koleksi tersimpan.
-        </p>`;
+    if(filtered.length===0){
+        gallery.innerHTML="<p style='grid-column:1/-1;text-align:center;'>Belum ada koleksi tersimpan.</p>";
         return;
     }
 
     filtered.forEach((item,index)=>{
-        gallery.innerHTML += `
+        gallery.innerHTML+=`
         <div class="card" onclick="showDetail(${data.indexOf(item)})">
             <img src="${item.foto}">
             <div class="card-body">
                 <h3>${item.nama}</h3>
-                <p>Pemilik: ${item.pemilik || "-"}</p>
-                <span class="badge">${item.jenis || "Koleksi"}</span>
+                <p>Pemilik: ${item.pemilik||"-"}</p>
+                <span class="badge">${item.jenis||"Koleksi"}</span>
             </div>
         </div>`;
     });
 }
 
-// =====================
-// DETAIL PANEL
-// =====================
+// ================= DETAIL =================
 function showDetail(index){
-    let d = data[index];
+    let d=data[index];
 
-    document.getElementById("detailImg").src = d.foto;
-    document.getElementById("detailNama").textContent = d.nama;
-    document.getElementById("detailPemilik").textContent = d.pemilik || "-";
-    document.getElementById("detailJenis").textContent = d.jenis || "-";
-    document.getElementById("detailPeriode").textContent = d.periode || "-";
-    document.getElementById("detailDeskripsi").textContent = d.deskripsi || "-";
+    document.getElementById("detailImg").src=d.foto;
+    document.getElementById("detailNama").textContent=d.nama;
+    document.getElementById("detailPemilik").textContent=d.pemilik||"-";
+    document.getElementById("detailJenis").textContent=d.jenis||"-";
+    document.getElementById("detailPeriode").textContent=d.periode||"-";
+    document.getElementById("detailDeskripsi").textContent=d.deskripsi||"-";
 
-    document.getElementById("detailPanel").style.display = "flex";
+    document.getElementById("detailPanel").style.display="flex";
 }
 
 function closeDetail(){
-    document.getElementById("detailPanel").style.display = "none";
+    document.getElementById("detailPanel").style.display="none";
 }
 
-// =====================
-// EVENT LISTENER
-// =====================
-document.getElementById("searchInput").addEventListener("input", render);
-document.getElementById("filterJenis").addEventListener("change", render);
-document.getElementById("sortSelect").addEventListener("change", render);
+// ================= EVENT =================
+document.getElementById("searchInput").addEventListener("input",render);
+document.getElementById("filterJenis").addEventListener("change",render);
+document.getElementById("sortSelect").addEventListener("change",render);
 
-// =====================
-// LOAD AWAL
-// =====================
+// ================= LOAD AWAL =================
 initFilter();
 render();
 
