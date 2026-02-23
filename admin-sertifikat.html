@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sertifikat ELITE Nasional - SKH</title>
+<title>Admin Sertifikat ELITE - SKH</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -11,51 +11,48 @@
 
 <style>
 body{
-    font-family:Georgia,serif;
-    background:#0b1120;
-    color:#f8fafc;
+    font-family:Arial, sans-serif;
+    background:#0f172a;
+    color:white;
     margin:0;
-    padding:40px 20px;
+    padding:30px;
 }
 
-h1{
+h2{
+    color:gold;
     text-align:center;
-    letter-spacing:4px;
-    color:#d4af37;
 }
 
 .container{
-    display:flex;
-    justify-content:center;
-    margin-top:30px;
+    max-width:1100px;
+    margin:auto;
 }
 
 .card{
-    width:100%;
-    max-width:450px;
     background:#1e293b;
-    padding:25px;
-    border-radius:12px;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-input{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-    border-radius:6px;
-    border:none;
+.info{
+    line-height:1.6;
 }
 
 button{
-    width:100%;
-    padding:10px;
+    padding:8px 14px;
+    background:gold;
     border:none;
     border-radius:6px;
-    background:#d4af37;
-    color:black;
     font-weight:bold;
     cursor:pointer;
-    margin-top:10px;
+}
+
+button:hover{
+    opacity:0.9;
 }
 
 /* ================= PRINT ================= */
@@ -70,7 +67,7 @@ button{
         background:white;
         padding:0;
     }
-    h1, .card{
+    .no-print{
         display:none;
     }
 }
@@ -79,12 +76,12 @@ button{
 
 .certificate{
     width:100%;
-    max-width:1120px;
+    max-width:1100px;
     margin:40px auto;
     background:#fdf8ec;
     color:#111;
     border:8px double #b8860b;
-    padding:50px 60px;
+    padding:60px;
     box-sizing:border-box;
     position:relative;
 }
@@ -136,7 +133,7 @@ button{
 /* Header */
 .cert-header{
     text-align:center;
-    margin-bottom:25px;
+    margin-bottom:20px;
 }
 
 .level{
@@ -173,34 +170,34 @@ button{
     background:white;
 }
 
-/* Layout isi */
+/* Layout grid stabil */
 .main-content{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:40px;
+    display:grid;
+    grid-template-columns: 1fr 260px;
+    gap:60px;
+    align-items:start;
+    margin-top:30px;
 }
 
 /* Data */
 .data-area{
-    flex:1;
-    font-size:17px;
-    line-height:1.9;
+    font-size:18px;
+    line-height:2;
 }
 
 /* QR */
 .qr-area{
-    width:200px;
     text-align:center;
 }
 
 .qr-box{
-    padding:10px;
+    padding:15px;
     border:2px solid #b8860b;
+    background:white;
 }
 
 .meta{
-    font-size:11px;
+    font-size:12px;
     margin-top:10px;
 }
 
@@ -211,21 +208,33 @@ button{
     font-family:'Playfair Display',serif;
     font-size:18px;
 }
+
+/* Tombol cetak */
+.print-btn{
+    margin-top:30px;
+    text-align:center;
+}
+
+.print-btn button{
+    padding:10px 20px;
+    background:#b8860b;
+    color:white;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
-<h1>SERTIFIKAT KOLEKSI KERIS SKH</h1>
+<div class="container no-print">
+<h2>Admin Sertifikat Nasional SKH</h2>
+<div id="listArea"></div>
+</div>
 
-<div class="container">
-<div class="card">
-<h3>Cetak Sertifikat ELITE Nasional</h3>
-<input id="nomor" placeholder="Masukkan Nomor Sertifikat">
-<button onclick="cetak()">Tampilkan Sertifikat</button>
-<div id="hasil"></div>
-</div>
-</div>
+<div id="previewArea"></div>
 
 <script>
 function simpleHash(str){
@@ -245,36 +254,50 @@ function decrypt(data){
     }
 }
 
-function getDB(){
-    let raw = localStorage.getItem("dataPusaka");
-    if(!raw) return [];
-    return decrypt(raw);
+let raw = localStorage.getItem("dataPusaka");
+let db = raw ? decrypt(raw) : [];
+
+let listArea = document.getElementById("listArea");
+let previewArea = document.getElementById("previewArea");
+
+if(db.length === 0){
+    listArea.innerHTML = "<p>Tidak ada data sertifikat.</p>";
+}else{
+
+    db.forEach(item=>{
+
+        let div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+            <div class="info">
+                <strong>${item.nama}</strong><br>
+                Nomor: ${item.nomor}<br>
+                Pemilik: ${item.pemilik || "-"}<br>
+                Jenis: ${item.jenis || "-"}
+            </div>
+
+            <div>
+                <button onclick="previewSertifikat('${item.nomor}')">
+                Preview & Cetak
+                </button>
+            </div>
+        `;
+
+        listArea.appendChild(div);
+    });
 }
 
-function cetak(){
-
-    let db = getDB();
-    let nomor = document.getElementById("nomor").value.trim();
-    let hasil = document.getElementById("hasil");
-    hasil.innerHTML="";
-
-    if(!nomor){
-        alert("Masukkan nomor sertifikat.");
-        return;
-    }
+function previewSertifikat(nomor){
 
     let data = db.find(d => d.nomor === nomor);
-
-    if(!data){
-        alert("Nomor tidak ditemukan.");
-        return;
-    }
+    if(!data) return;
 
     let tahun = new Date().getFullYear();
     let registrasi = "SKH-NAS-" + tahun + "-" + nomor;
     let secureHash = simpleHash(data.nomor + data.nama + data.hash);
 
-    hasil.innerHTML=`
+    previewArea.innerHTML=`
     <div class='certificate'>
 
         <div class='hologram'>NASIONAL<br>RESMI</div>
@@ -292,7 +315,6 @@ function cetak(){
         <div class='nama-pusaka'>${data.nama}</div>
 
         <div class='main-content'>
-
             <div class='data-area'>
                 Nomor Sertifikat : ${data.nomor}<br>
                 Nomor Registrasi Nasional : ${registrasi}<br>
@@ -309,12 +331,15 @@ function cetak(){
                     Secure Verification Code:<br>${secureHash}
                 </div>
             </div>
-
         </div>
 
         <div class='footer'>
             Hormat Kami,<br><br>
             Administrator Nasional SKH
+        </div>
+
+        <div class='print-btn no-print'>
+            <button onclick="window.print()">CETAK SERTIFIKAT</button>
         </div>
 
     </div>
@@ -325,6 +350,8 @@ function cetak(){
         width: 120,
         height: 120
     });
+
+    window.scrollTo(0,document.body.scrollHeight);
 }
 </script>
 
