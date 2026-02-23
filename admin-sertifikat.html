@@ -13,25 +13,21 @@ body{
     margin:0;
     padding:30px;
 }
-
 h2{
     color:gold;
     text-align:center;
     margin-bottom:25px;
 }
-
 .container{
     max-width:1000px;
     margin:auto;
 }
-
 .verify-box{
     background:#1e293b;
     padding:20px;
     border-radius:10px;
     margin-bottom:25px;
 }
-
 .verify-box input{
     width:100%;
     padding:10px;
@@ -39,7 +35,6 @@ h2{
     border:none;
     margin-bottom:10px;
 }
-
 .verify-box button{
     width:100%;
     padding:10px;
@@ -50,7 +45,6 @@ h2{
     font-weight:bold;
     cursor:pointer;
 }
-
 .card{
     background:#1e293b;
     padding:20px;
@@ -60,11 +54,9 @@ h2{
     justify-content:space-between;
     align-items:center;
 }
-
 .info{
     line-height:1.6;
 }
-
 button.action{
     padding:8px 14px;
     background:gold;
@@ -73,9 +65,14 @@ button.action{
     font-weight:bold;
     cursor:pointer;
 }
-
 .error{
     background:#7f1d1d;
+    padding:15px;
+    border-radius:8px;
+    margin-top:10px;
+}
+.loading{
+    background:#1e40af;
     padding:15px;
     border-radius:8px;
     margin-top:10px;
@@ -86,7 +83,6 @@ button.action{
 <body>
 
 <div class="container">
-
 <h2>Admin Sertifikat Nasional SKH</h2>
 
 <div class="verify-box">
@@ -94,26 +90,17 @@ button.action{
     <button onclick="verifikasi()">Verifikasi Sertifikat</button>
     <div id="resultArea"></div>
 </div>
-
 </div>
 
 <script>
-function decrypt(data){
-    try{
-        return JSON.parse(decodeURIComponent(escape(atob(data))));
-    }catch{
-        return [];
-    }
-}
 
-let raw = localStorage.getItem("dataPusaka");
-let db = raw ? decrypt(raw) : [];
+const SPREADSHEET_ID = "1w-LniqnY0NtI3AMIuhMWAOfmEsIe1donN1VWBPzAZsw";
+const SHEET_NAME = "Sheet1";
 
-let resultArea = document.getElementById("resultArea");
-
-function verifikasi(){
+async function verifikasi(){
 
     let nomor = document.getElementById("inputNomor").value.trim();
+    let resultArea = document.getElementById("resultArea");
     resultArea.innerHTML = "";
 
     if(!nomor){
@@ -121,37 +108,62 @@ function verifikasi(){
         return;
     }
 
-    let data = db.find(d => d.nomor === nomor);
+    resultArea.innerHTML = "<div class='loading'>Memeriksa database...</div>";
 
-    if(!data){
-        resultArea.innerHTML = "<div class='error'>Sertifikat tidak ditemukan / tidak valid.</div>";
-        return;
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&_=${Date.now()}`;
+
+    try{
+
+        const response = await fetch(url);
+        const text = await response.text();
+
+        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1]);
+        const rows = json.table.rows;
+
+        let ditemukan = null;
+
+        rows.forEach(row=>{
+            const nomorDB = row.c[0]?.v;
+            if(nomorDB && nomorDB.toString().trim() === nomor){
+                ditemukan = row;
+            }
+        });
+
+        if(!ditemukan){
+            resultArea.innerHTML = "<div class='error'>Sertifikat tidak ditemukan / tidak valid.</div>";
+            return;
+        }
+
+        let nama = ditemukan.c[1]?.v || "-";
+        let pemilik = ditemukan.c[2]?.v || "-";
+        let jenis = ditemukan.c[3]?.v || "-";
+
+        resultArea.innerHTML = `
+        <div class="card">
+            <div class="info">
+                <strong>${nama}</strong><br>
+                Nomor: ${nomor}<br>
+                Pemilik: ${pemilik}<br>
+                Jenis: ${jenis}
+            </div>
+            <div>
+                <button class="action" onclick="previewSertifikat('${nomor}')">
+                    Preview & Cetak
+                </button>
+            </div>
+        </div>
+        `;
+
+    }catch(error){
+        console.error(error);
+        resultArea.innerHTML = "<div class='error'>Gagal mengakses database.</div>";
     }
-
-    let div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
-        <div class="info">
-            <strong>${data.nama}</strong><br>
-            Nomor: ${data.nomor}<br>
-            Pemilik: ${data.pemilik || "-"}<br>
-            Jenis: ${data.jenis || "-"}
-        </div>
-
-        <div>
-            <button class="action" onclick="previewSertifikat('${data.nomor}')">
-                Preview & Cetak
-            </button>
-        </div>
-    `;
-
-    resultArea.appendChild(div);
 }
 
 function previewSertifikat(nomor){
     window.open("arsip.html?nomor=" + encodeURIComponent(nomor), "_blank");
 }
+
 </script>
 
 </body>
