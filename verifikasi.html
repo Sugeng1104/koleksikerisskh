@@ -46,6 +46,10 @@ button{
     margin-top:20px;
     font-weight:bold;
 }
+.loading{
+    color:#38bdf8;
+    margin-top:20px;
+}
 </style>
 </head>
 <body>
@@ -63,7 +67,7 @@ button{
 <script>
 
 const SPREADSHEET_ID = "1w-LniqnY0NtI3AMIuhMWAOfmEsIe1donN1VWBPzAZsw";
-const SHEET_NAME = "Sheet1"; // ubah jika nama sheet berbeda
+const SHEET_NAME = "Sheet1";
 
 async function verifikasi(){
 
@@ -75,14 +79,17 @@ async function verifikasi(){
         return;
     }
 
-    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+    hasil.innerHTML = "<div class='loading'>Memeriksa data...</div>";
+
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&_=${Date.now()}`;
 
     try{
 
         const response = await fetch(url);
         const text = await response.text();
 
-        const json = JSON.parse(text.substring(47).slice(0,-2));
+        // parsing aman (tidak tergantung panjang karakter tetap)
+        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1]);
         const rows = json.table.rows;
 
         let ditemukan = false;
@@ -90,7 +97,10 @@ async function verifikasi(){
         rows.forEach(row=>{
             const nomorDB = row.c[0]?.v;
 
-            if(nomorDB && nomorDB.toString().trim() === nomorInput){
+            if(
+                nomorDB &&
+                nomorDB.toString().replace(/\s/g,'') === nomorInput.replace(/\s/g,'')
+            ){
                 ditemukan = true;
             }
         });
