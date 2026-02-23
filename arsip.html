@@ -1,23 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Sertifikat Digital SKH</title>
+
+<style>
+
+/* ===== A4 PRINT SETTING ===== */
+@page{
+    size:A4 portrait;
+    margin:0;
+}
+
+body{
+    margin:0;
+    font-family:Georgia,serif;
+    background:#0f172a;
+    display:flex;
+    justify-content:center;
+}
+
+.no-print{
+    position:fixed;
+    top:20px;
+    right:20px;
+    z-index:999;
+}
+
+.no-print button{
+    padding:8px 14px;
+    background:gold;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-left:5px;
+}
+
+/* ===== CERTIFICATE ===== */
 .certificate{
-border:6px double gold;
-padding:40px;
-margin-top:20px;
-background:linear-gradient(#111,#1e293b);
-color:white;
-position:relative;
+    width:210mm;
+    height:297mm;
+    border:6px double gold;
+    padding:35mm 25mm;
+    box-sizing:border-box;
+    background:linear-gradient(#111,#1e293b);
+    color:white;
+    position:relative;
+    overflow:hidden;
 }
 
+/* BATIK BACKGROUND */
 .certificate::before{
-content:"";
-position:absolute;
-top:0;left:0;
-width:100%;height:100%;
-background:url('batik-pattern.png');
-opacity:0.05;
+    content:"";
+    position:absolute;
+    inset:0;
+    background:url('batik-pattern.png');
+    opacity:0.05;
+    pointer-events:none;
 }
 
+/* LOGO */
 .logo{
-text-align:center;
-margin-bottom:20px;
+    text-align:center;
 }
-.logo img{width:120px}
+.logo img{
+    width:110px;
+}
+
+/* TITLE */
+.cert-title{
+    text-align:center;
+    font-size:26px;
+    color:gold;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+/* NAME WITH BLACK BORDER */
+.nama-pusaka{
+    text-align:center;
+    font-size:30px;
+    font-weight:bold;
+    color:#ffd700;
+    margin:15px 0;
+
+    -webkit-text-stroke:1px black;
+    text-shadow:0 0 5px rgba(0,0,0,0.8);
+}
+
+/* IMAGE SMALLER */
+.cert-image{
+    text-align:center;
+    margin:15px 0;
+}
+.cert-image img{
+    max-width:250px;
+    max-height:170px;
+    border:3px solid gold;
+    border-radius:10px;
+    object-fit:contain;
+}
+
+/* DATA */
+.cert-data{
+    text-align:center;
+    font-size:17px;
+    line-height:1.8;
+}
+
+/* QR */
+.qr-section{
+    text-align:center;
+    margin-top:25px;
+}
+.qr-section img{
+    width:110px;
+}
+
+/* FOOTER */
+.cert-footer{
+    position:absolute;
+    bottom:25mm;
+    width:100%;
+    text-align:center;
+    font-size:14px;
+    color:#ddd;
+}
+
+/* PRINT MODE */
+@media print{
+    body{
+        background:white;
+    }
+    .no-print{
+        display:none;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()">Cetak</button>
+    <button onclick="window.history.back()">Kembali</button>
+</div>
+
+<div class="certificate" id="certificateArea">
+
+    <div class="logo">
+        <img src="logo-skh.png" onerror="this.style.display='none'">
+    </div>
+
+    <div class="cert-title">
+        SERTIFIKAT KOLEKSI RESMI
+    </div>
+
+    <div class="nama-pusaka" id="namaPusaka">
+        -
+    </div>
+
+    <div class="cert-image">
+        <img id="fotoPusaka">
+    </div>
+
+    <div class="cert-data">
+        Nomor Sertifikat : <span id="nomor"></span><br>
+        Pemilik : <span id="pemilik"></span><br>
+        Jenis : <span id="jenis"></span><br>
+        Periode : <span id="periode"></span>
+    </div>
+
+    <div class="qr-section">
+        <img id="qrCode">
+        <div style="font-size:12px;margin-top:5px">
+            Scan untuk verifikasi digital
+        </div>
+    </div>
+
+    <div class="cert-footer">
+        SKH Museum Nasional Digital<br>
+        Terverifikasi & Terenkripsi
+    </div>
+
+</div>
+
+<script>
+
+//////////////////////////////////////////////////
+// DECRYPT (Sinkron Admin Level 3)
+//////////////////////////////////////////////////
+function decrypt(data){
+    try{
+        return JSON.parse(decodeURIComponent(escape(atob(data))));
+    }catch{
+        return [];
+    }
+}
+
+let raw=localStorage.getItem("dataPusaka");
+let db=raw?decrypt(raw):[];
+
+//////////////////////////////////////////////////
+// GET PARAM
+//////////////////////////////////////////////////
+const params=new URLSearchParams(window.location.search);
+const nomor=params.get("nomor");
+
+let item=db.find(d=>d.nomor===nomor);
+
+if(item){
+
+    document.getElementById("namaPusaka").innerText=item.nama;
+    document.getElementById("fotoPusaka").src=item.foto;
+    document.getElementById("nomor").innerText=item.nomor;
+    document.getElementById("pemilik").innerText=item.pemilik||"-";
+    document.getElementById("jenis").innerText=item.jenis||"-";
+    document.getElementById("periode").innerText=item.periode||"-";
+
+    //////////////////////////////////////////////////
+    // QR CODE SERAGAM DENGAN SISTEM
+    //////////////////////////////////////////////////
+    const verifyURL=window.location.origin+"/verifikasi.html?nomor="+item.nomor;
+    const qrURL="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="+encodeURIComponent(verifyURL);
+    document.getElementById("qrCode").src=qrURL;
+
+}else{
+
+    document.getElementById("certificateArea").innerHTML=
+    "<h2 style='color:red;text-align:center'>Sertifikat Tidak Valid</h2>";
+
+}
+
+</script>
+
+</body>
+</html>
