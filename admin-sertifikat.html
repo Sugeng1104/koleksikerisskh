@@ -7,6 +7,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 body{
     font-family:Georgia,serif;
@@ -56,120 +58,140 @@ button{
     margin-top:10px;
 }
 
+/* ======================= */
+/* SERTIFIKAT SUPER PREMIUM */
+/* ======================= */
+
 .certificate{
-    border:6px double #b8860b;
-    padding:35px;
-    margin-top:30px;
+    border:8px double #b8860b;
+    padding:60px 60px 50px 60px;
+    margin-top:40px;
     position:relative;
-    background:#f8f4e8; /* PUTIH TULANG */
+    background:#fdf8ec;
     color:#111;
     page-break-inside:avoid;
+    overflow:hidden;
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
 }
 
-/* LEVEL */
-.level{
-    text-align:center;
-    font-weight:bold;
-    font-size:14px;
-    letter-spacing:2px;
-    color:#065f46;
-    margin-bottom:6px;
-}
-
-/* JUDUL */
-.judul{
-    text-align:center;
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:15px;
-}
-
-/* NAMA PUSAKA */
-.nama-pusaka{
-    font-size:24px;
-    font-weight:bold;
-    text-align:center;
-    margin:15px 0;
-    padding:10px;
-    border:3px solid black;
-    background:white;
-    color:black;
-}
-
-/* WATERMARK LAYAR */
-.watermark{
+.certificate:before{
+    content:"";
     position:absolute;
-    top:35%;
-    left:15%;
-    font-size:100px;
-    opacity:0.05;
-    transform:rotate(-30deg);
+    top:20px;
+    left:20px;
+    right:20px;
+    bottom:20px;
+    border:2px solid rgba(184,134,11,0.6);
+    pointer-events:none;
 }
 
-/* WATERMARK PRINT */
-.print-watermark{
-    display:none;
+.cert-header{
+    text-align:center;
+    margin-bottom:20px;
+    padding-right:130px;
 }
 
-/* HOLOGRAM */
+.level{
+    font-family:'Cinzel',serif;
+    font-size:15px;
+    letter-spacing:3px;
+    color:#065f46;
+    margin-bottom:8px;
+}
+
+.judul{
+    font-family:'Cinzel',serif;
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:3px;
+}
+
+.deskripsi{
+    text-align:center;
+    font-family:'Playfair Display',serif;
+    font-size:16px;
+    margin:20px 0 30px 0;
+}
+
+.nama-pusaka{
+    font-family:'Playfair Display',serif;
+    font-size:30px;
+    font-weight:600;
+    text-align:center;
+    margin:25px 0;
+    padding:14px;
+    border:4px double #000;
+    background:white;
+}
+
+.data-row{
+    margin:6px 0;
+    font-size:15px;
+}
+
 .hologram{
     position:absolute;
-    top:18px;
-    right:18px;
-    width:80px;
-    height:80px;
+    top:35px;
+    right:35px;
+    width:110px;
+    height:110px;
     border-radius:50%;
-    background:radial-gradient(circle,#ffd700,#b8860b,#ffd700);
+    background:radial-gradient(circle,#fff8dc,#ffd700,#b8860b,#ffd700);
     display:flex;
     align-items:center;
     justify-content:center;
+    font-family:'Cinzel',serif;
     font-weight:bold;
     color:black;
-    font-size:10px;
+    font-size:12px;
     text-align:center;
-    box-shadow:0 0 15px gold;
+    box-shadow:0 0 25px gold;
+    border:2px solid rgba(255,255,255,0.6);
 }
 
-/* TTD */
-.sign{
-    margin-top:40px;
-    text-align:right;
+.watermark{
+    position:absolute;
+    top:45%;
+    left:15%;
+    font-size:130px;
+    opacity:0.04;
+    transform:rotate(-30deg);
+    font-family:'Cinzel',serif;
 }
 
-/* META HASH */
+.qr-box{
+    margin-top:25px;
+    text-align:center;
+    padding:10px;
+    border:2px solid #b8860b;
+    display:inline-block;
+}
+
 .meta{
     font-size:11px;
-    margin-top:15px;
+    margin-top:20px;
     word-break:break-all;
+    text-align:center;
 }
 
-/* PRINT SETTING */
+.sign{
+    margin-top:50px;
+    text-align:right;
+    font-family:'Playfair Display',serif;
+    font-size:16px;
+}
+
 @media print{
     body{
         background:white;
         padding:0;
     }
-
     button{
         display:none;
     }
-
     .certificate{
         margin:0;
-        border:6px double #b8860b;
-        background:#fdf8ec;
-    }
-
-    .print-watermark{
-        display:block;
-        position:absolute;
-        top:40%;
-        left:10%;
-        font-size:90px;
-        color:black;
-        opacity:0.04;
-        transform:rotate(-30deg);
-        pointer-events:none;
+        box-shadow:none;
     }
 }
 </style>
@@ -189,9 +211,6 @@ button{
 </div>
 
 <script>
-//////////////////////////////////////////////////
-// SIMPLE HASH GENERATOR
-//////////////////////////////////////////////////
 function simpleHash(str){
     let hash=0;
     for(let i=0;i<str.length;i++){
@@ -201,9 +220,6 @@ function simpleHash(str){
     return Math.abs(hash).toString(16);
 }
 
-//////////////////////////////////////////////////
-// DECRYPT DATABASE
-//////////////////////////////////////////////////
 function decrypt(data){
     try{
         return JSON.parse(decodeURIComponent(escape(atob(data))));
@@ -218,9 +234,6 @@ function getDB(){
     return decrypt(raw);
 }
 
-//////////////////////////////////////////////////
-// CETAK SERTIFIKAT
-//////////////////////////////////////////////////
 function cetak(){
 
     let db = getDB();
@@ -247,35 +260,42 @@ function cetak(){
     hasil.innerHTML=`
     <div class='certificate'>
 
-        <div class='watermark'>SKH</div>
-        <div class='print-watermark'>Komunitas SKH</div>
         <div class='hologram'>NASIONAL<br>RESMI</div>
+        <div class='watermark'>SKH</div>
 
-        <div class='level'>LEVEL NASIONAL RESMI – TERDAFTAR</div>
+        <div class='cert-header'>
+            <div class='level'>LEVEL NASIONAL RESMI – TERDAFTAR</div>
+            <div class='judul'>SERTIFIKAT DIGITAL AUTENTIK</div>
+        </div>
 
-        <div class='judul'>SERTIFIKAT DIGITAL AUTENTIK</div>
-
-        <p style="text-align:center;">
-        Pusaka berikut telah terdaftar dalam Registrasi Nasional Digital SKH.
-        </p>
+        <div class='deskripsi'>
+            Pusaka berikut telah terdaftar dalam Registrasi Nasional Digital SKH
+            dan dinyatakan sah sebagai koleksi resmi komunitas.
+        </div>
 
         <div class='nama-pusaka'>${data.nama}</div>
 
-        <b>Nomor Sertifikat:</b> ${data.nomor}<br>
-        <b>Nomor Registrasi Nasional:</b> ${registrasi}<br>
-        <b>Pemilik:</b> ${data.pemilik || "-"}<br>
-        <b>Jenis:</b> ${data.jenis || "-"}<br>
-        <b>Periode:</b> ${data.periode || "-"}<br><br>
+        <div class='data-row'><b>Nomor Sertifikat:</b> ${data.nomor}</div>
+        <div class='data-row'><b>Nomor Registrasi Nasional:</b> ${registrasi}</div>
+        <div class='data-row'><b>Pemilik:</b> ${data.pemilik || "-"}</div>
+        <div class='data-row'><b>Jenis:</b> ${data.jenis || "-"}</div>
+        <div class='data-row'><b>Periode:</b> ${data.periode || "-"}</div>
 
-        <div id="qrcode"></div>
+        <br>
+
+        <div style="text-align:center;">
+            <div class="qr-box">
+                <div id="qrcode"></div>
+            </div>
+        </div>
 
         <div class="meta">
-        Secure Verification Code:<br>${secureHash}
+            Secure Verification Code:<br>${secureHash}
         </div>
 
         <div class="sign">
-        Hormat Kami,<br>
-        Administrator Nasional SKH
+            Hormat Kami,<br><br>
+            Administrator Nasional SKH
         </div>
 
         <button onclick="window.print()">Cetak / Simpan PDF</button>
@@ -285,8 +305,8 @@ function cetak(){
 
     new QRCode(document.getElementById("qrcode"), {
         text: window.location.origin + "/arsip.html?verify=" + data.nomor + "&secure=" + secureHash,
-        width: 100,
-        height: 100
+        width: 110,
+        height: 110
     });
 }
 </script>
