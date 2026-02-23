@@ -105,7 +105,7 @@ button{
 
 <script>
 //////////////////////////////////////////////////
-// DECRYPT (SAMA DENGAN ADMIN PANEL)
+// DECRYPT (SAMA DENGAN ADMIN PANEL LEVEL 3)
 //////////////////////////////////////////////////
 function decrypt(data){
     try{
@@ -122,6 +122,13 @@ function getDB(){
 }
 
 //////////////////////////////////////////////////
+// CETAK KE TEMPLATE RESMI (ARSIP.HTML)
+//////////////////////////////////////////////////
+function cetakResmi(nomor){
+    window.open("arsip.html?nomor="+encodeURIComponent(nomor), "_blank");
+}
+
+//////////////////////////////////////////////////
 // VERIFIKASI
 //////////////////////////////////////////////////
 function verifikasi(){
@@ -132,14 +139,14 @@ function verifikasi(){
     hasil.innerHTML="";
 
     if(!nomor){
-        hasil.innerHTML="<p style='color:red'><b>Masukkan nomor sertifikat.</b></p>";
+        hasil.innerHTML="<p class='invalid'><b>Masukkan nomor sertifikat.</b></p>";
         return;
     }
 
     let data = db.find(d => d.nomor === nomor);
 
     if(!data){
-        hasil.innerHTML="<p style='color:red'><b>SERTIFIKAT TIDAK VALID</b></p>";
+        hasil.innerHTML="<p class='invalid'><b>SERTIFIKAT TIDAK VALID</b></p>";
         return;
     }
 
@@ -147,7 +154,7 @@ function verifikasi(){
     <div class='certificate'>
     <div class='watermark'>SKH</div>
     <h2>SERTIFIKAT DIGITAL AUTENTIK</h2>
-    <b>Status:</b> VALID ✔<br><br>
+    <p class="valid">Status: VALID ✔</p>
 
     <b>Nomor:</b> ${data.nomor}<br>
     <b>Nama Pusaka:</b> ${data.nama}<br>
@@ -157,9 +164,13 @@ function verifikasi(){
 
     <b>Deskripsi:</b><br>${data.deskripsi || "-"}<br><br>
 
-    <b>Digital Hash:</b><br>${data.hash}<br><br>
+    <b>Digital Hash:</b><br>
+    <div class="meta">${data.hash}</div><br>
 
-    <button onclick='window.print()'>Cetak / Simpan PDF</button>
+    <button onclick="cetakResmi('${data.nomor}')">
+    Cetak / Simpan PDF (Format Resmi)
+    </button>
+
     </div>
     `;
 }
