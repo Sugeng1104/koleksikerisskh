@@ -6,6 +6,34 @@
 <title>Galeri Ultimate SKH</title>
 
 <style>
+<a href="index.html" class="back-home-btn">
+    ⬅ Kembali ke Halaman Depan
+</a>
+.back-home-btn{
+    position:fixed;
+    bottom:25px;
+    right:25px;
+    background:linear-gradient(45deg,#1e3a8a,#2563eb);
+    color:white;
+    padding:14px 20px;
+    border-radius:50px;
+    font-weight:bold;
+    text-decoration:none;
+    box-shadow:0 0 20px rgba(37,99,235,0.7);
+    transition:0.3s;
+    z-index:1000;
+    animation:float 3s ease-in-out infinite;
+}
+
+.back-home-btn:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 35px rgba(37,99,235,1);
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-8px);}
+}
 body{
     margin:0;
     background:radial-gradient(circle at center,#111,#000);
