@@ -7,86 +7,106 @@
 
 <style>
 body{
-    font-family:Arial, sans-serif;
+    font-family: Arial, sans-serif;
     background:#0f172a;
     color:white;
-    margin:0;
-    padding:30px;
     text-align:center;
+    padding:40px;
 }
-
-.card{
-    max-width:600px;
-    margin:auto;
+.box{
     background:#1e293b;
-    padding:25px;
-    border-radius:12px;
+    padding:30px;
+    border-radius:15px;
+    max-width:500px;
+    margin:auto;
 }
-
-h2{
-    color:gold;
+input{
+    padding:12px;
+    width:80%;
+    border-radius:8px;
+    border:none;
+    margin-bottom:15px;
 }
-
+button{
+    padding:12px 25px;
+    background:#22c55e;
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
 .valid{
-    color:#4ade80;
+    color:#22c55e;
+    margin-top:20px;
     font-weight:bold;
 }
-
 .invalid{
-    color:#f87171;
+    color:#ef4444;
+    margin-top:20px;
     font-weight:bold;
 }
 </style>
 </head>
-
 <body>
 
-<h2>Verifikasi Sertifikat Nasional SKH</h2>
+<div class="box">
+<h2>Verifikasi Sertifikat</h2>
 
-<div id="result"></div>
+<input type="text" id="nomor" placeholder="Masukkan Nomor Sertifikat">
+<br>
+<button onclick="verifikasi()">Verifikasi</button>
+
+<div id="hasil"></div>
+</div>
 
 <script>
-function decrypt(data){
+
+const SPREADSHEET_ID = "1w-LniqnY0NtI3AMIuhMWAOfmEsIe1donN1VWBPzAZsw";
+const SHEET_NAME = "Sheet1"; // ubah jika nama sheet berbeda
+
+async function verifikasi(){
+
+    const nomorInput = document.getElementById("nomor").value.trim();
+    const hasil = document.getElementById("hasil");
+
+    if(!nomorInput){
+        hasil.innerHTML = "<div class='invalid'>Masukkan nomor sertifikat</div>";
+        return;
+    }
+
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
     try{
-        return JSON.parse(decodeURIComponent(escape(atob(data))));
-    }catch{
-        return [];
+
+        const response = await fetch(url);
+        const text = await response.text();
+
+        const json = JSON.parse(text.substring(47).slice(0,-2));
+        const rows = json.table.rows;
+
+        let ditemukan = false;
+
+        rows.forEach(row=>{
+            const nomorDB = row.c[0]?.v;
+
+            if(nomorDB && nomorDB.toString().trim() === nomorInput){
+                ditemukan = true;
+            }
+        });
+
+        if(ditemukan){
+            hasil.innerHTML = "<div class='valid'>✅ Sertifikat VALID & Terdaftar</div>";
+        }else{
+            hasil.innerHTML = "<div class='invalid'>❌ Sertifikat tidak ditemukan / tidak valid</div>";
+        }
+
+    }catch(error){
+        console.error(error);
+        hasil.innerHTML = "<div class='invalid'>Gagal mengakses database</div>";
     }
 }
 
-let raw=localStorage.getItem("dataPusaka");
-let db=raw?decrypt(raw):[];
-
-const params=new URLSearchParams(window.location.search);
-const nomor=params.get("nomor");
-
-let result=document.getElementById("result");
-
-if(!nomor){
-    result.innerHTML="<p class='invalid'>QR tidak valid.</p>";
-}else{
-
-    let item=db.find(d=>d.nomor===nomor);
-
-    if(!item){
-        result.innerHTML="<p class='invalid'>Sertifikat tidak ditemukan.</p>";
-    }else{
-
-        let reg="SKH-NAS-"+item.hash.substring(0,8).toUpperCase();
-
-        result.innerHTML=`
-        <div class="card">
-            <p class="valid">✔ Sertifikat Resmi & Valid</p>
-            <h3>${item.nama}</h3>
-            <p>Nomor Sertifikat: ${item.nomor}</p>
-            <p>Pemilik: ${item.pemilik||"-"}</p>
-            <p>Jenis: ${item.jenis||"-"}</p>
-            <p>Periode: ${item.periode||"-"}</p>
-            <p><strong>Nomor Registrasi Nasional:</strong><br>${reg}</p>
-        </div>
-        `;
-    }
-}
 </script>
 
 </body>
