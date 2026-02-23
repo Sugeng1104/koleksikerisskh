@@ -1,246 +1,142 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Sertifikat Museum Nasional Digital SKH</title>
+<title>Arsip Sertifikat Nasional SKH</title>
 
 <style>
-@page{
-    size:A4 portrait;
-    margin:0;
-}
-
 body{
-    margin:0;
     font-family:Georgia,serif;
     background:#0f172a;
-    display:flex;
-    justify-content:center;
-}
-
-.no-print{
-    position:fixed;
-    top:20px;
-    right:20px;
-    z-index:999;
-}
-.no-print button{
-    padding:8px 14px;
-    background:gold;
-    border:none;
-    border-radius:6px;
-    font-weight:bold;
-    cursor:pointer;
-    margin-left:5px;
-}
-
-.certificate{
-    width:210mm;
-    height:297mm;
-    padding:30mm 25mm;
-    box-sizing:border-box;
-    border:8px double gold;
-    background:linear-gradient(#111,#1e293b);
     color:white;
-    position:relative;
-    overflow:hidden;
+    padding:40px;
 }
-
-/* HOLOGRAM WATERMARK */
-.certificate::before{
-    content:"SKH";
-    position:absolute;
-    font-size:180px;
-    color:gold;
-    opacity:0.03;
-    top:40%;
-    left:50%;
-    transform:translate(-50%,-50%) rotate(-20deg);
-    pointer-events:none;
+.container{
+    max-width:900px;
+    margin:auto;
+    background:#1e293b;
+    padding:30px;
+    border-radius:14px;
 }
-
-/* LOGO */
-.logo{text-align:center;}
-.logo img{width:110px;}
-
-.title{
+h2{
     text-align:center;
-    font-size:26px;
-    color:gold;
-    font-weight:bold;
-    margin-top:10px;
+    margin-bottom:30px;
 }
-
-.nama{
-    text-align:center;
-    font-size:30px;
-    font-weight:bold;
-    color:#ffd700;
-    margin:15px 0;
-    -webkit-text-stroke:1px black;
-    text-shadow:0 0 6px black;
-}
-
-.cert-img{
-    text-align:center;
-}
-.cert-img img{
-    max-width:240px;
-    max-height:160px;
-    border:3px solid gold;
+.card{
+    background:#111827;
+    padding:15px;
     border-radius:10px;
-    object-fit:contain;
+    margin-bottom:15px;
+    display:flex;
+    align-items:center;
 }
-
-.data{
-    text-align:center;
-    font-size:17px;
-    margin-top:15px;
-    line-height:1.8;
-}
-
-.qr{
-    text-align:center;
-    margin-top:25px;
-}
-.qr img{
+.card img{
     width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:10px;
+    margin-right:15px;
+    border:2px solid gold;
 }
-
-.footer{
-    position:absolute;
-    bottom:25mm;
-    width:100%;
-    text-align:center;
-    font-size:13px;
-    color:#ddd;
+.valid{
+    background:#065f46;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
 }
-
-.signature{
-    margin-top:20px;
-    text-align:center;
-    font-style:italic;
+.invalid{
+    background:#7f1d1d;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
 }
-
-.reg{
-    margin-top:10px;
-    font-size:12px;
-    text-align:center;
-    color:#bbb;
-}
-
-@media print{
-    body{background:white;}
-    .no-print{display:none;}
-}
+small{color:#ccc;}
 </style>
 </head>
-
 <body>
 
-<div class="no-print">
-    <button onclick="window.print()">Cetak</button>
-    <button onclick="window.history.back()">Kembali</button>
-</div>
+<div class="container">
+<h2>Arsip Sertifikat Nasional SKH</h2>
 
-<div class="certificate" id="certArea">
+<div id="verifikasiBox"></div>
 
-    <div class="logo">
-        <img src="logo-skh.png" onerror="this.style.display='none'">
-    </div>
-
-    <div class="title">SERTIFIKAT KOLEKSI RESMI NASIONAL</div>
-
-    <div class="nama" id="nama"></div>
-
-    <div class="cert-img">
-        <img id="foto">
-    </div>
-
-    <div class="data">
-        Nomor Sertifikat : <span id="nomor"></span><br>
-        Pemilik : <span id="pemilik"></span><br>
-        Jenis : <span id="jenis"></span><br>
-        Periode : <span id="periode"></span><br>
-        Tanggal Registrasi : <span id="tanggal"></span>
-    </div>
-
-    <div class="qr">
-        <img id="qr">
-        <div style="font-size:12px;margin-top:5px">
-            Scan untuk verifikasi terenkripsi
-        </div>
-    </div>
-
-    <div class="signature">
-        Ditandatangani secara digital oleh<br>
-        Kurator Nasional SKH
-    </div>
-
-    <div class="reg" id="regNumber"></div>
-
-    <div class="footer">
-        SKH Museum Nasional Digital<br>
-        Sistem Registrasi & Enkripsi Resmi
-    </div>
+<div id="daftar"></div>
 
 </div>
 
 <script>
+//////////////////////////////////////////////////
+// KONFIGURASI API
+//////////////////////////////////////////////////
+const API_URL="https://script.google.com/macros/s/AKfycbyxp18VDz5srBz9VrCYL8MqpSTczOHqf179x83nPYg1TlHr2erB1KCLKGrglUBsDptkwA/exec";
 
 //////////////////////////////////////////////////
-// DECRYPT (Sinkron Admin Level 3)
-//////////////////////////////////////////////////
-function decrypt(data){
-    try{
-        return JSON.parse(decodeURIComponent(escape(atob(data))));
-    }catch{
-        return [];
-    }
-}
-
-let raw=localStorage.getItem("dataPusaka");
-let db=raw?decrypt(raw):[];
-
-//////////////////////////////////////////////////
-// GET PARAM
+// AMBIL PARAMETER URL
 //////////////////////////////////////////////////
 const params=new URLSearchParams(window.location.search);
-const nomor=params.get("nomor");
+const verify=params.get("verify");
 
-let item=db.find(d=>d.nomor===nomor);
+//////////////////////////////////////////////////
+// LOAD DATA
+//////////////////////////////////////////////////
+fetch(API_URL+"?action=get")
+.then(res=>res.json())
+.then(data=>{
 
-if(item){
-
-    document.getElementById("nama").innerText=item.nama;
-    document.getElementById("foto").src=item.foto;
-    document.getElementById("nomor").innerText=item.nomor;
-    document.getElementById("pemilik").innerText=item.pemilik||"-";
-    document.getElementById("jenis").innerText=item.jenis||"-";
-    document.getElementById("periode").innerText=item.periode||"-";
-
-    let tanggal=new Date(item.timestamp).toLocaleDateString("id-ID");
-    document.getElementById("tanggal").innerText=tanggal;
+    const daftar=document.getElementById("daftar");
+    const verifikasiBox=document.getElementById("verifikasiBox");
 
     //////////////////////////////////////////////////
-    // NOMOR REGISTRASI NASIONAL
+    // MODE VERIFIKASI QR
     //////////////////////////////////////////////////
-    let reg="SKH-NAS-"+item.hash.substring(0,8).toUpperCase();
-    document.getElementById("regNumber").innerText="Nomor Registrasi Nasional: "+reg;
+    if(verify){
+
+        const found=data.find(item=>item.nomor===verify);
+
+        if(found){
+            verifikasiBox.innerHTML=`
+                <div class="valid">
+                    <h3>✔ Sertifikat VALID</h3>
+                    <strong>${found.nama}</strong><br>
+                    Nomor: ${found.nomor}<br>
+                    Pemilik: ${found.pemilik||"-"}<br>
+                    Jenis: ${found.jenis||"-"}<br>
+                    Periode: ${found.periode||"-"}<br>
+                    <small>Terdaftar Resmi di Sistem SKH</small>
+                </div>
+            `;
+        }else{
+            verifikasiBox.innerHTML=`
+                <div class="invalid">
+                    <h3>✖ Sertifikat Tidak Ditemukan</h3>
+                    Nomor tidak terdaftar dalam sistem.
+                </div>
+            `;
+        }
+
+        return; // hentikan tampilan daftar jika mode verifikasi
+    }
 
     //////////////////////////////////////////////////
-    // QR HASH TERENKRIPSI
+    // MODE ARSIP NORMAL
     //////////////////////////////////////////////////
-    let verifyURL = window.location.origin + "/verifikasi.html?nomor=" + encodeURIComponent(item.nomor);
+    data.forEach(item=>{
+        daftar.innerHTML+=`
+            <div class="card">
+                <img src="${item.foto}">
+                <div>
+                    <strong>${item.nama}</strong><br>
+                    Nomor: ${item.nomor}<br>
+                    Pemilik: ${item.pemilik||"-"}<br>
+                    Jenis: ${item.jenis||"-"}<br>
+                    Periode: ${item.periode||"-"}<br>
+                    <small>Terdaftar Resmi SKH</small>
+                </div>
+            </div>
+        `;
+    });
 
-    let qrURL="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="+encodeURIComponent(verifyURL);
-    document.getElementById("qr").src=qrURL;
-
-}else{
-    document.getElementById("certArea").innerHTML=
-    "<h2 style='color:red;text-align:center'>Sertifikat Tidak Valid</h2>";
-}
-
+});
 </script>
 
 </body>
