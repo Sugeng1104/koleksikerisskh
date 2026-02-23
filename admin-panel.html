@@ -1,337 +1,138 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel SKH Level 3</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel Sertifikat SKH</title>
 
 <style>
 body{
-    font-family:Georgia,serif;
+    font-family:Arial, sans-serif;
     background:#0f172a;
     color:white;
+    margin:0;
     padding:40px;
 }
-.card{
-    max-width:900px;
+
+.container{
+    max-width:700px;
     margin:auto;
     background:#1e293b;
-    padding:25px;
-    border-radius:14px;
+    padding:30px;
+    border-radius:12px;
 }
-input,textarea{
+
+h2{
+    text-align:center;
+    color:gold;
+}
+
+input{
     width:100%;
     padding:10px;
-    margin:6px 0;
-    border-radius:8px;
+    margin-bottom:15px;
+    border-radius:6px;
     border:none;
 }
+
 button{
-    padding:10px 18px;
+    width:100%;
+    padding:12px;
+    background:gold;
     border:none;
-    border-radius:8px;
-    background:#d4af37;
-    color:black;
     font-weight:bold;
     cursor:pointer;
-    margin-top:5px;
+    border-radius:6px;
 }
-.logout{background:red;color:white;}
-.preview img{max-width:200px;border-radius:10px;margin-top:10px;border:2px solid gold;}
-.item{
-    background:#111827;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
+
+button:hover{
+    background:#ffd700;
 }
-.flex{display:flex;align-items:center;}
-.item img{width:80px;height:80px;object-fit:cover;border-radius:8px;margin-right:10px;}
-.hapus{background:red;color:white;margin-left:auto;}
-.edit{background:orange;color:black;margin-left:5px;}
-canvas{background:white;border-radius:10px;margin-top:20px;}
-.dropzone{
-    border:2px dashed gold;
-    padding:15px;
+
+.success{
+    margin-top:15px;
+    color:#4ade80;
     text-align:center;
-    margin-top:10px;
-    cursor:pointer;
+}
+
+.error{
+    margin-top:15px;
+    color:#f87171;
+    text-align:center;
 }
 </style>
 </head>
+
 <body>
 
-<div class="card">
-<h2>Admin Koleksi Pusaka SKH - Level 3</h2>
+<div class="container">
+    <h2>Admin Sertifikat Nasional SKH</h2>
 
-<input id="nomor" placeholder="Nomor Sertifikat">
-<input id="nama" placeholder="Nama Pusaka">
-<input id="pemilik" placeholder="Pemilik">
-<input id="jenis" placeholder="Jenis">
-<input id="periode" placeholder="Periode">
-<textarea id="deskripsi" placeholder="Deskripsi"></textarea>
+    <input type="text" id="nomor" placeholder="Nomor Sertifikat (contoh: 004)">
+    <input type="text" id="nama" placeholder="Nama Koleksi">
+    <input type="text" id="pemilik" placeholder="Nama Pemilik">
+    <input type="text" id="jenis" placeholder="Jenis Keris">
+    <input type="text" id="periode" placeholder="Periode">
+    <input type="text" id="foto" placeholder="Nama File Foto (contoh: galeri1.jpg)">
 
-<div class="dropzone" id="dropzone">
-Drag & Drop Foto di sini atau klik untuk pilih
-<input type="file" id="foto" accept="image/*" style="display:none">
-</div>
+    <button onclick="simpanData()">Simpan Data</button>
 
-<div class="preview" id="preview"></div>
-
-<button onclick="simpan()">Simpan / Update</button>
-<button class="logout" onclick="logout()">Logout</button>
-
-<hr>
-
-<h3>Statistik Koleksi</h3>
-<canvas id="chart" height="120"></canvas>
-
-<hr>
-
-<h3>Daftar Koleksi</h3>
-<div id="daftarKoleksi"></div>
-
+    <div id="status"></div>
 </div>
 
 <script>
-//////////////////////////////////////////////////
-// LOGIN CHECK
-//////////////////////////////////////////////////
-if(localStorage.getItem("adminLogin")!=="true"){
-    window.location.replace("index.html");
+
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyxp18VDz5srBz9VrCYL8MqpSTczOHqf179x83nPYg1TlHr2erB1KCLKGrglUBsDptkwA/exec";
+
+function generateHash(){
+    return Math.random().toString(36).substring(2,15) +
+           Math.random().toString(36).substring(2,15);
 }
 
-//////////////////////////////////////////////////
-// ENKRIPSI RINGAN
-//////////////////////////////////////////////////
-function encrypt(data){
-    return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-}
-function decrypt(data){
-    return JSON.parse(decodeURIComponent(escape(atob(data))));
-}
+function simpanData(){
 
-//////////////////////////////////////////////////
-// DATABASE
-//////////////////////////////////////////////////
-function getDB(){
-    let raw=localStorage.getItem("dataPusaka");
-    if(!raw) return [];
-    return decrypt(raw);
-}
-function setDB(data){
-    localStorage.setItem("dataPusaka", encrypt(data));
-}
+    let nomor = document.getElementById("nomor").value.trim();
+    let nama = document.getElementById("nama").value.trim();
+    let pemilik = document.getElementById("pemilik").value.trim();
+    let jenis = document.getElementById("jenis").value.trim();
+    let periode = document.getElementById("periode").value.trim();
+    let foto = document.getElementById("foto").value.trim();
 
-//////////////////////////////////////////////////
-// HASH GENERATOR
-//////////////////////////////////////////////////
-function generateHash(nomor,nama){
-    return btoa(nomor+nama+Date.now()).substring(0,20);
-}
-
-//////////////////////////////////////////////////
-// DRAG DROP
-//////////////////////////////////////////////////
-const dropzone=document.getElementById("dropzone");
-const fileInput=document.getElementById("foto");
-
-dropzone.onclick=()=>fileInput.click();
-dropzone.ondragover=e=>{e.preventDefault();dropzone.style.background="#334155";}
-dropzone.ondragleave=e=>{dropzone.style.background="transparent";}
-dropzone.ondrop=e=>{
-    e.preventDefault();
-    fileInput.files=e.dataTransfer.files;
-    previewImage();
-};
-fileInput.addEventListener("change",previewImage);
-
-function previewImage(){
-    const file=fileInput.files[0];
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=e=>{
-        document.getElementById("preview").innerHTML=
-        `<img src="${e.target.result}">`;
-    };
-    reader.readAsDataURL(file);
-}
-
-//////////////////////////////////////////////////
-// SIMPAN / UPDATE
-//////////////////////////////////////////////////
-let editIndex=null;
-
-function simpan(){
-    let db=getDB();
-
-    let nomor=document.getElementById("nomor").value.trim();
-    let nama=document.getElementById("nama").value.trim();
-    let pemilik=document.getElementById("pemilik").value.trim();
-    let jenis=document.getElementById("jenis").value.trim();
-    let periode=document.getElementById("periode").value.trim();
-    let deskripsi=document.getElementById("deskripsi").value.trim();
-    let file=fileInput.files[0];
-
-    if(!nomor||!nama){
-        alert("Nomor dan Nama wajib diisi!");
+    if(!nomor || !nama){
+        document.getElementById("status").innerHTML =
+        "<div class='error'>Nomor dan Nama wajib diisi!</div>";
         return;
     }
 
-    function saveData(fotoData){
+    let data = {
+        nomor: nomor,
+        nama: nama,
+        pemilik: pemilik,
+        jenis: jenis,
+        periode: periode,
+        tanggal: new Date().toLocaleDateString("id-ID"),
+        foto: foto,
+        hash: generateHash()
+    };
 
-        let dataObj={
-            nomor,nama,pemilik,jenis,periode,deskripsi,
-            foto:fotoData,
-            hash:generateHash(nomor,nama),
-            timestamp:Date.now()
-        };
+    fetch(WEBAPP_URL,{
+        method:"POST",
+        body:JSON.stringify(data)
+    })
+    .then(res=>res.text())
+    .then(res=>{
+        document.getElementById("status").innerHTML =
+        "<div class='success'>Data berhasil disimpan ke Database Nasional!</div>";
 
-        if(editIndex!==null){
-            db[editIndex]=dataObj;
-            logAction("UPDATE",nomor);
-            editIndex=null;
-        }else{
-            db.push(dataObj);
-            logAction("CREATE",nomor);
-        }
-
-        setDB(db);
-        tampilkanData();
-        resetForm();
-    }
-
-    if(file){
-        const reader=new FileReader();
-        reader.onload=e=>saveData(e.target.result);
-        reader.readAsDataURL(file);
-    }else{
-        if(editIndex!==null){
-            saveData(db[editIndex].foto);
-        }else{
-            alert("Foto wajib diisi!");
-        }
-    }
-}
-
-//////////////////////////////////////////////////
-// LOG HISTORI
-//////////////////////////////////////////////////
-function logAction(type,nomor){
-    let log=JSON.parse(localStorage.getItem("logSKH")||"[]");
-    log.push({
-        type,nomor,
-        time:new Date().toLocaleString()
-    });
-    localStorage.setItem("logSKH",JSON.stringify(log));
-}
-
-//////////////////////////////////////////////////
-// TAMPILKAN DATA
-//////////////////////////////////////////////////
-function tampilkanData(){
-    let db=getDB();
-    let container=document.getElementById("daftarKoleksi");
-    container.innerHTML="";
-
-    db.forEach((item,index)=>{
-        container.innerHTML+=`
-        <div class="item">
-            <div class="flex">
-                <img src="${item.foto}">
-                <div>
-                    <strong>${item.nama}</strong><br>
-                    Pemilik: ${item.pemilik||"-"}<br>
-                    Jenis: ${item.jenis||"-"}<br>
-                    <small>No: ${item.nomor}</small>
-                </div>
-                <button class="edit" onclick="editData(${index})">Edit</button>
-                <button class="hapus" onclick="hapus(${index})">Hapus</button>
-            </div>
-        </div>`;
+        document.querySelectorAll("input").forEach(i=>i.value="");
+    })
+    .catch(err=>{
+        document.getElementById("status").innerHTML =
+        "<div class='error'>Gagal menyimpan data.</div>";
     });
 
-    updateChart();
 }
 
-//////////////////////////////////////////////////
-// EDIT
-//////////////////////////////////////////////////
-function editData(index){
-    let db=getDB();
-    let item=db[index];
-
-    document.getElementById("nomor").value=item.nomor;
-    document.getElementById("nama").value=item.nama;
-    document.getElementById("pemilik").value=item.pemilik;
-    document.getElementById("jenis").value=item.jenis;
-    document.getElementById("periode").value=item.periode;
-    document.getElementById("deskripsi").value=item.deskripsi;
-    document.getElementById("preview").innerHTML=`<img src="${item.foto}">`;
-
-    editIndex=index;
-}
-
-//////////////////////////////////////////////////
-// HAPUS
-//////////////////////////////////////////////////
-function hapus(index){
-    if(confirm("Yakin hapus data?")){
-        let db=getDB();
-        logAction("DELETE",db[index].nomor);
-        db.splice(index,1);
-        setDB(db);
-        tampilkanData();
-    }
-}
-
-//////////////////////////////////////////////////
-// RESET FORM
-//////////////////////////////////////////////////
-function resetForm(){
-    document.querySelectorAll("input,textarea").forEach(el=>el.value="");
-    document.getElementById("preview").innerHTML="";
-}
-
-//////////////////////////////////////////////////
-// CHART STATISTIK
-//////////////////////////////////////////////////
-let chart;
-
-function updateChart(){
-    let db=getDB();
-    let map={};
-    db.forEach(item=>{
-        let j=item.jenis||"Lainnya";
-        map[j]=(map[j]||0)+1;
-    });
-
-    let labels=Object.keys(map);
-    let data=Object.values(map);
-
-    if(chart) chart.destroy();
-
-    chart=new Chart(document.getElementById("chart"),{
-        type:"bar",
-        data:{
-            labels:labels,
-            datasets:[{
-                label:"Jumlah Koleksi",
-                data:data,
-                backgroundColor:"gold"
-            }]
-        }
-    });
-}
-
-//////////////////////////////////////////////////
-// LOGOUT
-//////////////////////////////////////////////////
-function logout(){
-    localStorage.removeItem("adminLogin");
-    window.location.replace("index.html");
-}
-
-tampilkanData();
 </script>
 
 </body>
