@@ -231,8 +231,7 @@ if(item){
     //////////////////////////////////////////////////
     // QR HASH TERENKRIPSI
     //////////////////////////////////////////////////
-    let secureHash=btoa(item.hash+"|"+item.nomor);
-    let verifyURL=window.location.origin+"/verifikasi.html?key="+secureHash;
+    let verifyURL = window.location.origin + "/verifikasi.html?nomor=" + encodeURIComponent(item.nomor);
 
     let qrURL="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="+encodeURIComponent(verifyURL);
     document.getElementById("qr").src=qrURL;
