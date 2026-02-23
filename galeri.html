@@ -3,79 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Museum Nasional SKH</title>
+<title>Galeri Pusaka SKH</title>
 
 <style>
 body{
     margin:0;
+    background:#000;
     font-family:Georgia,serif;
-    background:#0b0f14;
-    color:#f5f5f5;
+    color:white;
+    padding:40px;
 }
 
-/* HEADER */
-.header{
-    background:linear-gradient(to right,#111,#1a1a1a);
-    padding:25px;
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+h1{
     text-align:center;
-    border-bottom:2px solid gold;
-}
-.header h1{
-    margin:0;
-    font-size:32px;
     color:gold;
-    letter-spacing:2px;
-}
-.header p{
-    margin-top:8px;
-    font-size:14px;
-    color:#ccc;
+    margin-bottom:40px;
+    text-shadow:0 0 10px rgba(212,175,55,0.7);
 }
 
-/* FILTER BAR */
-.filter-bar{
-    display:flex;
-    flex-wrap:wrap;
-    gap:15px;
-    justify-content:center;
-    padding:20px;
-    background:#111;
-}
-.filter-bar input,
-.filter-bar select{
-    padding:8px 12px;
-    border-radius:6px;
-    border:none;
-    min-width:180px;
-}
-
-/* GALLERY */
 .gallery{
     display:grid;
     grid-template-columns:repeat(4,1fr);
-    gap:25px;
-    padding:40px;
-    max-width:1400px;
-    margin:auto;
+    gap:20px;
 }
 
 .card{
     background:#111;
     border-radius:12px;
     overflow:hidden;
-    transition:0.4s;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-    cursor:pointer;
+    box-shadow:0 0 15px rgba(212,175,55,0.3);
+    transition:0.3s;
 }
 
 .card:hover{
-    transform:scale(1.04);
-    box-shadow:0 0 35px gold;
+    transform:scale(1.03);
+    box-shadow:0 0 25px gold;
 }
 
 .card img{
     width:100%;
-    height:240px;
+    height:220px;
     object-fit:cover;
 }
 
@@ -86,223 +58,154 @@ body{
 .card-body h3{
     margin:5px 0;
     color:gold;
+    font-size:16px;
 }
 
 .card-body p{
-    margin:4px 0;
+    margin:3px 0;
     font-size:14px;
     color:#ddd;
 }
 
-.badge{
-    display:inline-block;
-    padding:4px 8px;
-    background:gold;
-    color:black;
-    border-radius:4px;
-    font-size:12px;
-    margin-top:6px;
+.pagination{
+    text-align:center;
+    margin-top:30px;
 }
 
-/* DETAIL PANEL */
-.detail-panel{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.95);
-    justify-content:center;
-    align-items:center;
-    padding:40px;
-    z-index:999;
-}
-
-.detail-content{
-    background:#111;
-    max-width:800px;
-    width:100%;
-    border-radius:12px;
-    padding:30px;
-    box-shadow:0 0 40px gold;
-}
-
-.detail-content img{
-    width:100%;
-    max-height:350px;
-    object-fit:cover;
-    border-radius:10px;
-}
-
-.detail-content h2{
-    color:gold;
-    margin-top:15px;
-}
-
-.detail-content button{
-    margin-top:15px;
+.pagination button{
     padding:8px 15px;
-    background:gold;
+    margin:5px;
     border:none;
     border-radius:6px;
-    font-weight:bold;
+    background:gold;
     cursor:pointer;
+    font-weight:bold;
 }
 
-/* BACK BUTTON PREMIUM */
-.back-home{
+.back-btn{
     position:fixed;
     bottom:25px;
     right:25px;
-    padding:14px 22px;
-    border-radius:50px;
-    background:linear-gradient(135deg,#1e3a8a,#2563eb);
+    background:linear-gradient(45deg,#1e3a8a,#2563eb);
     color:white;
-    text-decoration:none;
+    padding:14px 20px;
+    border-radius:50px;
     font-weight:bold;
-    box-shadow:0 0 25px rgba(37,99,235,0.8);
+    text-decoration:none;
+    box-shadow:0 0 15px rgba(37,99,235,0.8);
     transition:0.3s;
 }
-.back-home:hover{
-    transform:scale(1.08);
-    box-shadow:0 0 35px rgba(37,99,235,1);
+
+.back-btn:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 25px #3b82f6;
 }
 
-/* RESPONSIVE */
 @media(max-width:900px){
-.gallery{grid-template-columns:repeat(2,1fr);}
+    .gallery{
+        grid-template-columns:repeat(2,1fr);
+    }
 }
+
 @media(max-width:500px){
-.gallery{grid-template-columns:1fr;}
+    .gallery{
+        grid-template-columns:1fr;
+    }
 }
 </style>
 </head>
-
 <body>
 
-<div class="header">
-<h1>MUSEUM NASIONAL SKH</h1>
-<p>Arsip Resmi Koleksi Pusaka Nusantara</p>
+<div class="container">
+<h1>Galeri Pusaka SKH</h1>
+<div class="gallery" id="galleryContainer"></div>
+<div class="pagination" id="pagination"></div>
 </div>
 
-<div class="filter-bar">
-<input type="text" id="searchInput" placeholder="Cari Nama / Pemilik...">
-<select id="filterJenis">
-<option value="">Semua Jenis</option>
-</select>
-<select id="sortSelect">
-<option value="new">Terbaru</option>
-<option value="az">Nama A-Z</option>
-</select>
-</div>
-
-<div class="gallery" id="gallery"></div>
-
-<!-- DETAIL -->
-<div class="detail-panel" id="detailPanel">
-<div class="detail-content">
-<img id="detailImg">
-<h2 id="detailNama"></h2>
-<p><strong>Pemilik:</strong> <span id="detailPemilik"></span></p>
-<p><strong>Jenis:</strong> <span id="detailJenis"></span></p>
-<p><strong>Periode:</strong> <span id="detailPeriode"></span></p>
-<p id="detailDeskripsi"></p>
-<button onclick="closeDetail()">Tutup</button>
-</div>
-</div>
-
-<a href="index.html" class="back-home">🏠 Kembali</a>
+<a href="index.html" class="back-btn">⬅ Kembali</a>
 
 <script>
 
-// ================= AMBIL DATA DARI ADMIN PANEL =================
-let data = JSON.parse(localStorage.getItem("dataPusaka") || "[]");
-
-const gallery = document.getElementById("gallery");
-const filterJenis = document.getElementById("filterJenis");
-
-// ================= FILTER JENIS =================
-function initFilter(){
-    let jenisSet = new Set();
-    data.forEach(d=>{
-        if(d.jenis && d.jenis.trim()!==""){
-            jenisSet.add(d.jenis);
-        }
-    });
-
-    jenisSet.forEach(j=>{
-        let opt = document.createElement("option");
-        opt.value=j;
-        opt.textContent=j;
-        filterJenis.appendChild(opt);
-    });
+//////////////////////////////////////////////////
+// DECRYPT FUNCTION (SAMA DENGAN ADMIN)
+//////////////////////////////////////////////////
+function decrypt(data){
+    return JSON.parse(decodeURIComponent(escape(atob(data))));
 }
 
-// ================= RENDER =================
-function render(){
+//////////////////////////////////////////////////
+// AMBIL DATABASE ADMIN
+//////////////////////////////////////////////////
+function getDB(){
+    let raw = localStorage.getItem("dataPusaka");
+    if(!raw) return [];
 
-    gallery.innerHTML="";
-
-    let search=document.getElementById("searchInput").value.toLowerCase();
-    let jenis=filterJenis.value;
-    let sort=document.getElementById("sortSelect").value;
-
-    let filtered=data.filter(d=>{
-        return (!jenis || d.jenis===jenis) &&
-        (
-            (d.nama && d.nama.toLowerCase().includes(search)) ||
-            (d.pemilik && d.pemilik.toLowerCase().includes(search))
-        );
-    });
-
-    if(sort==="az"){
-        filtered.sort((a,b)=> (a.nama||"").localeCompare(b.nama||""));
-    }else{
-        filtered.sort((a,b)=> (b.timestamp||0)-(a.timestamp||0));
+    try{
+        return decrypt(raw);
+    }catch(e){
+        console.log("Gagal decrypt:",e);
+        return [];
     }
+}
 
-    if(filtered.length===0){
-        gallery.innerHTML="<p style='grid-column:1/-1;text-align:center;'>Belum ada koleksi tersimpan.</p>";
+let dataFinal = getDB();
+
+//////////////////////////////////////////////////
+// PAGINATION
+//////////////////////////////////////////////////
+const itemsPerPage = 20;
+let currentPage = 1;
+
+function renderGallery(){
+
+    const container = document.getElementById("galleryContainer");
+    container.innerHTML = "";
+
+    if(dataFinal.length===0){
+        container.innerHTML="<p>Belum ada data pusaka.</p>";
         return;
     }
 
-    filtered.forEach((item,index)=>{
-        gallery.innerHTML+=`
-        <div class="card" onclick="showDetail(${data.indexOf(item)})">
+    const start = (currentPage-1)*itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = dataFinal.slice(start,end);
+
+    pageData.forEach(item=>{
+        container.innerHTML+=`
+        <div class="card">
             <img src="${item.foto}">
             <div class="card-body">
                 <h3>${item.nama}</h3>
-                <p>Pemilik: ${item.pemilik||"-"}</p>
-                <span class="badge">${item.jenis||"Koleksi"}</span>
+                <p>Pemilik : ${item.pemilik||"-"}</p>
+                <p>Jenis : ${item.jenis||"-"}</p>
             </div>
-        </div>`;
+        </div>
+        `;
     });
+
+    renderPagination();
 }
 
-// ================= DETAIL =================
-function showDetail(index){
-    let d=data[index];
+function renderPagination(){
+    const totalPages = Math.ceil(dataFinal.length / itemsPerPage);
+    const pag = document.getElementById("pagination");
+    pag.innerHTML="";
 
-    document.getElementById("detailImg").src=d.foto;
-    document.getElementById("detailNama").textContent=d.nama;
-    document.getElementById("detailPemilik").textContent=d.pemilik||"-";
-    document.getElementById("detailJenis").textContent=d.jenis||"-";
-    document.getElementById("detailPeriode").textContent=d.periode||"-";
-    document.getElementById("detailDeskripsi").textContent=d.deskripsi||"-";
+    if(totalPages<=1) return;
 
-    document.getElementById("detailPanel").style.display="flex";
+    for(let i=1;i<=totalPages;i++){
+        pag.innerHTML+=`
+        <button onclick="goPage(${i})">${i}</button>
+        `;
+    }
 }
 
-function closeDetail(){
-    document.getElementById("detailPanel").style.display="none";
+function goPage(page){
+    currentPage = page;
+    renderGallery();
 }
 
-// ================= EVENT =================
-document.getElementById("searchInput").addEventListener("input",render);
-document.getElementById("filterJenis").addEventListener("change",render);
-document.getElementById("sortSelect").addEventListener("change",render);
-
-// ================= LOAD AWAL =================
-initFilter();
-render();
+renderGallery();
 
 </script>
 
