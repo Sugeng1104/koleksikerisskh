@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arsip Digital Koleksi Keris SKH</title>
+<title>Sertifikat Nasional Resmi - SKH Premium</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -34,7 +34,6 @@ h1{
     background:#1e293b;
     padding:25px;
     border-radius:12px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.6);
 }
 
 input{
@@ -57,55 +56,113 @@ button{
 }
 
 .certificate{
-    border:4px double #d4af37;
+    border:6px double gold;
     padding:30px;
     margin-top:30px;
     position:relative;
-    background:#0f172a;
+    background:linear-gradient(#111,#1e293b);
+    color:white;
+    page-break-inside:avoid;
+}
+
+.level{
+    text-align:center;
+    font-weight:bold;
+    font-size:18px;
+    letter-spacing:3px;
+    color:#22c55e;
+}
+
+.nama-pusaka{
+    font-size:26px;
+    font-weight:bold;
+    text-align:center;
+    margin:15px 0;
+    padding:10px;
+    border:3px solid black;
+    background:white;
+    color:black;
 }
 
 .watermark{
     position:absolute;
     top:35%;
-    left:10%;
-    font-size:100px;
-    opacity:0.04;
+    left:15%;
+    font-size:120px;
+    opacity:0.05;
     transform:rotate(-30deg);
 }
 
-.valid{color:#22c55e;font-weight:bold;}
-.invalid{color:#ef4444;font-weight:bold;}
+.hologram{
+    position:absolute;
+    top:20px;
+    right:20px;
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:radial-gradient(circle,#ffd700,#b8860b,#ffd700);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    color:black;
+    font-size:12px;
+    text-align:center;
+    box-shadow:0 0 20px gold;
+}
+
+.sign{
+    margin-top:40px;
+    text-align:right;
+}
 
 .meta{
     font-size:12px;
     color:#94a3b8;
-    margin-top:10px;
+    margin-top:15px;
     word-break:break-all;
 }
 
-.sign{
-    margin-top:30px;
-    text-align:right;
+@media print{
+    body{
+        background:white;
+        padding:0;
+    }
+    button{
+        display:none;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<h1>ARSIP DIGITAL KOLEKSI KERIS SKH</h1>
+<h1>SERTIFIKAT KOLEKSI KERIS SKH</h1>
 
 <div class="container">
 <div class="card">
-<h3>Verifikasi Sertifikat Digital</h3>
-<input id="cari" placeholder="Masukkan Nomor Sertifikat">
-<button onclick="verifikasi()">Verifikasi</button>
+<h3>Cetak Sertifikat Nasional Premium</h3>
+<input id="nomor" placeholder="Masukkan Nomor Sertifikat">
+<button onclick="cetak()">Tampilkan Sertifikat</button>
 <div id="hasil"></div>
 </div>
 </div>
 
 <script>
 //////////////////////////////////////////////////
-// DECRYPT (SAMA DENGAN ADMIN PANEL LEVEL 3)
+// SIMPLE HASH GENERATOR
+//////////////////////////////////////////////////
+function simpleHash(str){
+    let hash=0;
+    for(let i=0;i<str.length;i++){
+        hash=((hash<<5)-hash)+str.charCodeAt(i);
+        hash|=0;
+    }
+    return Math.abs(hash).toString(16);
+}
+
+//////////////////////////////////////////////////
+// DECRYPT DATABASE
 //////////////////////////////////////////////////
 function decrypt(data){
     try{
@@ -122,68 +179,73 @@ function getDB(){
 }
 
 //////////////////////////////////////////////////
-// CETAK KE TEMPLATE RESMI (ARSIP.HTML)
+// CETAK
 //////////////////////////////////////////////////
-function cetakResmi(nomor){
-    window.open("arsip.html?nomor="+encodeURIComponent(nomor), "_blank");
-}
-
-//////////////////////////////////////////////////
-// VERIFIKASI
-//////////////////////////////////////////////////
-function verifikasi(){
+function cetak(){
 
     let db = getDB();
-    let nomor = document.getElementById("cari").value.trim();
+    let nomor = document.getElementById("nomor").value.trim();
     let hasil = document.getElementById("hasil");
     hasil.innerHTML="";
 
     if(!nomor){
-        hasil.innerHTML="<p class='invalid'><b>Masukkan nomor sertifikat.</b></p>";
+        alert("Masukkan nomor sertifikat.");
         return;
     }
 
     let data = db.find(d => d.nomor === nomor);
 
     if(!data){
-        hasil.innerHTML="<p class='invalid'><b>SERTIFIKAT TIDAK VALID</b></p>";
+        alert("Nomor tidak ditemukan.");
         return;
     }
 
+    let tahun = new Date().getFullYear();
+    let registrasi = "SKH-NAS-" + tahun + "-" + nomor;
+    let secureHash = simpleHash(data.nomor + data.nama + data.hash);
+
     hasil.innerHTML=`
     <div class='certificate'>
-    <div class='watermark'>SKH</div>
-    <h2>SERTIFIKAT DIGITAL AUTENTIK</h2>
-    <p class="valid">Status: VALID ✔</p>
+        <div class='watermark'>SKH</div>
+        <div class='hologram'>NASIONAL<br>RESMI</div>
 
-    <b>Nomor:</b> ${data.nomor}<br>
-    <b>Nama Pusaka:</b> ${data.nama}<br>
-    <b>Pemilik:</b> ${data.pemilik || "-"}<br>
-    <b>Jenis:</b> ${data.jenis || "-"}<br>
-    <b>Periode:</b> ${data.periode || "-"}<br><br>
+        <div class='level'>LEVEL NASIONAL RESMI – TERDAFTAR</div>
 
-    <b>Deskripsi:</b><br>${data.deskripsi || "-"}<br><br>
+        <h2 style="text-align:center;">SERTIFIKAT DIGITAL AUTENTIK</h2>
 
-    <b>Digital Hash:</b><br>
-    <div class="meta">${data.hash}</div><br>
+        <p style="text-align:center;">
+        Pusaka berikut telah terdaftar dalam Registrasi Nasional Digital SKH.
+        </p>
 
-    <button onclick="cetakResmi('${data.nomor}')">
-    Cetak / Simpan PDF (Format Resmi)
-    </button>
+        <div class='nama-pusaka'>${data.nama}</div>
 
+        <b>Nomor Sertifikat:</b> ${data.nomor}<br>
+        <b>Nomor Registrasi Nasional:</b> ${registrasi}<br>
+        <b>Pemilik:</b> ${data.pemilik || "-"}<br>
+        <b>Jenis:</b> ${data.jenis || "-"}<br>
+        <b>Periode:</b> ${data.periode || "-"}<br><br>
+
+        <div id="qrcode"></div>
+
+        <div class="meta">
+        Secure Verification Code:<br>${secureHash}
+        </div>
+
+        <div class="sign">
+        Hormat Kami,<br>
+        Administrator Nasional SKH
+        </div>
+
+        <br>
+        <button onclick="window.print()">Cetak / Simpan PDF</button>
     </div>
     `;
-}
 
-//////////////////////////////////////////////////
-// AUTO VERIFY DARI URL
-//////////////////////////////////////////////////
-window.onload=function(){
-    const params=new URLSearchParams(window.location.search);
-    if(params.get("verify")){
-        document.getElementById("cari").value=params.get("verify");
-        verifikasi();
-    }
+    new QRCode(document.getElementById("qrcode"), {
+        text: window.location.origin + "/arsip.html?verify=" + data.nomor + "&secure=" + secureHash,
+        width: 100,
+        height: 100
+    });
 }
 </script>
 
