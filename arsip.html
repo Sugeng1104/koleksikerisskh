@@ -43,7 +43,7 @@ body{
     overflow:hidden;
 }
 .certificate::before{
-    content:"SKH";
+    content: var(--wm-text,"SKH");
     position:absolute;
     font-size:180px;
     color:gold;
@@ -166,26 +166,26 @@ body{
 <script>
 
 //////////////////////////////////////////////////
-// KONFIGURASI API
+// API GOOGLE SHEET
 //////////////////////////////////////////////////
 const API_URL="https://script.google.com/macros/s/AKfycbyxp18VDz5srBz9VrCYL8MqpSTczOHqf179x83nPYg1TlHr2erB1KCLKGrglUBsDptkwA/exec";
 
 //////////////////////////////////////////////////
-// PARAMETER URL
+// AMBIL PARAMETER
 //////////////////////////////////////////////////
 const params=new URLSearchParams(window.location.search);
 const nomor=params.get("nomor");
 const secure=params.get("secure");
 
-if(!nomor || !secure){
-    invalid("Parameter tidak lengkap");
+if(!nomor){
+    invalid("Nomor sertifikat tidak ditemukan");
 }else{
 
 fetch(API_URL+"?action=get")
 .then(res=>res.json())
 .then(db=>{
 
-    let item=db.find(d=>d.nomor===nomor);
+    let item=db.find(d=>d.nomor==nomor);
 
     if(!item){
         invalid("Nomor tidak terdaftar");
@@ -193,32 +193,32 @@ fetch(API_URL+"?action=get")
     }
 
     //////////////////////////////////////////////////
-    // VALIDASI HASH
+    // VALIDASI HASH (HANYA JIKA ADA PARAMETER SECURE)
     //////////////////////////////////////////////////
-    if(item.hash !== secure){
-        invalid("Hash tidak valid / URL dimanipulasi");
-        return;
+    if(secure){
+        if(item.hash !== secure){
+            invalid("URL dimanipulasi / hash tidak valid");
+            return;
+        }
     }
 
     //////////////////////////////////////////////////
     // TAMPILKAN DATA
     //////////////////////////////////////////////////
-    document.getElementById("nama").innerText=item.nama;
-    document.getElementById("foto").src=item.foto;
-    document.getElementById("nomor").innerText=item.nomor;
-    document.getElementById("pemilik").innerText=item.pemilik||"-";
-    document.getElementById("jenis").innerText=item.jenis||"-";
-    document.getElementById("periode").innerText=item.periode||"-";
-
-    let tanggal=new Date(item.timestamp||Date.now())
-    .toLocaleDateString("id-ID");
-
-    document.getElementById("tanggal").innerText=tanggal;
+    document.getElementById("nama").innerText=item.nama || "-";
+    document.getElementById("foto").src=item.foto || "";
+    document.getElementById("nomor").innerText=item.nomor || "-";
+    document.getElementById("pemilik").innerText=item.pemilik || "-";
+    document.getElementById("jenis").innerText=item.jenis || "-";
+    document.getElementById("periode").innerText=item.periode || "-";
+    document.getElementById("tanggal").innerText=item.tanggal || "-";
 
     //////////////////////////////////////////////////
-    // REGISTRASI NASIONAL ELITE
+    // REGISTRASI NASIONAL
     //////////////////////////////////////////////////
-    let reg="SKH-NAS-"+item.hash.substring(0,10).toUpperCase();
+    let hash=item.hash || btoa(item.nomor).substring(0,8);
+    let reg="SKH-NAS-"+hash.substring(0,10).toUpperCase();
+
     document.getElementById("regNumber")
     .innerText="Nomor Registrasi Nasional: "+reg;
 
@@ -231,13 +231,13 @@ fetch(API_URL+"?action=get")
     );
 
     //////////////////////////////////////////////////
-    // QR ELITE (dengan hash)
+    // QR ELITE (pakai hash resmi)
     //////////////////////////////////////////////////
     let verifyURL=
         window.location.origin+
         window.location.pathname+
         "?nomor="+encodeURIComponent(item.nomor)+
-        "&secure="+encodeURIComponent(item.hash);
+        "&secure="+encodeURIComponent(hash);
 
     let qrURL=
     "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data="
@@ -247,7 +247,7 @@ fetch(API_URL+"?action=get")
 
 })
 .catch(()=>{
-    invalid("Gagal koneksi ke server");
+    invalid("Gagal terhubung ke server");
 });
 
 }
