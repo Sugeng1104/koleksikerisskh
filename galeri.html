@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SKH Museum Nasional Digital</title>
 
+<!-- QR & HASH ENGINE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
 <style>
 body{
     margin:0;
@@ -40,6 +44,7 @@ h1{
     transition:0.4s;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
     cursor:pointer;
+    position:relative;
 }
 
 .card:hover{
@@ -80,6 +85,21 @@ h1{
 .card-body p{
     font-size:14px;
     color:#ddd;
+}
+
+.qr-box{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#000;
+    padding:5px;
+    border-radius:8px;
+}
+
+.verify{
+    font-size:11px;
+    color:#00ff88;
+    margin-top:5px;
 }
 
 .top-buttons{
@@ -136,21 +156,29 @@ h1{
 </div>
 
 <div class="container">
-
 <h1>SKH MUSEUM NASIONAL DIGITAL</h1>
-
 <div class="gallery" id="galleryContainer"></div>
-
 </div>
 
-<a href="index.html" class="back-home-btn">
-🏠 Halaman Depan
-</a>
+<a href="index.html" class="back-home-btn">🏠 Halaman Depan</a>
 
 <script>
 
 //////////////////////////////////////////////////
-// DECRYPT (Sinkron dengan Admin Level 3)
+// SECRET KEY (SERAGAM SEMUA HALAMAN)
+//////////////////////////////////////////////////
+const SECRET_KEY = "SKH_MUSEUM_NASIONAL_2026";
+
+//////////////////////////////////////////////////
+// HASH GENERATOR (Blockchain Style)
+//////////////////////////////////////////////////
+function generateEncryptedData(item){
+    const raw = item.hash + "|" + item.nama + "|" + (item.jenis||"") + "|" + SECRET_KEY;
+    return CryptoJS.SHA256(raw).toString();
+}
+
+//////////////////////////////////////////////////
+// DECRYPT DATA
 //////////////////////////////////////////////////
 function decrypt(data){
     try{
@@ -163,9 +191,6 @@ function decrypt(data){
 let raw = localStorage.getItem("dataPusaka");
 let dataPusaka = raw ? decrypt(raw) : [];
 
-//////////////////////////////////////////////////
-// URUTKAN TERBARU DI ATAS
-//////////////////////////////////////////////////
 dataPusaka.sort((a,b)=>b.timestamp-a.timestamp);
 
 //////////////////////////////////////////////////
@@ -181,13 +206,19 @@ function renderGallery(){
         return;
     }
 
-    dataPusaka.forEach((item)=>{
+    dataPusaka.forEach((item,index)=>{
+
+        const hashQR = generateEncryptedData(item);
 
         container.innerHTML+=`
         <div class="card" onclick="openDetail('${item.hash}')">
             <div class="img-wrapper">
                 <img src="${item.foto}">
                 <div class="watermark">SKH ARCHIVE</div>
+                <div class="qr-box">
+                    <div id="qr${index}"></div>
+                    <div class="verify">Verified</div>
+                </div>
             </div>
             <div class="card-body">
                 <h3>${item.nama}</h3>
@@ -196,11 +227,21 @@ function renderGallery(){
             </div>
         </div>
         `;
+
+        setTimeout(()=>{
+            new QRCode(document.getElementById("qr"+index),{
+                text: hashQR,
+                width:70,
+                height:70,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        },100);
+
     });
 }
 
 //////////////////////////////////////////////////
-// OPEN DETAIL PAGE
+// OPEN DETAIL
 //////////////////////////////////////////////////
 function openDetail(hash){
     window.location.href="detail.html?id="+hash;
