@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sertifikat Nasional Resmi - SKH Premium</title>
+<title>Sertifikat ELITE Nasional - SKH</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -59,82 +59,120 @@ button{
 }
 
 /* ======================= */
-/* SERTIFIKAT SUPER PREMIUM */
+/* CETAK ELITE LANDSCAPE */
+/* ======================= */
+
+@page{
+    size:A4 landscape;
+    margin:2cm;
+}
+
+@media print{
+    body{
+        background:white;
+        padding:0;
+    }
+    button, .card, h1{
+        display:none;
+    }
+}
+
+/* ======================= */
+/* SERTIFIKAT ELITE */
 /* ======================= */
 
 .certificate{
-    border:8px double #b8860b;
-    padding:60px 60px 50px 60px;
-    margin-top:40px;
+    width:100%;
+    height:100%;
     position:relative;
     background:#fdf8ec;
     color:#111;
-    page-break-inside:avoid;
+    border:10px double #b8860b;
+    padding:50px;
+    box-sizing:border-box;
+    page-break-after:always;
     overflow:hidden;
-    box-shadow:0 0 40px rgba(0,0,0,0.25);
 }
 
+/* INNER FRAME */
 .certificate:before{
     content:"";
     position:absolute;
-    top:20px;
-    left:20px;
-    right:20px;
-    bottom:20px;
+    top:25px;
+    left:25px;
+    right:25px;
+    bottom:25px;
     border:2px solid rgba(184,134,11,0.6);
-    pointer-events:none;
 }
 
+/* Background motif halus */
+.certificate:after{
+    content:"SKH";
+    position:absolute;
+    top:45%;
+    left:30%;
+    font-size:180px;
+    font-family:'Cinzel',serif;
+    opacity:0.03;
+    transform:rotate(-30deg);
+}
+
+/* HEADER */
 .cert-header{
     text-align:center;
-    margin-bottom:20px;
-    padding-right:130px;
+    margin-bottom:25px;
 }
 
 .level{
     font-family:'Cinzel',serif;
-    font-size:15px;
-    letter-spacing:3px;
+    font-size:18px;
+    letter-spacing:4px;
     color:#065f46;
-    margin-bottom:8px;
+    margin-bottom:10px;
 }
 
 .judul{
     font-family:'Cinzel',serif;
-    font-size:28px;
+    font-size:38px;
     font-weight:700;
-    letter-spacing:3px;
+    letter-spacing:4px;
 }
 
+/* DESKRIPSI */
 .deskripsi{
     text-align:center;
     font-family:'Playfair Display',serif;
-    font-size:16px;
-    margin:20px 0 30px 0;
+    font-size:18px;
+    margin:25px 0 40px 0;
 }
 
+/* NAMA */
 .nama-pusaka{
     font-family:'Playfair Display',serif;
-    font-size:30px;
+    font-size:36px;
     font-weight:600;
     text-align:center;
-    margin:25px 0;
-    padding:14px;
-    border:4px double #000;
+    margin:25px 0 35px 0;
+    padding:15px;
+    border:5px double #000;
     background:white;
 }
 
-.data-row{
-    margin:6px 0;
-    font-size:15px;
+/* DATA GRID */
+.data-area{
+    width:70%;
+    margin:auto;
+    font-size:18px;
+    line-height:1.8;
 }
 
+/* HOLOGRAM */
 .hologram{
     position:absolute;
-    top:35px;
-    right:35px;
-    width:110px;
-    height:110px;
+    top:40px;
+    right:50px;
+    width:130px;
+    height:130px;
     border-radius:50%;
     background:radial-gradient(circle,#fff8dc,#ffd700,#b8860b,#ffd700);
     display:flex;
@@ -143,56 +181,39 @@ button{
     font-family:'Cinzel',serif;
     font-weight:bold;
     color:black;
-    font-size:12px;
+    font-size:14px;
     text-align:center;
-    box-shadow:0 0 25px gold;
-    border:2px solid rgba(255,255,255,0.6);
+    box-shadow:0 0 30px gold;
+    border:3px solid rgba(255,255,255,0.7);
 }
 
-.watermark{
-    position:absolute;
-    top:45%;
-    left:15%;
-    font-size:130px;
-    opacity:0.04;
-    transform:rotate(-30deg);
-    font-family:'Cinzel',serif;
-}
-
+/* QR */
 .qr-box{
-    margin-top:25px;
+    position:absolute;
+    bottom:60px;
+    left:80px;
     text-align:center;
     padding:10px;
     border:2px solid #b8860b;
-    display:inline-block;
 }
 
+/* HASH */
 .meta{
+    position:absolute;
+    bottom:30px;
+    left:80px;
     font-size:11px;
-    margin-top:20px;
-    word-break:break-all;
-    text-align:center;
+    width:400px;
 }
 
+/* SIGN */
 .sign{
-    margin-top:50px;
-    text-align:right;
+    position:absolute;
+    bottom:80px;
+    right:120px;
+    text-align:center;
     font-family:'Playfair Display',serif;
-    font-size:16px;
-}
-
-@media print{
-    body{
-        background:white;
-        padding:0;
-    }
-    button{
-        display:none;
-    }
-    .certificate{
-        margin:0;
-        box-shadow:none;
-    }
+    font-size:18px;
 }
 </style>
 </head>
@@ -203,7 +224,7 @@ button{
 
 <div class="container">
 <div class="card">
-<h3>Cetak Sertifikat Nasional Premium</h3>
+<h3>Cetak Sertifikat ELITE Nasional</h3>
 <input id="nomor" placeholder="Masukkan Nomor Sertifikat">
 <button onclick="cetak()">Tampilkan Sertifikat</button>
 <div id="hasil"></div>
@@ -261,7 +282,6 @@ function cetak(){
     <div class='certificate'>
 
         <div class='hologram'>NASIONAL<br>RESMI</div>
-        <div class='watermark'>SKH</div>
 
         <div class='cert-header'>
             <div class='level'>LEVEL NASIONAL RESMI – TERDAFTAR</div>
@@ -275,22 +295,20 @@ function cetak(){
 
         <div class='nama-pusaka'>${data.nama}</div>
 
-        <div class='data-row'><b>Nomor Sertifikat:</b> ${data.nomor}</div>
-        <div class='data-row'><b>Nomor Registrasi Nasional:</b> ${registrasi}</div>
-        <div class='data-row'><b>Pemilik:</b> ${data.pemilik || "-"}</div>
-        <div class='data-row'><b>Jenis:</b> ${data.jenis || "-"}</div>
-        <div class='data-row'><b>Periode:</b> ${data.periode || "-"}</div>
+        <div class='data-area'>
+            Nomor Sertifikat : ${data.nomor}<br>
+            Nomor Registrasi Nasional : ${registrasi}<br>
+            Pemilik : ${data.pemilik || "-"}<br>
+            Jenis : ${data.jenis || "-"}<br>
+            Periode : ${data.periode || "-"}
+        </div>
 
-        <br>
-
-        <div style="text-align:center;">
-            <div class="qr-box">
-                <div id="qrcode"></div>
-            </div>
+        <div class="qr-box">
+            <div id="qrcode"></div>
         </div>
 
         <div class="meta">
-            Secure Verification Code:<br>${secureHash}
+            Secure Verification Code: ${secureHash}
         </div>
 
         <div class="sign">
@@ -298,16 +316,16 @@ function cetak(){
             Administrator Nasional SKH
         </div>
 
-        <button onclick="window.print()">Cetak / Simpan PDF</button>
-
     </div>
     `;
 
     new QRCode(document.getElementById("qrcode"), {
         text: window.location.origin + "/arsip.html?verify=" + data.nomor + "&secure=" + secureHash,
-        width: 110,
-        height: 110
+        width: 130,
+        height: 130
     });
+
+    setTimeout(()=>{ window.print(); },500);
 }
 </script>
 
