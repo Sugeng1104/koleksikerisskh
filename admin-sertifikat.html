@@ -104,77 +104,75 @@ button{
 </div>
 
 <script>
-async function sha256(message){
- const msgBuffer = new TextEncoder().encode(message);
- const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
- const hashArray = Array.from(new Uint8Array(hashBuffer));
- return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+//////////////////////////////////////////////////
+// DECRYPT (SAMA DENGAN ADMIN PANEL)
+//////////////////////////////////////////////////
+function decrypt(data){
+    try{
+        return JSON.parse(decodeURIComponent(escape(atob(data))));
+    }catch{
+        return [];
+    }
 }
 
 function getDB(){
- return JSON.parse(localStorage.getItem("koleksiSKH")||"[]");
+    let raw = localStorage.getItem("dataPusaka");
+    if(!raw) return [];
+    return decrypt(raw);
 }
 
-async function verifikasi(){
- let nomor=document.getElementById("cari").value.trim();
- let db=getDB();
- let hasil=document.getElementById("hasil");
- hasil.innerHTML="";
+//////////////////////////////////////////////////
+// VERIFIKASI
+//////////////////////////////////////////////////
+function verifikasi(){
 
- let data=db.find(d=>d.nomor===nomor);
+    let db = getDB();
+    let nomor = document.getElementById("cari").value.trim();
+    let hasil = document.getElementById("hasil");
+    hasil.innerHTML="";
 
- if(!data){
-  hasil.innerHTML="<p class='invalid'>SERTIFIKAT TIDAK VALID</p>";
-  return;
- }
+    if(!nomor){
+        hasil.innerHTML="<p style='color:red'><b>Masukkan nomor sertifikat.</b></p>";
+        return;
+    }
 
- let rawData=data.nomor+data.nama+data.jenis+data.periode+data.deskripsi+data.timestamp;
- let recalculatedHash=await sha256(rawData);
+    let data = db.find(d => d.nomor === nomor);
 
- let status = (recalculatedHash===data.hash) ? "VALID" : "TIDAK VALID";
- let statusClass = (status==="VALID") ? "valid" : "invalid";
+    if(!data){
+        hasil.innerHTML="<p style='color:red'><b>SERTIFIKAT TIDAK VALID</b></p>";
+        return;
+    }
 
- hasil.innerHTML=`
- <div class='certificate'>
- <div class='watermark'>SKH</div>
- <h2 style='text-align:center;color:#d4af37;'>SERTIFIKAT AUTENTIKASI DIGITAL</h2>
- <p class='${statusClass}'>STATUS: ${status}</p>
- <hr>
- <b>Nomor:</b> ${data.nomor}<br>
- <b>Nama Pusaka:</b> ${data.nama}<br>
- <b>Jenis:</b> ${data.jenis}<br>
- <b>Periode:</b> ${data.periode}<br>
- <b>Tanggal Terbit:</b> ${new Date(data.timestamp).toLocaleString()}<br><br>
- <b>Deskripsi:</b><br>${data.deskripsi}<br>
+    hasil.innerHTML=`
+    <div class='certificate'>
+    <div class='watermark'>SKH</div>
+    <h2>SERTIFIKAT DIGITAL AUTENTIK</h2>
+    <b>Status:</b> VALID ✔<br><br>
 
- <div id='qr'></div>
+    <b>Nomor:</b> ${data.nomor}<br>
+    <b>Nama Pusaka:</b> ${data.nama}<br>
+    <b>Pemilik:</b> ${data.pemilik || "-"}<br>
+    <b>Jenis:</b> ${data.jenis || "-"}<br>
+    <b>Periode:</b> ${data.periode || "-"}<br><br>
 
- <div class='meta'>
- SHA-256 Digital Hash:<br>${data.hash}
- </div>
+    <b>Deskripsi:</b><br>${data.deskripsi || "-"}<br><br>
 
- <div class='sign'>
- Disahkan oleh:<br>
- Ketua SKH<br>
- <b>Ttd Digital Terverifikasi</b>
- </div>
+    <b>Digital Hash:</b><br>${data.hash}<br><br>
 
- <br><button onclick='window.print()'>Cetak / Simpan PDF</button>
- </div>
- `;
-
- new QRCode(document.getElementById("qr"),{
-  text: window.location.origin+window.location.pathname+"?verify="+data.nomor,
-  width:120,height:120
- });
+    <button onclick='window.print()'>Cetak / Simpan PDF</button>
+    </div>
+    `;
 }
 
+//////////////////////////////////////////////////
+// AUTO VERIFY DARI URL
+//////////////////////////////////////////////////
 window.onload=function(){
- const params=new URLSearchParams(window.location.search);
- if(params.get("verify")){
-  document.getElementById("cari").value=params.get("verify");
-  verifikasi();
- }
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("verify")){
+        document.getElementById("cari").value=params.get("verify");
+        verifikasi();
+    }
 }
 </script>
 
