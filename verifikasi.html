@@ -3,60 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verifikasi Koleksi SKH</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<title>Verifikasi Sertifikat SKH</title>
 
 <style>
 body{
-    margin:0;
-    background:#000;
-    font-family:Georgia,serif;
+    font-family:Arial, sans-serif;
+    background:#0f172a;
     color:white;
+    margin:0;
+    padding:30px;
     text-align:center;
-    padding:40px;
 }
 
 .card{
-    background:#111;
     max-width:600px;
     margin:auto;
-    padding:30px;
-    border-radius:15px;
-    box-shadow:0 0 30px rgba(212,175,55,0.5);
+    background:#1e293b;
+    padding:25px;
+    border-radius:12px;
+}
+
+h2{
+    color:gold;
 }
 
 .valid{
-    color:#00ff88;
-    font-size:22px;
+    color:#4ade80;
+    font-weight:bold;
 }
 
 .invalid{
-    color:red;
-    font-size:22px;
-}
-
-h1{
-    color:gold;
+    color:#f87171;
+    font-weight:bold;
 }
 </style>
 </head>
+
 <body>
 
-<div class="card">
-    <h1>VERIFIKASI KOLEKSI SKH</h1>
-    <div id="result"></div>
-</div>
+<h2>Verifikasi Sertifikat Nasional SKH</h2>
+
+<div id="result"></div>
 
 <script>
-
-const SECRET_KEY = "SKH_MUSEUM_NASIONAL_2026";
-
-function generateEncryptedData(item){
-    const raw = item.hash + "|" + item.nama + "|" + (item.jenis||"") + "|" + SECRET_KEY;
-    return CryptoJS.SHA256(raw).toString();
-}
-
 function decrypt(data){
     try{
         return JSON.parse(decodeURIComponent(escape(atob(data))));
@@ -65,35 +54,39 @@ function decrypt(data){
     }
 }
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+let raw=localStorage.getItem("dataPusaka");
+let db=raw?decrypt(raw):[];
 
-let raw = localStorage.getItem("dataPusaka");
-let dataPusaka = raw ? decrypt(raw) : [];
+const params=new URLSearchParams(window.location.search);
+const nomor=params.get("nomor");
 
-let found = dataPusaka.find(item => item.hash === id);
+let result=document.getElementById("result");
 
-const resultDiv = document.getElementById("result");
-
-if(found){
-
-    const recalculated = generateEncryptedData(found);
-
-    resultDiv.innerHTML = `
-        <p class="valid">✔ KOLEKSI VALID & TERVERIFIKASI</p>
-        <p><strong>Nama:</strong> ${found.nama}</p>
-        <p><strong>Pemilik:</strong> ${found.pemilik||"-"}</p>
-        <p><strong>Jenis:</strong> ${found.jenis||"-"}</p>
-        <p><strong>Hash Blockchain:</strong><br>${recalculated}</p>
-    `;
-
+if(!nomor){
+    result.innerHTML="<p class='invalid'>QR tidak valid.</p>";
 }else{
 
-    resultDiv.innerHTML = `
-        <p class="invalid">✖ DATA TIDAK VALID / TIDAK DITEMUKAN</p>
-    `;
-}
+    let item=db.find(d=>d.nomor===nomor);
 
+    if(!item){
+        result.innerHTML="<p class='invalid'>Sertifikat tidak ditemukan.</p>";
+    }else{
+
+        let reg="SKH-NAS-"+item.hash.substring(0,8).toUpperCase();
+
+        result.innerHTML=`
+        <div class="card">
+            <p class="valid">✔ Sertifikat Resmi & Valid</p>
+            <h3>${item.nama}</h3>
+            <p>Nomor Sertifikat: ${item.nomor}</p>
+            <p>Pemilik: ${item.pemilik||"-"}</p>
+            <p>Jenis: ${item.jenis||"-"}</p>
+            <p>Periode: ${item.periode||"-"}</p>
+            <p><strong>Nomor Registrasi Nasional:</strong><br>${reg}</p>
+        </div>
+        `;
+    }
+}
 </script>
 
 </body>
