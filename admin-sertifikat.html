@@ -2,69 +2,241 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin Sertifikat SKH</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sertifikat ELITE Nasional - SKH</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 body{
-    font-family:Arial, sans-serif;
-    background:#0f172a;
-    color:white;
+    font-family:Georgia,serif;
+    background:#0b1120;
+    color:#f8fafc;
     margin:0;
-    padding:30px;
+    padding:40px 20px;
 }
 
-h2{
-    color:gold;
+h1{
+    text-align:center;
+    letter-spacing:4px;
+    color:#d4af37;
 }
 
 .container{
-    max-width:1000px;
-    margin:auto;
+    display:flex;
+    justify-content:center;
+    margin-top:30px;
 }
 
 .card{
+    width:100%;
+    max-width:450px;
     background:#1e293b;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+    padding:25px;
+    border-radius:12px;
 }
 
-.info{
-    line-height:1.6;
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border-radius:6px;
+    border:none;
 }
 
 button{
-    padding:8px 14px;
-    background:gold;
+    width:100%;
+    padding:10px;
     border:none;
     border-radius:6px;
+    background:#d4af37;
+    color:black;
     font-weight:bold;
     cursor:pointer;
+    margin-top:10px;
 }
 
-button:hover{
-    opacity:0.9;
+/* ================= PRINT ================= */
+
+@page{
+    size:A4 landscape;
+    margin:2cm;
+}
+
+@media print{
+    body{
+        background:white;
+        padding:0;
+    }
+    h1, .card{
+        display:none;
+    }
+}
+
+/* ================= SERTIFIKAT ================= */
+
+.certificate{
+    width:100%;
+    max-width:1120px;
+    margin:40px auto;
+    background:#fdf8ec;
+    color:#111;
+    border:8px double #b8860b;
+    padding:50px 60px;
+    box-sizing:border-box;
+    position:relative;
+}
+
+/* Inner frame */
+.certificate:before{
+    content:"";
+    position:absolute;
+    top:25px;
+    left:25px;
+    right:25px;
+    bottom:25px;
+    border:2px solid rgba(184,134,11,0.6);
+    pointer-events:none;
+}
+
+/* Watermark */
+.certificate:after{
+    content:"SKH";
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) rotate(-25deg);
+    font-size:150px;
+    font-family:'Cinzel',serif;
+    opacity:0.05;
+}
+
+/* Hologram */
+.hologram{
+    position:absolute;
+    top:40px;
+    right:50px;
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff8dc,#ffd700,#b8860b,#ffd700);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Cinzel',serif;
+    font-weight:bold;
+    color:black;
+    font-size:12px;
+    text-align:center;
+    box-shadow:0 0 20px gold;
+}
+
+/* Header */
+.cert-header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.level{
+    font-family:'Cinzel',serif;
+    font-size:16px;
+    letter-spacing:3px;
+    color:#065f46;
+}
+
+.judul{
+    font-family:'Cinzel',serif;
+    font-size:32px;
+    letter-spacing:4px;
+    margin-top:8px;
+}
+
+/* Description */
+.deskripsi{
+    text-align:center;
+    font-family:'Playfair Display',serif;
+    font-size:17px;
+    margin:25px 0 35px 0;
+}
+
+/* Nama */
+.nama-pusaka{
+    font-family:'Playfair Display',serif;
+    font-size:30px;
+    font-weight:600;
+    text-align:center;
+    margin:25px 0;
+    padding:12px;
+    border:3px double #000;
+    background:white;
+}
+
+/* Layout isi */
+.main-content{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:40px;
+}
+
+/* Data */
+.data-area{
+    flex:1;
+    font-size:17px;
+    line-height:1.9;
+}
+
+/* QR */
+.qr-area{
+    width:200px;
+    text-align:center;
+}
+
+.qr-box{
+    padding:10px;
+    border:2px solid #b8860b;
+}
+
+.meta{
+    font-size:11px;
+    margin-top:10px;
+}
+
+/* Footer */
+.footer{
+    text-align:right;
+    margin-top:40px;
+    font-family:'Playfair Display',serif;
+    font-size:18px;
 }
 </style>
 </head>
 
 <body>
 
+<h1>SERTIFIKAT KOLEKSI KERIS SKH</h1>
+
 <div class="container">
-
-<h2>Admin Sertifikat Nasional SKH</h2>
-
-<div id="listArea"></div>
-
+<div class="card">
+<h3>Cetak Sertifikat ELITE Nasional</h3>
+<input id="nomor" placeholder="Masukkan Nomor Sertifikat">
+<button onclick="cetak()">Tampilkan Sertifikat</button>
+<div id="hasil"></div>
+</div>
 </div>
 
 <script>
-//////////////////////////////////////////////////
-// DECRYPT (Sama seperti arsip.html)
-//////////////////////////////////////////////////
+function simpleHash(str){
+    let hash=0;
+    for(let i=0;i<str.length;i++){
+        hash=((hash<<5)-hash)+str.charCodeAt(i);
+        hash|=0;
+    }
+    return Math.abs(hash).toString(16);
+}
+
 function decrypt(data){
     try{
         return JSON.parse(decodeURIComponent(escape(atob(data))));
@@ -73,52 +245,86 @@ function decrypt(data){
     }
 }
 
-let raw = localStorage.getItem("dataPusaka");
-let db = raw ? decrypt(raw) : [];
-
-let listArea = document.getElementById("listArea");
-
-if(db.length === 0){
-    listArea.innerHTML = "<p>Tidak ada data sertifikat.</p>";
-}else{
-
-    db.forEach(item=>{
-
-        let div = document.createElement("div");
-        div.className = "card";
-
-        div.innerHTML = `
-            <div class="info">
-                <strong>${item.nama}</strong><br>
-                Nomor: ${item.nomor}<br>
-                Pemilik: ${item.pemilik || "-"}<br>
-                Jenis: ${item.jenis || "-"}
-            </div>
-
-            <div>
-                <button onclick="cetakSertifikat('${item.nomor}')">
-                Cetak Sertifikat ELITE
-                </button>
-            </div>
-        `;
-
-        listArea.appendChild(div);
-    });
+function getDB(){
+    let raw = localStorage.getItem("dataPusaka");
+    if(!raw) return [];
+    return decrypt(raw);
 }
 
-//////////////////////////////////////////////////
-// CETAK KE ARSIP.HTML (ELITE LANDSCAPE)
-//////////////////////////////////////////////////
-function cetakSertifikat(nomor){
+function cetak(){
+
+    let db = getDB();
+    let nomor = document.getElementById("nomor").value.trim();
+    let hasil = document.getElementById("hasil");
+    hasil.innerHTML="";
 
     if(!nomor){
-        alert("Nomor sertifikat tidak ditemukan.");
+        alert("Masukkan nomor sertifikat.");
         return;
     }
 
-    let url = "arsip.html?nomor=" + encodeURIComponent(nomor);
+    let data = db.find(d => d.nomor === nomor);
 
-    window.open(url, "_blank");
+    if(!data){
+        alert("Nomor tidak ditemukan.");
+        return;
+    }
+
+    let tahun = new Date().getFullYear();
+    let registrasi = "SKH-NAS-" + tahun + "-" + nomor;
+    let secureHash = simpleHash(data.nomor + data.nama + data.hash);
+
+    hasil.innerHTML=`
+    <div class='certificate'>
+
+        <div class='hologram'>NASIONAL<br>RESMI</div>
+
+        <div class='cert-header'>
+            <div class='level'>LEVEL ELITE NASIONAL – TERDAFTAR</div>
+            <div class='judul'>SERTIFIKAT DIGITAL AUTENTIK</div>
+        </div>
+
+        <div class='deskripsi'>
+            Pusaka berikut telah terdaftar dalam Registrasi Nasional Digital SKH
+            dan dinyatakan sah sebagai koleksi resmi komunitas.
+        </div>
+
+        <div class='nama-pusaka'>${data.nama}</div>
+
+        <div class='main-content'>
+
+            <div class='data-area'>
+                Nomor Sertifikat : ${data.nomor}<br>
+                Nomor Registrasi Nasional : ${registrasi}<br>
+                Pemilik : ${data.pemilik || "-"}<br>
+                Jenis : ${data.jenis || "-"}<br>
+                Periode : ${data.periode || "-"}
+            </div>
+
+            <div class='qr-area'>
+                <div class='qr-box'>
+                    <div id="qrcode"></div>
+                </div>
+                <div class='meta'>
+                    Secure Verification Code:<br>${secureHash}
+                </div>
+            </div>
+
+        </div>
+
+        <div class='footer'>
+            Hormat Kami,<br><br>
+            Administrator Nasional SKH
+        </div>
+
+    </div>
+    `;
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: window.location.origin + "/arsip.html?nomor=" + data.nomor,
+        width: 120,
+        height: 120
+    });
 }
 </script>
 
