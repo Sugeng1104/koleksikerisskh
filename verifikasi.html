@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verifikasi Sertifikat & Anggota SKH</title>
+<title>Verifikasi QR Anggota SKH</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
@@ -19,211 +21,92 @@ body{
     border-radius:15px;
     max-width:500px;
     margin:auto;
-    margin-bottom:30px;
-}
-input{
-    padding:12px;
-    width:80%;
-    border-radius:8px;
-    border:none;
-    margin-bottom:15px;
-}
-button{
-    padding:12px 25px;
-    background:#22c55e;
-    border:none;
-    border-radius:8px;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    margin:5px;
-}
-.valid{
-    color:#22c55e;
-    margin-top:20px;
-    font-weight:bold;
-}
-.invalid{
-    color:#ef4444;
-    margin-top:20px;
-    font-weight:bold;
-}
-.loading{
-    color:#38bdf8;
-    margin-top:20px;
+    position:relative;
+    overflow:hidden;
 }
 #reader{
-    width:100%;
-    max-width:400px;
-    margin:auto;
     margin-top:20px;
 }
-.scan-box{
-    background:#1e293b;
-    padding:30px;
-    border-radius:15px;
-    max-width:500px;
-    margin:auto;
+.valid{ color:#22c55e; font-weight:bold; margin-top:20px;}
+.invalid{ color:#ef4444; font-weight:bold; margin-top:20px;}
+.flash{
+    position:absolute;
+    top:0;left:0;
+    width:100%;height:100%;
+    opacity:0;
+    pointer-events:none;
 }
+.flash.green{ background:rgba(34,197,94,0.4);}
+.flash.red{ background:rgba(239,68,68,0.4);}
 </style>
 </head>
 <body>
 
-<!-- ========================= -->
-<!-- VERIFIKASI SERTIFIKAT -->
-<!-- ========================= -->
-
 <div class="box">
-<h2>Verifikasi Sertifikat</h2>
+<h2>Scan QR Anggota</h2>
 
-<input type="text" id="nomor" placeholder="Masukkan Nomor Sertifikat">
-<br>
-<button onclick="verifikasi()">Verifikasi</button>
-
-<div id="hasil"></div>
-</div>
-
-<!-- ========================= -->
-<!-- VERIFIKASI ANGGOTA QR -->
-<!-- ========================= -->
-
-<div class="scan-box">
-<h2>🔐 Scan QR Anggota</h2>
-
+<button onclick="startScanner()">Aktifkan Kamera</button>
 <div id="reader"></div>
-<div id="hasilQR"></div>
+<div id="hasil"></div>
+<div class="flash" id="flash"></div>
 
 </div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
 
-/* ================================
-   VERIFIKASI SERTIFIKAT (TIDAK DIUBAH)
-================================ */
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+let scanner;
 
-const SPREADSHEET_ID = "1w-LniqnY0NtI3AMIuhMWAOfmEsIe1donN1VWBPzAZsw";
-const SHEET_NAME = "Sheet1";
-
-async function verifikasi(){
-
-    const nomorInput = document.getElementById("nomor").value.trim();
-    const hasil = document.getElementById("hasil");
-
-    if(!nomorInput){
-        hasil.innerHTML = "<div class='invalid'>Masukkan nomor sertifikat</div>";
-        return;
-    }
-
-    hasil.innerHTML = "<div class='loading'>Memeriksa data...</div>";
-
-    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&_=${Date.now()}`;
-
-    try{
-
-        const response = await fetch(url);
-        const text = await response.text();
-
-        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1]);
-        const rows = json.table.rows;
-
-        let ditemukan = false;
-
-        rows.forEach(row=>{
-            const nomorDB = row.c[0]?.v;
-
-            if(
-                nomorDB &&
-                nomorDB.toString().replace(/\s/g,'') === nomorInput.replace(/\s/g,'')
-            ){
-                ditemukan = true;
-            }
-        });
-
-        if(ditemukan){
-            hasil.innerHTML = "<div class='valid'>✅ Sertifikat VALID & Terdaftar</div>";
-        }else{
-            hasil.innerHTML = "<div class='invalid'>❌ Sertifikat tidak ditemukan / tidak valid</div>";
-        }
-
-    }catch(error){
-        console.error(error);
-        hasil.innerHTML = "<div class='invalid'>Gagal mengakses database</div>";
-    }
+function beep(freq,duration){
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    osc.frequency.value=freq;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(()=>osc.stop(),duration);
 }
 
-/* ================================
-   SCAN QR ANGGOTA (BARU)
-================================ */
+function vibrate(ms){
+    if(navigator.vibrate) navigator.vibrate(ms);
+}
 
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-const hasilQR=document.getElementById("hasilQR");
+function flash(color){
+    const f=document.getElementById("flash");
+    f.className="flash "+color;
+    f.style.opacity=1;
+    setTimeout(()=>f.style.opacity=0,400);
+}
 
 function startScanner(){
+    scanner = new Html5Qrcode("reader");
 
-const html5QrCode=new Html5Qrcode("reader");
+    scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        async (decodedText) => {
 
-Html5Qrcode.getCameras().then(devices=>{
-if(devices && devices.length){
-html5QrCode.start(
-devices[0].id,
-{ fps:10, qrbox:250 },
-onScanSuccess
-);
+            scanner.stop();
+
+            const res=await fetch(WEB_APP_URL);
+            const data=(await res.json()).data;
+
+            const found=data.find(r=>r["No Anggota"]===decodedText && r.Status==="Aktif");
+
+            if(found){
+                document.getElementById("hasil").innerHTML="<div class='valid'>✅ VALID - AKTIF</div>";
+                beep(1000,200);
+                vibrate(200);
+                flash("green");
+            }else{
+                document.getElementById("hasil").innerHTML="<div class='invalid'>❌ TIDAK VALID</div>";
+                beep(250,400);
+                vibrate(400);
+                flash("red");
+            }
+
+        }
+    );
 }
-});
-
-async function onScanSuccess(decodedText){
-
-try{
-
-const url=new URL(decodedText);
-const noAnggota=url.searchParams.get("verify");
-
-if(!noAnggota){
-hasilQR.innerHTML="<div class='invalid'>QR tidak valid</div>";
-return;
-}
-
-hasilQR.innerHTML="<div class='loading'>Memeriksa anggota...</div>";
-
-const res=await fetch(WEB_APP_URL);
-const data=await res.json();
-
-const anggota=data.find(a=>a["No Anggota"]===noAnggota);
-
-if(!anggota){
-hasilQR.innerHTML="<div class='invalid'>❌ Anggota tidak ditemukan</div>";
-return;
-}
-
-if(anggota.Status==="Aktif"){
-
-document.getElementById("beepSound").play();
-
-hasilQR.innerHTML=`
-<div class='valid'>✅ ANGGOTA AKTIF</div>
-<div>Nama: ${anggota["Nama Lengkap"]}</div>
-<div>No: ${anggota["No Anggota"]}</div>
-`;
-}else{
-hasilQR.innerHTML=`
-<div class='invalid'>❌ ANGGOTA NONAKTIF</div>
-<div>Nama: ${anggota["Nama Lengkap"]}</div>
-<div>No: ${anggota["No Anggota"]}</div>
-`;
-}
-
-}catch(err){
-hasilQR.innerHTML="<div class='invalid'>QR tidak valid</div>";
-}
-
-}
-
-}
-
-startScanner();
 
 </script>
 
