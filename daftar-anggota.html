@@ -3,284 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daftar Anggota SKH</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<title>Komunitas Keris SKH</title>
 
 <style>
 body{
     margin:0;
-    font-family:Arial, sans-serif;
-    background:linear-gradient(to right,#000000,#111);
+    font-family:Georgia,serif;
+    background:#000;
     color:white;
+    padding:40px;
 }
+.container{ max-width:1100px; margin:auto; }
 
 h1{
     color:gold;
-    padding:20px;
-}
-
-.section{
-    display:none;
-}
-
-.active{
-    display:block;
-}
-
-table{
-    width:95%;
-    margin:20px auto;
-    border-collapse:collapse;
-}
-
-th,td{
-    border:1px solid #444;
-    padding:12px;
-}
-
-th{
-    background:#222;
-    color:gold;
-}
-
-.status{
-    padding:6px 12px;
-    border-radius:8px;
-    font-weight:bold;
-}
-
-.aktif{ background:#00cc00; }
-.nonaktif{ background:#cc0000; }
-
-button{
-    padding:10px 18px;
-    margin:8px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.btn-blue{ background:#0066ff; color:white; }
-.btn-green{ background:#00aa00; color:white; }
-.btn-yellow{ background:#ffcc00; }
-
-#reader{
-    width:300px;
-    margin:auto;
-}
-
-.flash-valid{
-    animation:flashGreen 0.4s alternate 4;
-}
-
-.flash-invalid{
-    animation:flashRed 0.4s alternate 4;
-}
-
-@keyframes flashGreen{
-    from{background:#003300;}
-    to{background:#00ff00;}
-}
-
-@keyframes flashRed{
-    from{background:#330000;}
-    to{background:#ff0000;}
+    text-align:center;
+    margin-bottom:40px;
+    text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
 .card{
-    width:300px;
-    margin:20px auto;
-    padding:20px;
     background:#111;
+    padding:30px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+h2{ color:gold; margin-bottom:15px; }
+
+.pengurus-list{ font-size:18px; line-height:1.8; }
+
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+
+th, td{ border:1px solid #444; padding:10px; }
+
+th{ background:#222; color:gold; }
+
+.foto-kecil{
+    width:55px;
+    height:55px;
+    object-fit:cover;
+    border-radius:8px;
     border:2px solid gold;
-    border-radius:12px;
-    text-align:center;
 }
 
-.card img{
-    width:80px;
-}
-
-.form-box{
-    text-align:center;
-    margin-top:20px;
-}
-
-input{
-    padding:8px;
-    margin:5px;
+.status-aktif{
+    background:#00aa00;
+    padding:5px 10px;
     border-radius:6px;
+    font-weight:bold;
+}
+
+.status-nonaktif{
+    background:#aa0000;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.btn{
+    padding:10px 20px;
+    border-radius:8px;
+    margin-right:10px;
+    font-weight:bold;
     border:none;
+    cursor:pointer;
+}
+
+.btn-blue{ background:#007bff; color:white; }
+.btn-green{ background:#28a745; color:white; }
+.btn-gold{ background:gold; color:black; }
+
+.button-group{ margin-top:15px; }
+
+#modalDaftar{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.9);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:#0f172a;
+    padding:30px;
+    border-radius:15px;
+    width:400px;
+}
+
+.modal-content input,
+.modal-content textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
 }
 </style>
 </head>
+
 <body>
 
-<!-- HALAMAN UTAMA -->
-<div id="home" class="section active">
-<h1>Daftar Anggota SKH</h1>
+<div class="container">
+
+<h1>Komunitas Keris SKH</h1>
+
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<div class="pengurus-list" id="strukturPengurus">
+Memuat struktur...
+</div>
+</div>
+
+<div class="card">
+<h2>Daftar Anggota</h2>
 
 <table>
+<thead>
 <tr>
 <th>Foto</th>
 <th>Nama</th>
 <th>No Anggota</th>
 <th>Status</th>
 </tr>
-<tr>
-<td><img src="https://via.placeholder.com/50" width="50"></td>
-<td>Chandra Ardana Hidayat</td>
-<td>SKH-0002</td>
-<td><span class="status nonaktif">Nonaktif</span></td>
-</tr>
-<tr>
-<td><img src="https://via.placeholder.com/50" width="50"></td>
-<td>Sugeng Hidayat</td>
-<td>SKH-0001</td>
-<td><span class="status aktif">Aktif</span></td>
-</tr>
+</thead>
+<tbody id="listAnggota">
+<tr><td colspan="4">Memuat...</td></tr>
+</tbody>
 </table>
 
-<div style="text-align:center;">
-<button class="btn-blue" onclick="showDaftar()">Daftar</button>
-<button class="btn-green" onclick="showScanner()">🔐 Verifikasi QR</button>
-<button class="btn-yellow" onclick="showPengurus()">Struktur Pengurus</button>
+<div class="button-group">
+<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
+<a href="verifikasi.html">
+<button class="btn btn-green">Verifikasi QR</button>
+</a>
+<a href="index.html">
+<button class="btn btn-gold">Kembali</button>
+</a>
 </div>
 
-<div class="card">
-<img src="logo-skh.png">
-<h3>Kartu Anggota SKH</h3>
-<p>Scan untuk Verifikasi</p>
-</div>
-</div>
-
-<!-- STRUKTUR PENGURUS -->
-<div id="pengurus" class="section">
-<h1>Struktur Pengurus SKH</h1>
-<ul style="width:300px;margin:auto;">
-<li>Ketua : Sugeng Hidayat</li>
-<li>Wakil : Chandra Ardana Hidayat</li>
-<li>Sekretaris : -</li>
-<li>Bendahara : -</li>
-</ul>
-<div style="text-align:center;">
-<button class="btn-yellow" onclick="showHome()">Kembali</button>
 </div>
 </div>
 
-<!-- FORM DAFTAR -->
-<div id="daftar" class="section">
-<h1>Form Pendaftaran Anggota</h1>
-<div class="form-box">
-<input type="text" placeholder="Nama"><br>
-<input type="text" placeholder="No Anggota"><br>
-<input type="file"><br>
-<button class="btn-green">Simpan</button>
-<br>
-<button class="btn-yellow" onclick="showHome()">Kembali</button>
-</div>
-</div>
-
-<!-- SCANNER -->
-<div id="scanner" class="section">
-<h1>Scan QR Anggota</h1>
-<div id="reader"></div>
-<h3 id="result"></h3>
-<div style="text-align:center;">
-<button class="btn-yellow" onclick="stopScanner();showHome()">Kembali</button>
+<div id="modalDaftar">
+<div class="modal-content">
+<h3 style="color:gold;">Pendaftaran Anggota</h3>
+<input type="text" id="nama" placeholder="Nama Lengkap">
+<input type="text" id="gelar" placeholder="Gelar">
+<textarea id="alamat" placeholder="Alamat"></textarea>
+<input type="text" id="nohp" placeholder="No HP">
+<input type="file" id="foto" accept="image/*">
+<button class="btn btn-blue" onclick="kirim()">Kirim</button>
+<button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
 </div>
 
 <script>
-let html5QrCode;
-let scanning=false;
 
-function hideAll(){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-}
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-function showHome(){
-    hideAll();
-    document.getElementById("home").classList.add("active");
-}
+//////////////////////////////////////////////////
+// STRUKTUR
+//////////////////////////////////////////////////
 
-function showDaftar(){
-    hideAll();
-    document.getElementById("daftar").classList.add("active");
-}
+function loadStruktur(){
+    const container = document.getElementById("strukturPengurus");
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
 
-function showPengurus(){
-    hideAll();
-    document.getElementById("pengurus").classList.add("active");
-}
+    if(data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
+    }
 
-function showScanner(){
-    hideAll();
-    document.getElementById("scanner").classList.add("active");
-    startScanner();
-}
+    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
 
-function beepValid(){
-    const ctx=new AudioContext();
-    const osc=ctx.createOscillator();
-    osc.frequency.value=1000;
-    osc.connect(ctx.destination);
-    osc.start();
-    setTimeout(()=>osc.stop(),200);
-}
-
-function beepInvalid(){
-    const ctx=new AudioContext();
-    const osc=ctx.createOscillator();
-    osc.frequency.value=200;
-    osc.connect(ctx.destination);
-    osc.start();
-    setTimeout(()=>osc.stop(),400);
-}
-
-function vibrate(){
-    if(navigator.vibrate){ navigator.vibrate(200); }
-}
-
-function startScanner(){
-    html5QrCode = new Html5Qrcode("reader");
-    scanning=true;
-
-    Html5Qrcode.getCameras().then(devices=>{
-        if(devices.length){
-            html5QrCode.start(
-                devices[0].id,
-                {fps:10,qrbox:250},
-                qr=>{
-                    if(!scanning) return;
-
-                    let result=document.getElementById("result");
-
-                    if(qr==="SKH-0001"){
-                        result.innerHTML="✅ VALID - Sugeng Hidayat";
-                        document.body.classList.add("flash-valid");
-                        beepValid();
-                        vibrate();
-                        stopScanner();
-                    }else{
-                        result.innerHTML="❌ TIDAK VALID";
-                        document.body.classList.add("flash-invalid");
-                        beepInvalid();
-                        vibrate();
-                    }
-                }
-            );
-        }
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Korektor Pusaka") korektor=p.nama;
     });
-}
 
-function stopScanner(){
-    scanning=false;
-    if(html5QrCode){
-        html5QrCode.stop();
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Korektor Pusaka : ${korektor}
+    `;
+}
+loadStruktur();
+
+//////////////////////////////////////////////////
+// LOAD ANGGOTA (FIXED)
+//////////////////////////////////////////////////
+
+async function loadAnggota(){
+    try{
+        const res = await fetch(WEB_APP_URL);
+        const result = await res.json();
+
+        const data = result.data || result;
+
+        if(!data || data.length===0){
+            document.getElementById("listAnggota").innerHTML =
+            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
+            return;
+        }
+
+        let html="";
+
+        data.reverse().forEach(row=>{
+            const status=row.Status||"Nonaktif";
+            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+            html+=`
+            <tr>
+                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+                <td>${row["Nama Lengkap"]||"-"}</td>
+                <td>${row["No Anggota"]||"-"}</td>
+                <td><span class="${statusClass}">${status}</span></td>
+            </tr>`;
+        });
+
+        document.getElementById("listAnggota").innerHTML=html;
+
+    }catch(error){
+        document.getElementById("listAnggota").innerHTML =
+        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+        console.error(error);
     }
 }
+loadAnggota();
+
+//////////////////////////////////////////////////
+// FORM
+//////////////////////////////////////////////////
+
+function bukaForm(){
+    document.getElementById("modalDaftar").style.display="flex";
+}
+
+function tutupForm(){
+    document.getElementById("modalDaftar").style.display="none";
+}
+
+async function kirim(){
+
+    const nama=document.getElementById("nama").value.trim();
+    const gelar=document.getElementById("gelar").value;
+    const alamat=document.getElementById("alamat").value;
+    const nohp=document.getElementById("nohp").value;
+    const file=document.getElementById("foto").files[0];
+
+    if(!nama || !file){
+        alert("Nama dan Foto wajib diisi");
+        return;
+    }
+
+    const reader=new FileReader();
+
+    reader.onload=async function(e){
+
+        const formData = new URLSearchParams();
+        formData.append("action","add");
+        formData.append("nama",nama);
+        formData.append("gelar",gelar);
+        formData.append("alamat",alamat);
+        formData.append("nohp",nohp);
+        formData.append("foto",e.target.result);
+
+        try{
+
+            const res = await fetch(WEB_APP_URL,{
+                method:"POST",
+                body:formData
+            });
+
+            const result = await res.json();
+
+            if(result.status==="success"){
+                alert("Berhasil terdaftar!");
+                tutupForm();
+                loadAnggota();
+            }else{
+                alert(result.message || "Gagal menyimpan");
+            }
+
+        }catch(error){
+            alert("Tidak bisa terhubung ke server.");
+            console.error(error);
+        }
+
+    };
+
+    reader.readAsDataURL(file);
+}
+
 </script>
 
 </body>
