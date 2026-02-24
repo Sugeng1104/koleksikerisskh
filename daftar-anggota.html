@@ -141,6 +141,7 @@ Memuat struktur...
 <a href="index.html">
 <button class="btn btn-gold">Kembali</button>
 </a>
+<div id="pagination"></div>
 </div>
 
 </div>
@@ -159,9 +160,18 @@ Memuat struktur...
 </div>
 </div>
 
+<!-- Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+let isSubmitting = false;
+let currentPage = 1;
+const rowsPerPage = 5;
+let globalData = [];
 
 //////////////////////////////////////////////////
 // STRUKTUR
@@ -195,38 +205,17 @@ function loadStruktur(){
 loadStruktur();
 
 //////////////////////////////////////////////////
-// LOAD ANGGOTA (FIXED)
+// LOAD ANGGOTA + PAGINATION
 //////////////////////////////////////////////////
 
 async function loadAnggota(){
     try{
         const res = await fetch(WEB_APP_URL);
         const result = await res.json();
-
         const data = result.data || result;
 
-        if(!data || data.length===0){
-            document.getElementById("listAnggota").innerHTML =
-            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
-            return;
-        }
-
-        let html="";
-
-        data.reverse().forEach(row=>{
-            const status=row.Status||"Nonaktif";
-            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
-            html+=`
-            <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"}</td>
-                <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-            </tr>`;
-        });
-
-        document.getElementById("listAnggota").innerHTML=html;
+        globalData = [...data].reverse();
+        renderTable();
 
     }catch(error){
         document.getElementById("listAnggota").innerHTML =
@@ -236,19 +225,65 @@ async function loadAnggota(){
 }
 loadAnggota();
 
+function renderTable(){
+
+    const start = (currentPage-1)*rowsPerPage;
+    const end = start + rowsPerPage;
+    const pageData = globalData.slice(start,end);
+
+    let html="";
+
+    pageData.forEach(row=>{
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+        html+=`
+        <tr>
+            <td><img src="${row.Foto || ''}" class="foto-kecil"></td>
+            <td>${row["Nama Lengkap"]||"-"}</td>
+            <td>${row["No Anggota"]||"-"}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+        </tr>`;
+    });
+
+    document.getElementById("listAnggota").innerHTML=html;
+    renderPagination();
+}
+
+function renderPagination(){
+    const totalPages = Math.ceil(globalData.length / rowsPerPage);
+    let buttons="";
+    for(let i=1;i<=totalPages;i++){
+        buttons+=`<button class="btn btn-blue" onclick="gotoPage(${i})">${i}</button>`;
+    }
+    document.getElementById("pagination").innerHTML=buttons;
+}
+
+function gotoPage(page){
+    currentPage=page;
+    renderTable();
+}
+
 //////////////////////////////////////////////////
 // FORM
 //////////////////////////////////////////////////
 
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
+function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
+function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
+function generateNoAnggota(){
+    const now=new Date();
+    const random=Math.floor(Math.random()*100);
+    return "SKH-"+now.getFullYear()+
+           String(now.getMonth()+1).padStart(2,"0")+
+           String(now.getDate()).padStart(2,"0")+
+           "-"+random;
 }
 
 async function kirim(){
+
+    if(isSubmitting) return;
+    isSubmitting=true;
 
     const nama=document.getElementById("nama").value.trim();
     const gelar=document.getElementById("gelar").value;
@@ -258,36 +293,43 @@ async function kirim(){
 
     if(!nama || !file){
         alert("Nama dan Foto wajib diisi");
+        isSubmitting=false;
         return;
     }
 
+    const noAnggota=generateNoAnggota();
     const reader=new FileReader();
 
     reader.onload=async function(e){
 
-        const formData = new URLSearchParams();
+        const formData=new URLSearchParams();
         formData.append("action","add");
         formData.append("nama",nama);
         formData.append("gelar",gelar);
         formData.append("alamat",alamat);
         formData.append("nohp",nohp);
         formData.append("foto",e.target.result);
+        formData.append("noanggota",noAnggota);
 
         try{
-
-            const res = await fetch(WEB_APP_URL,{
-                method:"POST",
-                body:formData
-            });
-
-            const result = await res.json();
+            const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+            const result=await res.json();
 
             if(result.status==="success"){
-                alert("Berhasil terdaftar!");
+
+                document.getElementById("nama").value="";
+                document.getElementById("gelar").value="";
+                document.getElementById("alamat").value="";
+                document.getElementById("nohp").value="";
+                document.getElementById("foto").value="";
+
                 tutupForm();
                 loadAnggota();
+                generateKartu(nama,noAnggota,e.target.result);
+
+                alert("Berhasil terdaftar!");
             }else{
-                alert(result.message || "Gagal menyimpan");
+                alert(result.message||"Gagal menyimpan");
             }
 
         }catch(error){
@@ -295,12 +337,56 @@ async function kirim(){
             console.error(error);
         }
 
+        isSubmitting=false;
     };
 
     reader.readAsDataURL(file);
 }
 
-</script>
+//////////////////////////////////////////////////
+// GENERATE KARTU + LOGO
+//////////////////////////////////////////////////
 
+function generateKartu(nama,noAnggota,fotoBase64){
+
+    const div=document.createElement("div");
+    div.style.width="350px";
+    div.style.padding="20px";
+    div.style.background="#111";
+    div.style.color="gold";
+    div.style.textAlign="center";
+    div.style.borderRadius="15px";
+
+    div.innerHTML=`
+        <img src="logo-skh.png" width="80"><br><br>
+        <h3>KARTU ANGGOTA</h3>
+        <img src="${fotoBase64}" width="100" style="border-radius:10px;"><br><br>
+        <strong>${nama}</strong><br>
+        No: ${noAnggota}<br><br>
+        <div id="qrcode"></div>
+    `;
+
+    document.body.appendChild(div);
+
+    const qrText=WEB_APP_URL+"?action=verify&no="+noAnggota;
+
+    new QRCode(div.querySelector("#qrcode"),{
+        text:qrText,
+        width:100,
+        height:100
+    });
+
+    setTimeout(()=>{
+        html2canvas(div).then(canvas=>{
+            const link=document.createElement("a");
+            link.download="Kartu-"+noAnggota+".png";
+            link.href=canvas.toDataURL();
+            link.click();
+            div.remove();
+        });
+    },800);
+}
+
+</script>
 </body>
 </html>
