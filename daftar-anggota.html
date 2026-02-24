@@ -169,21 +169,18 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQ
 
 function loadStruktur(){
     const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus"));
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
 
-    if(!data || data.length===0){
+    if(data.length===0){
         container.innerHTML="Belum ditentukan.";
         return;
     }
 
-    let ketua="-";
-    let sekretaris="-";
-    let bendahara="-";
-    let korektor="-";
+    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
 
     data.forEach(p=>{
         if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris") sekretaris=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
         if(p.jabatan==="Bendahara") bendahara=p.nama;
         if(p.jabatan==="Korektor Pusaka") korektor=p.nama;
     });
@@ -195,20 +192,21 @@ function loadStruktur(){
     Korektor Pusaka : ${korektor}
     `;
 }
-
 loadStruktur();
 
 //////////////////////////////////////////////////
-// LOAD ANGGOTA
+// LOAD ANGGOTA (FIXED)
 //////////////////////////////////////////////////
 
 async function loadAnggota(){
     try{
-        const res=await fetch(WEB_APP_URL+"?_="+Date.now());
-        const data=await res.json();
+        const res = await fetch(WEB_APP_URL);
+        const result = await res.json();
 
-        if(!data.length){
-            document.getElementById("listAnggota").innerHTML=
+        const data = result.data || result;
+
+        if(!data || data.length===0){
+            document.getElementById("listAnggota").innerHTML =
             "<tr><td colspan='4'>Belum ada anggota</td></tr>";
             return;
         }
@@ -216,12 +214,12 @@ async function loadAnggota(){
         let html="";
 
         data.reverse().forEach(row=>{
-            const status=row["Status"]||"Nonaktif";
+            const status=row.Status||"Nonaktif";
             const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
             html+=`
             <tr>
-                <td><img src="${row["Foto"]||""}" class="foto-kecil"></td>
+                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
                 <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
@@ -231,11 +229,11 @@ async function loadAnggota(){
         document.getElementById("listAnggota").innerHTML=html;
 
     }catch(error){
-        document.getElementById("listAnggota").innerHTML=
+        document.getElementById("listAnggota").innerHTML =
         "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+        console.error(error);
     }
 }
-
 loadAnggota();
 
 //////////////////////////////////////////////////
@@ -267,20 +265,23 @@ async function kirim(){
 
     reader.onload=async function(e){
 
-        const formData = new URLSearchParams();
-        formData.append("action","add");
-        formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("alamat",alamat);
-        formData.append("nohp",nohp);
-        formData.append("foto",e.target.result);
-        formData.append("mimeType","image/jpeg");
+        const payload = {
+            action:"add",
+            nama:nama,
+            gelar:gelar,
+            alamat:alamat,
+            nohp:nohp,
+            foto:e.target.result
+        };
 
         try{
 
             const res = await fetch(WEB_APP_URL,{
                 method:"POST",
-                body:formData
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(payload)
             });
 
             const result = await res.json();
@@ -295,6 +296,7 @@ async function kirim(){
 
         }catch(error){
             alert("Tidak bisa terhubung ke server.");
+            console.error(error);
         }
 
     };
