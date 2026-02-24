@@ -163,10 +163,6 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-//////////////////////////////////////////////////
-// STRUKTUR
-//////////////////////////////////////////////////
-
 function loadStruktur(){
     const container = document.getElementById("strukturPengurus");
     const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
@@ -194,15 +190,10 @@ function loadStruktur(){
 }
 loadStruktur();
 
-//////////////////////////////////////////////////
-// LOAD ANGGOTA (FIXED)
-//////////////////////////////////////////////////
-
 async function loadAnggota(){
     try{
         const res = await fetch(WEB_APP_URL);
         const result = await res.json();
-
         const data = result.data || result;
 
         if(!data || data.length===0){
@@ -212,7 +203,6 @@ async function loadAnggota(){
         }
 
         let html="";
-
         data.reverse().forEach(row=>{
             const status=row.Status||"Nonaktif";
             const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
@@ -231,19 +221,13 @@ async function loadAnggota(){
     }catch(error){
         document.getElementById("listAnggota").innerHTML =
         "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-        console.error(error);
     }
 }
 loadAnggota();
 
-//////////////////////////////////////////////////
-// FORM
-//////////////////////////////////////////////////
-
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
 }
-
 function tutupForm(){
     document.getElementById("modalDaftar").style.display="none";
 }
@@ -251,9 +235,6 @@ function tutupForm(){
 async function kirim(){
 
     const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
-    const alamat=document.getElementById("alamat").value;
-    const nohp=document.getElementById("nohp").value;
     const file=document.getElementById("foto").files[0];
 
     if(!nama || !file){
@@ -262,41 +243,26 @@ async function kirim(){
     }
 
     const reader=new FileReader();
-
     reader.onload=async function(e){
 
         const formData = new URLSearchParams();
         formData.append("action","add");
         formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("alamat",alamat);
-        formData.append("nohp",nohp);
         formData.append("foto",e.target.result);
 
-        try{
+        const res = await fetch(WEB_APP_URL,{
+            method:"POST",
+            body:formData
+        });
 
-            const res = await fetch(WEB_APP_URL,{
-                method:"POST",
-                body:formData
-            });
+        const result = await res.json();
 
-            const result = await res.json();
-
-            if(result.status==="success"){
-                alert("Berhasil terdaftar!");
-                tutupForm();
-                loadAnggota();
-            }else{
-                alert(result.message || "Gagal menyimpan");
-            }
-
-        }catch(error){
-            alert("Tidak bisa terhubung ke server.");
-            console.error(error);
+        if(result.status==="success"){
+            alert("Berhasil terdaftar!");
+            tutupForm();
+            loadAnggota();
         }
-
     };
-
     reader.readAsDataURL(file);
 }
 
