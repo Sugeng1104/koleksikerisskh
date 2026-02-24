@@ -97,6 +97,7 @@ h1{
     max-height:500px;
     object-fit:contain;
     cursor:zoom-in;
+    transition:0.3s;
 }
 .close-btn{
     position:absolute;
@@ -147,7 +148,6 @@ h1{
 
 <a href="index.html" class="back-home-btn">🏠 Halaman Depan</a>
 
-<!-- MODAL DETAIL -->
 <div id="modal" class="modal">
 <span class="close-btn" onclick="closeModal()">✖</span>
 <div class="modal-content" id="modalContent"></div>
@@ -156,24 +156,29 @@ h1{
 <script>
 
 //////////////////////////////////////////////////
-// KONFIGURASI API (SAMA DENGAN ADMIN)
+// KONFIGURASI API
 //////////////////////////////////////////////////
 const API_URL="https://script.google.com/macros/s/AKfycbyxp18VDz5srBz9VrCYL8MqpSTczOHqf179x83nPYg1TlHr2erB1KCLKGrglUBsDptkwA/exec";
 
 let dataPusaka=[];
 
 //////////////////////////////////////////////////
-// LOAD DATA ONLINE (SINKRON ADMIN)
+// LOAD DATA (ANTI CACHE + FORMAT SAFE)
 //////////////////////////////////////////////////
 function loadData(){
-    fetch(API_URL+"?action=get")
+    fetch(API_URL+"?action=get&_="+Date.now())
     .then(res=>res.json())
-    .then(data=>{
-        dataPusaka=data;
+    .then(response=>{
 
-        // jika ada timestamp urutkan
-        if(dataPusaka[0]?.timestamp){
-            dataPusaka.sort((a,b)=>b.timestamp-a.timestamp);
+        let data = Array.isArray(response) ? response :
+                   Array.isArray(response.data) ? response.data : [];
+
+        dataPusaka = data;
+
+        if(dataPusaka.length && dataPusaka[0].timestamp){
+            dataPusaka.sort((a,b)=>{
+                return (b.timestamp||0)-(a.timestamp||0);
+            });
         }
 
         renderGallery();
@@ -191,20 +196,22 @@ function renderGallery(){
     const container=document.getElementById("galleryContainer");
     container.innerHTML="";
 
-    if(dataPusaka.length===0){
+    if(!Array.isArray(dataPusaka) || dataPusaka.length===0){
         container.innerHTML="<p style='text-align:center'>Belum ada koleksi.</p>";
         return;
     }
 
     dataPusaka.forEach(item=>{
+        if(!item || !item.hash) return;
+
         container.innerHTML+=`
         <div class="card" onclick="openDetail('${item.hash}')">
             <div class="img-wrapper">
-                <img src="${item.foto}">
+                <img src="${item.foto||''}" onerror="this.src=''">
                 <div class="watermark">SKH ARCHIVE</div>
             </div>
             <div class="card-body">
-                <h3>${item.nama}</h3>
+                <h3>${item.nama||'-'}</h3>
                 <p>Pemilik: ${item.pemilik||"-"}</p>
                 <p>Jenis: ${item.jenis||"-"}</p>
             </div>
@@ -213,7 +220,7 @@ function renderGallery(){
 }
 
 //////////////////////////////////////////////////
-// MODAL DETAIL + QR
+// MODAL DETAIL
 //////////////////////////////////////////////////
 function openDetail(hash){
 
@@ -224,9 +231,9 @@ function openDetail(hash){
     const content=document.getElementById("modalContent");
 
     content.innerHTML=`
-        <h2 style="color:gold">${item.nama}</h2>
-        <img src="${item.foto}" onclick="zoomImage(this)">
-        <p><strong>Nomor Sertifikat:</strong> ${item.nomor}</p>
+        <h2 style="color:gold">${item.nama||''}</h2>
+        <img src="${item.foto||''}" onclick="zoomImage(this)">
+        <p><strong>Nomor Sertifikat:</strong> ${item.nomor||'-'}</p>
         <p><strong>Pemilik:</strong> ${item.pemilik||"-"}</p>
         <p><strong>Jenis:</strong> ${item.jenis||"-"}</p>
         <p><strong>Periode:</strong> ${item.periode||"-"}</p>
@@ -239,8 +246,11 @@ function openDetail(hash){
 
     modal.style.display="block";
 
-    new QRCode(document.getElementById("qrcode"),{
-        text:"verifikasi.html?id="+item.hash,
+    const qrContainer = document.getElementById("qrcode");
+    qrContainer.innerHTML="";
+
+    new QRCode(qrContainer,{
+        text:location.origin+"/verifikasi.html?id="+item.hash,
         width:150,
         height:150
     });
