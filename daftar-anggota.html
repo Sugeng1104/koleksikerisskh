@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daftar Anggota SKH</title>
-
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -20,6 +19,14 @@ h1{
     padding:20px;
 }
 
+.section{
+    display:none;
+}
+
+.active{
+    display:block;
+}
+
 table{
     width:95%;
     margin:20px auto;
@@ -29,7 +36,6 @@ table{
 th,td{
     border:1px solid #444;
     padding:12px;
-    text-align:left;
 }
 
 th{
@@ -59,12 +65,6 @@ button{
 .btn-green{ background:#00aa00; color:white; }
 .btn-yellow{ background:#ffcc00; }
 
-#scanner-section{
-    display:none;
-    text-align:center;
-    padding:20px;
-}
-
 #reader{
     width:300px;
     margin:auto;
@@ -74,18 +74,18 @@ button{
     animation:flashGreen 0.4s alternate 4;
 }
 
-@keyframes flashGreen{
-    from{background-color:#003300;}
-    to{background-color:#00ff00;}
-}
-
 .flash-invalid{
     animation:flashRed 0.4s alternate 4;
 }
 
+@keyframes flashGreen{
+    from{background:#003300;}
+    to{background:#00ff00;}
+}
+
 @keyframes flashRed{
-    from{background-color:#330000;}
-    to{background-color:#ff0000;}
+    from{background:#330000;}
+    to{background:#ff0000;}
 }
 
 .card{
@@ -100,18 +100,26 @@ button{
 
 .card img{
     width:80px;
-    margin-bottom:10px;
 }
 
-.page-btn{
+.form-box{
     text-align:center;
-    margin-top:10px;
+    margin-top:20px;
+}
+
+input{
+    padding:8px;
+    margin:5px;
+    border-radius:6px;
+    border:none;
 }
 </style>
 </head>
 <body>
 
-<h1>Daftar Anggota</h1>
+<!-- HALAMAN UTAMA -->
+<div id="home" class="section active">
+<h1>Daftar Anggota SKH</h1>
 
 <table>
 <tr>
@@ -135,37 +143,87 @@ button{
 </table>
 
 <div style="text-align:center;">
-<button class="btn-blue">Daftar</button>
-<button class="btn-green" onclick="startScanner()">🔐 Verifikasi QR</button>
-<button class="btn-yellow">Kembali</button>
+<button class="btn-blue" onclick="showDaftar()">Daftar</button>
+<button class="btn-green" onclick="showScanner()">🔐 Verifikasi QR</button>
+<button class="btn-yellow" onclick="showPengurus()">Struktur Pengurus</button>
 </div>
 
-<div class="page-btn">
-<button class="btn-blue">1</button>
-</div>
-
-<!-- SCANNER SECTION -->
-<div id="scanner-section">
-<h2>Scan QR Anggota</h2>
-<div id="reader"></div>
-<h3 id="result"></h3>
-</div>
-
-<!-- KARTU ANGGOTA -->
 <div class="card">
-<img src="logo-skh.png" alt="Logo SKH">
+<img src="logo-skh.png">
 <h3>Kartu Anggota SKH</h3>
 <p>Scan untuk Verifikasi</p>
+</div>
+</div>
+
+<!-- STRUKTUR PENGURUS -->
+<div id="pengurus" class="section">
+<h1>Struktur Pengurus SKH</h1>
+<ul style="width:300px;margin:auto;">
+<li>Ketua : Sugeng Hidayat</li>
+<li>Wakil : Chandra Ardana Hidayat</li>
+<li>Sekretaris : -</li>
+<li>Bendahara : -</li>
+</ul>
+<div style="text-align:center;">
+<button class="btn-yellow" onclick="showHome()">Kembali</button>
+</div>
+</div>
+
+<!-- FORM DAFTAR -->
+<div id="daftar" class="section">
+<h1>Form Pendaftaran Anggota</h1>
+<div class="form-box">
+<input type="text" placeholder="Nama"><br>
+<input type="text" placeholder="No Anggota"><br>
+<input type="file"><br>
+<button class="btn-green">Simpan</button>
+<br>
+<button class="btn-yellow" onclick="showHome()">Kembali</button>
+</div>
+</div>
+
+<!-- SCANNER -->
+<div id="scanner" class="section">
+<h1>Scan QR Anggota</h1>
+<div id="reader"></div>
+<h3 id="result"></h3>
+<div style="text-align:center;">
+<button class="btn-yellow" onclick="stopScanner();showHome()">Kembali</button>
+</div>
 </div>
 
 <script>
 let html5QrCode;
 let scanning=false;
 
+function hideAll(){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+}
+
+function showHome(){
+    hideAll();
+    document.getElementById("home").classList.add("active");
+}
+
+function showDaftar(){
+    hideAll();
+    document.getElementById("daftar").classList.add("active");
+}
+
+function showPengurus(){
+    hideAll();
+    document.getElementById("pengurus").classList.add("active");
+}
+
+function showScanner(){
+    hideAll();
+    document.getElementById("scanner").classList.add("active");
+    startScanner();
+}
+
 function beepValid(){
     const ctx=new AudioContext();
     const osc=ctx.createOscillator();
-    osc.type="sine";
     osc.frequency.value=1000;
     osc.connect(ctx.destination);
     osc.start();
@@ -175,7 +233,6 @@ function beepValid(){
 function beepInvalid(){
     const ctx=new AudioContext();
     const osc=ctx.createOscillator();
-    osc.type="square";
     osc.frequency.value=200;
     osc.connect(ctx.destination);
     osc.start();
@@ -183,28 +240,24 @@ function beepInvalid(){
 }
 
 function vibrate(){
-    if(navigator.vibrate){
-        navigator.vibrate(200);
-    }
+    if(navigator.vibrate){ navigator.vibrate(200); }
 }
 
 function startScanner(){
-    document.getElementById("scanner-section").style.display="block";
     html5QrCode = new Html5Qrcode("reader");
     scanning=true;
 
     Html5Qrcode.getCameras().then(devices=>{
-        if(devices && devices.length){
-            let cameraId=devices[0].id;
+        if(devices.length){
             html5QrCode.start(
-                cameraId,
-                {fps:10, qrbox:250},
-                qrCodeMessage=>{
+                devices[0].id,
+                {fps:10,qrbox:250},
+                qr=>{
                     if(!scanning) return;
 
                     let result=document.getElementById("result");
 
-                    if(qrCodeMessage==="SKH-0001"){
+                    if(qr==="SKH-0001"){
                         result.innerHTML="✅ VALID - Sugeng Hidayat";
                         document.body.classList.add("flash-valid");
                         beepValid();
@@ -224,9 +277,9 @@ function startScanner(){
 
 function stopScanner(){
     scanning=false;
-    html5QrCode.stop().then(()=>{
-        console.log("Scan stopped");
-    });
+    if(html5QrCode){
+        html5QrCode.stop();
+    }
 }
 </script>
 
