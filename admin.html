@@ -107,13 +107,21 @@ th,td{
           <th>Aksi</th>
         </tr>
       </thead>
-      <tbody id="tabelAnggota"></tbody>
+      <tbody id="tabelAnggota">
+        <tr><td colspan="4">Memuat...</td></tr>
+      </tbody>
     </table>
   </div>
 
 </div>
 
 <script>
+
+//////////////////////////////////////////////////
+// URL SERVER (SAMA DENGAN daftar-anggota.html)
+//////////////////////////////////////////////////
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 //////////////////////////////////////////////////
 // CEK LOGIN
@@ -137,10 +145,6 @@ if(role==="Super Admin"){
   document.getElementById("menuKelola").style.display="block";
 }
 
-//////////////////////////////////////////////////
-// LOGOUT (FIX - DATA TIDAK TERHAPUS)
-//////////////////////////////////////////////////
-
 function logout(){
   localStorage.removeItem("isLoggedIn");
   localStorage.removeItem("username");
@@ -149,7 +153,7 @@ function logout(){
 }
 
 //////////////////////////////////////////////////
-// STRUKTUR PENGURUS
+// STRUKTUR PENGURUS (TETAP LOCAL STORAGE)
 //////////////////////////////////////////////////
 
 let pengurus = JSON.parse(localStorage.getItem("pengurus")) || [];
@@ -181,7 +185,6 @@ function tambahPengurus(){
 
   pengurus.push({nama,jabatan});
   localStorage.setItem("pengurus",JSON.stringify(pengurus));
-
   document.getElementById("namaPengurus").value="";
   tampilPengurus();
 }
@@ -195,56 +198,102 @@ function hapusPengurus(i){
 tampilPengurus();
 
 //////////////////////////////////////////////////
-// DAFTAR ANGGOTA
+// LOAD ANGGOTA DARI SERVER (FIX UTAMA)
 //////////////////////////////////////////////////
 
-let anggota = JSON.parse(localStorage.getItem("anggota"));
-
-if(!anggota){
-  anggota = [
-    {no:"SKH-0001", nama:"Sugeng Hidayat", status:"Aktif"},
-    {no:"SKH-0002", nama:"Muhammad Muslim", status:"Aktif"}
-  ];
-  localStorage.setItem("anggota",JSON.stringify(anggota));
-}
-
-function tampilAnggota(){
+async function loadAnggota(){
   const tabel=document.getElementById("tabelAnggota");
-  tabel.innerHTML="";
+  tabel.innerHTML="<tr><td colspan='4'>Memuat...</td></tr>";
 
-  anggota.forEach((a,i)=>{
-    tabel.innerHTML+=`
-      <tr>
-        <td>${a.no}</td>
-        <td>${a.nama}</td>
-        <td>
-          <select onchange="ubahStatus(${i}, this.value)">
-            <option ${a.status==="Aktif"?"selected":""}>Aktif</option>
-            <option ${a.status==="Nonaktif"?"selected":""}>Nonaktif</option>
-          </select>
-        </td>
-        <td>
-          <button class="hapus" onclick="hapusAnggota(${i})">Hapus</button>
-        </td>
-      </tr>
-    `;
-  });
-}
+  try{
+    const res = await fetch(WEB_APP_URL);
+    const result = await res.json();
+    const data = result.data || result;
 
-function ubahStatus(i,status){
-  anggota[i].status=status;
-  localStorage.setItem("anggota",JSON.stringify(anggota));
-}
+    if(!data || data.length===0){
+      tabel.innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
+      return;
+    }
 
-function hapusAnggota(i){
-  if(confirm("Yakin ingin menghapus anggota ini?")){
-    anggota.splice(i,1);
-    localStorage.setItem("anggota",JSON.stringify(anggota));
-    tampilAnggota();
+    let html="";
+
+    data.forEach((row,i)=>{
+      const status=row.Status||"Nonaktif";
+
+      html+=`
+        <tr>
+          <td>${row["No Anggota"]||"-"}</td>
+          <td>${row["Nama Lengkap"]||"-"}</td>
+          <td>
+            <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
+              <option ${status==="Aktif"?"selected":""}>Aktif</option>
+              <option ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
+            </select>
+          </td>
+          <td>
+            <button class="hapus" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tabel.innerHTML=html;
+
+  }catch(error){
+    tabel.innerHTML="<tr><td colspan='4'>Gagal memuat data</td></tr>";
+    console.error(error);
   }
 }
 
-tampilAnggota();
+loadAnggota();
+
+//////////////////////////////////////////////////
+// UBAH STATUS (KIRIM KE SERVER)
+//////////////////////////////////////////////////
+
+async function ubahStatus(no,status){
+
+  const formData = new URLSearchParams();
+  formData.append("action","updateStatus");
+  formData.append("no",no);
+  formData.append("status",status);
+
+  try{
+    await fetch(WEB_APP_URL,{
+      method:"POST",
+      body:formData
+    });
+  }catch(error){
+    alert("Gagal update status");
+    console.error(error);
+  }
+}
+
+//////////////////////////////////////////////////
+// HAPUS ANGGOTA (KIRIM KE SERVER)
+//////////////////////////////////////////////////
+
+async function hapusAnggota(no){
+
+  if(!confirm("Yakin ingin menghapus anggota ini?")) return;
+
+  const formData = new URLSearchParams();
+  formData.append("action","delete");
+  formData.append("no",no);
+
+  try{
+    await fetch(WEB_APP_URL,{
+      method:"POST",
+      body:formData
+    });
+
+    loadAnggota();
+
+  }catch(error){
+    alert("Gagal menghapus anggota");
+    console.error(error);
+  }
+}
 
 </script>
 
