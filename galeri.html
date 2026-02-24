@@ -156,20 +156,33 @@ h1{
 <script>
 
 //////////////////////////////////////////////////
-// DECRYPT (SINKRON ADMIN)
+// KONFIGURASI API (SAMA DENGAN ADMIN)
 //////////////////////////////////////////////////
-function decrypt(data){
-    try{
-        return JSON.parse(decodeURIComponent(escape(atob(data))));
-    }catch{
-        return [];
-    }
+const API_URL="https://script.google.com/macros/s/AKfycbyxp18VDz5srBz9VrCYL8MqpSTczOHqf179x83nPYg1TlHr2erB1KCLKGrglUBsDptkwA/exec";
+
+let dataPusaka=[];
+
+//////////////////////////////////////////////////
+// LOAD DATA ONLINE (SINKRON ADMIN)
+//////////////////////////////////////////////////
+function loadData(){
+    fetch(API_URL+"?action=get")
+    .then(res=>res.json())
+    .then(data=>{
+        dataPusaka=data;
+
+        // jika ada timestamp urutkan
+        if(dataPusaka[0]?.timestamp){
+            dataPusaka.sort((a,b)=>b.timestamp-a.timestamp);
+        }
+
+        renderGallery();
+    })
+    .catch(()=>{
+        document.getElementById("galleryContainer").innerHTML=
+        "<p style='text-align:center'>Gagal memuat data.</p>";
+    });
 }
-
-let raw = localStorage.getItem("dataPusaka");
-let dataPusaka = raw ? decrypt(raw) : [];
-
-dataPusaka.sort((a,b)=>b.timestamp-a.timestamp);
 
 //////////////////////////////////////////////////
 // RENDER GALERI
@@ -250,7 +263,7 @@ function zoomImage(img){
     }
 }
 
-renderGallery();
+loadData();
 
 </script>
 
