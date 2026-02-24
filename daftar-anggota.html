@@ -261,6 +261,8 @@ async function kirim(){
 
     const nama=document.getElementById("nama").value.trim();
     const gelar=document.getElementById("gelar").value;
+    const alamat=document.getElementById("alamat").value;
+    const nohp=document.getElementById("nohp").value;
     const file=document.getElementById("foto").files[0];
 
     if(!nama || !file){
@@ -278,6 +280,8 @@ async function kirim(){
         formData.append("action","add");
         formData.append("nama",nama);
         formData.append("gelar",gelar);
+        formData.append("alamat",alamat);
+        formData.append("nohp",nohp);
         formData.append("foto",e.target.result);
 
         const res = await fetch(WEB_APP_URL,{
@@ -297,6 +301,8 @@ async function kirim(){
 
             document.getElementById("nama").value="";
             document.getElementById("gelar").value="";
+            document.getElementById("alamat").value="";
+            document.getElementById("nohp").value="";
             document.getElementById("foto").value="";
 
             tutupForm();
