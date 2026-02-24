@@ -109,7 +109,6 @@ th{ background:#222; color:gold; }
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- STRUKTUR -->
 <div class="card">
 <h2>Struktur Pengurus</h2>
 <div class="pengurus-list" id="strukturPengurus">
@@ -117,7 +116,6 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- ANGGOTA -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -148,7 +146,6 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- MODAL -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
@@ -167,7 +164,7 @@ Memuat struktur...
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
 //////////////////////////////////////////////////
-// LOAD STRUKTUR (Sinkron dengan admin.html)
+// LOAD STRUKTUR
 //////////////////////////////////////////////////
 
 function loadStruktur(){
@@ -202,22 +199,46 @@ function loadStruktur(){
 loadStruktur();
 
 //////////////////////////////////////////////////
-// LOAD ANGGOTA
+// SUPPORT SEMUA FORMAT FOTO
 //////////////////////////////////////////////////
 
 function convertDriveLink(url){
     if(!url) return "https://via.placeholder.com/55";
-    const match=url.match(/\/d\/(.*?)\//);
-    if(match){
-        return "https://drive.google.com/uc?export=view&id="+match[1];
+
+    if(url.startsWith("data:image")){
+        return url;
     }
+
+    let match = url.match(/\/d\/([^\/]+)/);
+    if(match){
+        return "https://drive.google.com/uc?export=view&id=" + match[1];
+    }
+
+    match = url.match(/[?&]id=([^&]+)/);
+    if(match){
+        return "https://drive.google.com/uc?export=view&id=" + match[1];
+    }
+
     return url;
 }
 
+//////////////////////////////////////////////////
+// LOAD ANGGOTA (ANTI CACHE + SAFE)
+//////////////////////////////////////////////////
+
 async function loadAnggota(){
     try{
-        const res=await fetch(WEB_APP_URL);
-        const data=await res.json();
+        const res=await fetch(WEB_APP_URL+"?_="+Date.now());
+        const response=await res.json();
+
+        const data = Array.isArray(response) ? response :
+                     Array.isArray(response.data) ? response.data : [];
+
+        if(!data.length){
+            document.getElementById("listAnggota").innerHTML=
+            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
+            return;
+        }
 
         let html="";
 
@@ -228,7 +249,10 @@ async function loadAnggota(){
 
             html+=`
             <tr>
-                <td><img src="${foto}" class="foto-kecil"></td>
+                <td>
+                    <img src="${foto}" class="foto-kecil"
+                    onerror="this.src='https://via.placeholder.com/55'">
+                </td>
                 <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
