@@ -3,315 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Komunitas Keris SKH</title>
+<title>Daftar Anggota SKH</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
     margin:0;
-    font-family:Georgia,serif;
-    background:#000;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(to right,#000000,#111);
     color:white;
-    padding:40px;
 }
-.container{ max-width:1100px; margin:auto; }
 
 h1{
     color:gold;
+    padding:20px;
+}
+
+table{
+    width:95%;
+    margin:20px auto;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #444;
+    padding:12px;
+    text-align:left;
+}
+
+th{
+    background:#222;
+    color:gold;
+}
+
+.status{
+    padding:6px 12px;
+    border-radius:8px;
+    font-weight:bold;
+}
+
+.aktif{ background:#00cc00; }
+.nonaktif{ background:#cc0000; }
+
+button{
+    padding:10px 18px;
+    margin:8px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-blue{ background:#0066ff; color:white; }
+.btn-green{ background:#00aa00; color:white; }
+.btn-yellow{ background:#ffcc00; }
+
+#scanner-section{
+    display:none;
     text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
+    padding:20px;
+}
+
+#reader{
+    width:300px;
+    margin:auto;
+}
+
+.flash-valid{
+    animation:flashGreen 0.4s alternate 4;
+}
+
+@keyframes flashGreen{
+    from{background-color:#003300;}
+    to{background-color:#00ff00;}
+}
+
+.flash-invalid{
+    animation:flashRed 0.4s alternate 4;
+}
+
+@keyframes flashRed{
+    from{background-color:#330000;}
+    to{background-color:#ff0000;}
 }
 
 .card{
+    width:300px;
+    margin:20px auto;
+    padding:20px;
     background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
-th, td{ border:1px solid #444; padding:10px; }
-
-th{ background:#222; color:gold; }
-
-.foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
     border:2px solid gold;
+    border-radius:12px;
+    text-align:center;
 }
 
-.status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
+.card img{
+    width:80px;
+    margin-bottom:10px;
 }
 
-.status-nonaktif{
-    background:#aa0000;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.btn{
-    padding:10px 20px;
-    border-radius:8px;
-    margin-right:10px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-}
-
-.btn-blue{ background:#007bff; color:white; }
-.btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
-
-.button-group{ margin-top:15px; }
-
-#pagination{
-    margin-top:20px;
-}
-
-#modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
-}
-
-.modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
-}
-
-.modal-content input,
-.modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-}
-
-/* Responsive */
-@media(max-width:768px){
-    body{ padding:15px; }
-    table{ font-size:12px; }
-    .modal-content{ width:95%; }
+.page-btn{
+    text-align:center;
+    margin-top:10px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="container">
-
-<h1>Komunitas Keris SKH</h1>
-
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
-</div>
-
-<div class="card">
-<h2>Daftar Anggota</h2>
+<h1>Daftar Anggota</h1>
 
 <table>
-<thead>
 <tr>
 <th>Foto</th>
 <th>Nama</th>
 <th>No Anggota</th>
 <th>Status</th>
 </tr>
-</thead>
-<tbody id="listAnggota">
-<tr><td colspan="4">Memuat...</td></tr>
-</tbody>
+<tr>
+<td><img src="https://via.placeholder.com/50" width="50"></td>
+<td>Chandra Ardana Hidayat</td>
+<td>SKH-0002</td>
+<td><span class="status nonaktif">Nonaktif</span></td>
+</tr>
+<tr>
+<td><img src="https://via.placeholder.com/50" width="50"></td>
+<td>Sugeng Hidayat</td>
+<td>SKH-0001</td>
+<td><span class="status aktif">Aktif</span></td>
+</tr>
 </table>
 
-<div id="pagination"></div>
-
-<div class="button-group">
-<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
+<div style="text-align:center;">
+<button class="btn-blue">Daftar</button>
+<button class="btn-green" onclick="startScanner()">🔐 Verifikasi QR</button>
+<button class="btn-yellow">Kembali</button>
 </div>
 
-</div>
-</div>
-
-<div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:gold;">Pendaftaran Anggota</h3>
-<input type="text" id="nama" placeholder="Nama Lengkap">
-<input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
-<input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" onclick="kirim()">Kirim</button>
-<button class="btn btn-green" onclick="tutupForm()">Batal</button>
-</div>
+<div class="page-btn">
+<button class="btn-blue">1</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- SCANNER SECTION -->
+<div id="scanner-section">
+<h2>Scan QR Anggota</h2>
+<div id="reader"></div>
+<h3 id="result"></h3>
+</div>
+
+<!-- KARTU ANGGOTA -->
+<div class="card">
+<img src="logo-skh.png" alt="Logo SKH">
+<h3>Kartu Anggota SKH</h3>
+<p>Scan untuk Verifikasi</p>
+</div>
 
 <script>
+let html5QrCode;
+let scanning=false;
 
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-let globalData=[];
-let currentPage=1;
-const rowsPerPage=5;
-let isSubmitting=false;
-
-async function loadAnggota(){
-    const res=await fetch(WEB_APP_URL);
-    const data=await res.json();
-    globalData=[...data].reverse();
-    renderTable();
-}
-loadAnggota();
-
-function renderTable(){
-    const start=(currentPage-1)*rowsPerPage;
-    const pageData=globalData.slice(start,start+rowsPerPage);
-    let html="";
-    pageData.forEach(row=>{
-        const status=row.Status||"Nonaktif";
-        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-        html+=`
-        <tr>
-        <td><img src="${row.Foto||''}" class="foto-kecil"></td>
-        <td>${row["Nama Lengkap"]||"-"}</td>
-        <td>${row["No Anggota"]||"-"}</td>
-        <td><span class="${statusClass}">${status}</span></td>
-        </tr>`;
-    });
-    document.getElementById("listAnggota").innerHTML=html;
-    renderPagination();
+function beepValid(){
+    const ctx=new AudioContext();
+    const osc=ctx.createOscillator();
+    osc.type="sine";
+    osc.frequency.value=1000;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(()=>osc.stop(),200);
 }
 
-function renderPagination(){
-    const total=Math.ceil(globalData.length/rowsPerPage);
-    let html="";
-    for(let i=1;i<=total;i++){
-        html+=`<button class="btn btn-blue" onclick="gotoPage(${i})">${i}</button>`;
+function beepInvalid(){
+    const ctx=new AudioContext();
+    const osc=ctx.createOscillator();
+    osc.type="square";
+    osc.frequency.value=200;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(()=>osc.stop(),400);
+}
+
+function vibrate(){
+    if(navigator.vibrate){
+        navigator.vibrate(200);
     }
-    document.getElementById("pagination").innerHTML=html;
 }
 
-function gotoPage(p){ currentPage=p; renderTable(); }
+function startScanner(){
+    document.getElementById("scanner-section").style.display="block";
+    html5QrCode = new Html5Qrcode("reader");
+    scanning=true;
 
-function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
+    Html5Qrcode.getCameras().then(devices=>{
+        if(devices && devices.length){
+            let cameraId=devices[0].id;
+            html5QrCode.start(
+                cameraId,
+                {fps:10, qrbox:250},
+                qrCodeMessage=>{
+                    if(!scanning) return;
 
-function generateNoAnggota(){
-    let id;
-    do{
-        id="SKH-"+Date.now();
-    }while(globalData.some(d=>d["No Anggota"]===id));
-    return id;
+                    let result=document.getElementById("result");
+
+                    if(qrCodeMessage==="SKH-0001"){
+                        result.innerHTML="✅ VALID - Sugeng Hidayat";
+                        document.body.classList.add("flash-valid");
+                        beepValid();
+                        vibrate();
+                        stopScanner();
+                    }else{
+                        result.innerHTML="❌ TIDAK VALID";
+                        document.body.classList.add("flash-invalid");
+                        beepInvalid();
+                        vibrate();
+                    }
+                }
+            );
+        }
+    });
 }
 
-async function kirim(){
-
-if(isSubmitting) return;
-isSubmitting=true;
-
-const nama=document.getElementById("nama").value.trim();
-const file=document.getElementById("foto").files[0];
-if(!nama||!file){ alert("Nama dan Foto wajib"); isSubmitting=false; return; }
-
-const noAnggota=generateNoAnggota();
-const reader=new FileReader();
-
-reader.onload=async function(e){
-
-const formData=new URLSearchParams();
-formData.append("action","add");
-formData.append("nama",nama);
-formData.append("foto",e.target.result);
-formData.append("noanggota",noAnggota);
-
-const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
-const result=await res.json();
-
-if(result.status==="success"){
-generateKartu(nama,noAnggota,e.target.result);
-tutupForm();
-loadAnggota();
-alert("Berhasil!");
+function stopScanner(){
+    scanning=false;
+    html5QrCode.stop().then(()=>{
+        console.log("Scan stopped");
+    });
 }
-
-isSubmitting=false;
-};
-
-reader.readAsDataURL(file);
-}
-
-function generateKartu(nama,noAnggota,foto){
-
-const div=document.createElement("div");
-div.style.width="350px";
-div.style.height="220px";
-div.style.background="#111";
-div.style.color="gold";
-div.style.borderRadius="15px";
-div.style.padding="15px";
-div.style.position="relative";
-div.style.textAlign="center";
-div.style.backgroundImage="url('https://upload.wikimedia.org/wikipedia/commons/3/3a/Kris_Knaud.jpg')";
-div.style.backgroundSize="cover";
-div.style.backgroundBlendMode="overlay";
-
-div.innerHTML=`
-<img src="logo-skh.png" width="60"><br>
-<b>KARTU ANGGOTA</b><br>
-<img src="${foto}" width="70" style="border-radius:8px;"><br>
-${nama}<br>
-${noAnggota}
-<div id="qr"></div>
-`;
-
-document.body.appendChild(div);
-
-new QRCode(div.querySelector("#qr"),{
-text:WEB_APP_URL+"?verify="+noAnggota,
-width:70,
-height:70
-});
-
-setTimeout(()=>{
-html2canvas(div).then(canvas=>{
-const link=document.createElement("a");
-link.download="Kartu-"+noAnggota+".png";
-link.href=canvas.toDataURL();
-link.click();
-div.remove();
-});
-},800);
-}
-
 </script>
+
 </body>
 </html>
