@@ -77,6 +77,10 @@ th{ background:#222; color:gold; }
 
 .button-group{ margin-top:15px; }
 
+#pagination{
+    margin-top:20px;
+}
+
 #modalDaftar{
     display:none;
     position:fixed;
@@ -99,6 +103,13 @@ th{ background:#222; color:gold; }
     width:100%;
     padding:10px;
     margin:8px 0;
+}
+
+/* Responsive */
+@media(max-width:768px){
+    body{ padding:15px; }
+    table{ font-size:12px; }
+    .modal-content{ width:95%; }
 }
 </style>
 </head>
@@ -133,6 +144,8 @@ Memuat struktur...
 </tbody>
 </table>
 
+<div id="pagination"></div>
+
 <div class="button-group">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
 <a href="verifikasi.html">
@@ -141,7 +154,6 @@ Memuat struktur...
 <a href="index.html">
 <button class="btn btn-gold">Kembali</button>
 </a>
-<div id="pagination"></div>
 </div>
 
 </div>
@@ -160,231 +172,144 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let isSubmitting = false;
-let currentPage = 1;
-const rowsPerPage = 5;
-let globalData = [];
-
-//////////////////////////////////////////////////
-// STRUKTUR
-//////////////////////////////////////////////////
-
-function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Korektor Pusaka") korektor=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Korektor Pusaka : ${korektor}
-    `;
-}
-loadStruktur();
-
-//////////////////////////////////////////////////
-// LOAD ANGGOTA + PAGINATION
-//////////////////////////////////////////////////
+let globalData=[];
+let currentPage=1;
+const rowsPerPage=5;
+let isSubmitting=false;
 
 async function loadAnggota(){
-    try{
-        const res = await fetch(WEB_APP_URL);
-        const result = await res.json();
-        const data = result.data || result;
-
-        globalData = [...data].reverse();
-        renderTable();
-
-    }catch(error){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-        console.error(error);
-    }
+    const res=await fetch(WEB_APP_URL);
+    const data=await res.json();
+    globalData=[...data].reverse();
+    renderTable();
 }
 loadAnggota();
 
 function renderTable(){
-
-    const start = (currentPage-1)*rowsPerPage;
-    const end = start + rowsPerPage;
-    const pageData = globalData.slice(start,end);
-
+    const start=(currentPage-1)*rowsPerPage;
+    const pageData=globalData.slice(start,start+rowsPerPage);
     let html="";
-
     pageData.forEach(row=>{
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
         html+=`
         <tr>
-            <td><img src="${row.Foto || ''}" class="foto-kecil"></td>
-            <td>${row["Nama Lengkap"]||"-"}</td>
-            <td>${row["No Anggota"]||"-"}</td>
-            <td><span class="${statusClass}">${status}</span></td>
+        <td><img src="${row.Foto||''}" class="foto-kecil"></td>
+        <td>${row["Nama Lengkap"]||"-"}</td>
+        <td>${row["No Anggota"]||"-"}</td>
+        <td><span class="${statusClass}">${status}</span></td>
         </tr>`;
     });
-
     document.getElementById("listAnggota").innerHTML=html;
     renderPagination();
 }
 
 function renderPagination(){
-    const totalPages = Math.ceil(globalData.length / rowsPerPage);
-    let buttons="";
-    for(let i=1;i<=totalPages;i++){
-        buttons+=`<button class="btn btn-blue" onclick="gotoPage(${i})">${i}</button>`;
+    const total=Math.ceil(globalData.length/rowsPerPage);
+    let html="";
+    for(let i=1;i<=total;i++){
+        html+=`<button class="btn btn-blue" onclick="gotoPage(${i})">${i}</button>`;
     }
-    document.getElementById("pagination").innerHTML=buttons;
+    document.getElementById("pagination").innerHTML=html;
 }
 
-function gotoPage(page){
-    currentPage=page;
-    renderTable();
-}
-
-//////////////////////////////////////////////////
-// FORM
-//////////////////////////////////////////////////
+function gotoPage(p){ currentPage=p; renderTable(); }
 
 function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
 function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
 function generateNoAnggota(){
-    const now=new Date();
-    const random=Math.floor(Math.random()*100);
-    return "SKH-"+now.getFullYear()+
-           String(now.getMonth()+1).padStart(2,"0")+
-           String(now.getDate()).padStart(2,"0")+
-           "-"+random;
+    let id;
+    do{
+        id="SKH-"+Date.now();
+    }while(globalData.some(d=>d["No Anggota"]===id));
+    return id;
 }
 
 async function kirim(){
 
-    if(isSubmitting) return;
-    isSubmitting=true;
+if(isSubmitting) return;
+isSubmitting=true;
 
-    const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
-    const alamat=document.getElementById("alamat").value;
-    const nohp=document.getElementById("nohp").value;
-    const file=document.getElementById("foto").files[0];
+const nama=document.getElementById("nama").value.trim();
+const file=document.getElementById("foto").files[0];
+if(!nama||!file){ alert("Nama dan Foto wajib"); isSubmitting=false; return; }
 
-    if(!nama || !file){
-        alert("Nama dan Foto wajib diisi");
-        isSubmitting=false;
-        return;
-    }
+const noAnggota=generateNoAnggota();
+const reader=new FileReader();
 
-    const noAnggota=generateNoAnggota();
-    const reader=new FileReader();
+reader.onload=async function(e){
 
-    reader.onload=async function(e){
+const formData=new URLSearchParams();
+formData.append("action","add");
+formData.append("nama",nama);
+formData.append("foto",e.target.result);
+formData.append("noanggota",noAnggota);
 
-        const formData=new URLSearchParams();
-        formData.append("action","add");
-        formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("alamat",alamat);
-        formData.append("nohp",nohp);
-        formData.append("foto",e.target.result);
-        formData.append("noanggota",noAnggota);
+const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+const result=await res.json();
 
-        try{
-            const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
-            const result=await res.json();
-
-            if(result.status==="success"){
-
-                document.getElementById("nama").value="";
-                document.getElementById("gelar").value="";
-                document.getElementById("alamat").value="";
-                document.getElementById("nohp").value="";
-                document.getElementById("foto").value="";
-
-                tutupForm();
-                loadAnggota();
-                generateKartu(nama,noAnggota,e.target.result);
-
-                alert("Berhasil terdaftar!");
-            }else{
-                alert(result.message||"Gagal menyimpan");
-            }
-
-        }catch(error){
-            alert("Tidak bisa terhubung ke server.");
-            console.error(error);
-        }
-
-        isSubmitting=false;
-    };
-
-    reader.readAsDataURL(file);
+if(result.status==="success"){
+generateKartu(nama,noAnggota,e.target.result);
+tutupForm();
+loadAnggota();
+alert("Berhasil!");
 }
 
-//////////////////////////////////////////////////
-// GENERATE KARTU + LOGO
-//////////////////////////////////////////////////
+isSubmitting=false;
+};
 
-function generateKartu(nama,noAnggota,fotoBase64){
+reader.readAsDataURL(file);
+}
 
-    const div=document.createElement("div");
-    div.style.width="350px";
-    div.style.padding="20px";
-    div.style.background="#111";
-    div.style.color="gold";
-    div.style.textAlign="center";
-    div.style.borderRadius="15px";
+function generateKartu(nama,noAnggota,foto){
 
-    div.innerHTML=`
-        <img src="logo-skh.png" width="80"><br><br>
-        <h3>KARTU ANGGOTA</h3>
-        <img src="${fotoBase64}" width="100" style="border-radius:10px;"><br><br>
-        <strong>${nama}</strong><br>
-        No: ${noAnggota}<br><br>
-        <div id="qrcode"></div>
-    `;
+const div=document.createElement("div");
+div.style.width="350px";
+div.style.height="220px";
+div.style.background="#111";
+div.style.color="gold";
+div.style.borderRadius="15px";
+div.style.padding="15px";
+div.style.position="relative";
+div.style.textAlign="center";
+div.style.backgroundImage="url('https://upload.wikimedia.org/wikipedia/commons/3/3a/Kris_Knaud.jpg')";
+div.style.backgroundSize="cover";
+div.style.backgroundBlendMode="overlay";
 
-    document.body.appendChild(div);
+div.innerHTML=`
+<img src="logo-skh.png" width="60"><br>
+<b>KARTU ANGGOTA</b><br>
+<img src="${foto}" width="70" style="border-radius:8px;"><br>
+${nama}<br>
+${noAnggota}
+<div id="qr"></div>
+`;
 
-    const qrText=WEB_APP_URL+"?action=verify&no="+noAnggota;
+document.body.appendChild(div);
 
-    new QRCode(div.querySelector("#qrcode"),{
-        text:qrText,
-        width:100,
-        height:100
-    });
+new QRCode(div.querySelector("#qr"),{
+text:WEB_APP_URL+"?verify="+noAnggota,
+width:70,
+height:70
+});
 
-    setTimeout(()=>{
-        html2canvas(div).then(canvas=>{
-            const link=document.createElement("a");
-            link.download="Kartu-"+noAnggota+".png";
-            link.href=canvas.toDataURL();
-            link.click();
-            div.remove();
-        });
-    },800);
+setTimeout(()=>{
+html2canvas(div).then(canvas=>{
+const link=document.createElement("a");
+link.download="Kartu-"+noAnggota+".png";
+link.href=canvas.toDataURL();
+link.click();
+div.remove();
+});
+},800);
 }
 
 </script>
