@@ -253,6 +253,9 @@ function tutupForm(){
 async function kirim(){
 
     const nama=document.getElementById("nama").value.trim();
+    const gelar=document.getElementById("gelar").value;
+    const alamat=document.getElementById("alamat").value;
+    const nohp=document.getElementById("nohp").value;
     const file=document.getElementById("foto").files[0];
 
     if(!nama || !file){
@@ -264,30 +267,34 @@ async function kirim(){
 
     reader.onload=async function(e){
 
+        const formData = new URLSearchParams();
+        formData.append("action","add");
+        formData.append("nama",nama);
+        formData.append("gelar",gelar);
+        formData.append("alamat",alamat);
+        formData.append("nohp",nohp);
+        formData.append("foto",e.target.result);
+        formData.append("mimeType","image/jpeg");
+
         try{
 
-            await fetch(WEB_APP_URL,{
+            const res = await fetch(WEB_APP_URL,{
                 method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    action:"add",
-                    nama:nama,
-                    gelar:document.getElementById("gelar").value,
-                    alamat:document.getElementById("alamat").value,
-                    nohp:document.getElementById("nohp").value,
-                    foto:e.target.result,
-                    mimeType:"image/jpeg"
-                })
+                body:formData
             });
 
-            alert("Berhasil terdaftar!");
-            tutupForm();
-            loadAnggota();
+            const result = await res.json();
+
+            if(result.status==="success"){
+                alert("Berhasil terdaftar!");
+                tutupForm();
+                loadAnggota();
+            }else{
+                alert(result.message || "Gagal menyimpan");
+            }
 
         }catch(error){
-            alert("Gagal mengirim data");
+            alert("Tidak bisa terhubung ke server.");
         }
 
     };
