@@ -265,23 +265,19 @@ async function kirim(){
 
     reader.onload=async function(e){
 
-        const payload = {
-            action:"add",
-            nama:nama,
-            gelar:gelar,
-            alamat:alamat,
-            nohp:nohp,
-            foto:e.target.result
-        };
+        const formData = new URLSearchParams();
+        formData.append("action","add");
+        formData.append("nama",nama);
+        formData.append("gelar",gelar);
+        formData.append("alamat",alamat);
+        formData.append("nohp",nohp);
+        formData.append("foto",e.target.result);
 
         try{
 
             const res = await fetch(WEB_APP_URL,{
                 method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify(payload)
+                body:formData
             });
 
             const result = await res.json();
