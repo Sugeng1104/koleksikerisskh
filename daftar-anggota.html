@@ -102,6 +102,11 @@ th{ background:#222; color:gold; }
     padding:10px;
     margin:8px 0;
 }
+
+.loading{
+    text-align:center;
+    color:gold;
+}
 </style>
 </head>
 
@@ -131,7 +136,7 @@ Memuat struktur...
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="4">Memuat...</td></tr>
+<tr><td colspan="4" class="loading">Memuat data...</td></tr>
 </tbody>
 </table>
 
@@ -153,10 +158,8 @@ Memuat struktur...
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
 <input type="text" id="nama" placeholder="Nama Lengkap">
 <input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
 <input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" onclick="kirim()">Kirim</button>
+<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
 <button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
 </div>
@@ -165,6 +168,78 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
+let submitting=false;
+
+/* ================================
+   LOAD STRUKTUR (LOCAL STORAGE)
+================================ */
+function loadStruktur(){
+    const container = document.getElementById("strukturPengurus");
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
+
+    if(data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
+    }
+
+    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
+
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Korektor Pusaka") korektor=p.nama;
+    });
+
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Korektor Pusaka : ${korektor}
+    `;
+}
+
+/* ================================
+   LOAD ANGGOTA (SERVER)
+================================ */
+async function loadAnggota(){
+
+    try{
+        const res = await fetch(WEB_APP_URL);
+        const result = await res.json();
+        const data = result.data || result;
+
+        if(!data || data.length===0){
+            document.getElementById("listAnggota").innerHTML =
+            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
+            return;
+        }
+
+        let html="";
+        data.slice().reverse().forEach(row=>{
+            const status=row.Status||"Nonaktif";
+            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+            html+=`
+            <tr>
+                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+                <td>${row["Nama Lengkap"]||"-"}</td>
+                <td>${row["No Anggota"]||"-"}</td>
+                <td><span class="${statusClass}">${status}</span></td>
+            </tr>`;
+        });
+
+        document.getElementById("listAnggota").innerHTML=html;
+
+    }catch(e){
+        document.getElementById("listAnggota").innerHTML =
+        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+    }
+}
+
+/* ================================
+   FORM CONTROL
+================================ */
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
 }
@@ -172,7 +247,17 @@ function tutupForm(){
     document.getElementById("modalDaftar").style.display="none";
 }
 
+/* ================================
+   KIRIM DATA + AUTO CARD
+================================ */
 async function kirim(){
+
+    if(submitting) return;
+    submitting=true;
+
+    const btn=document.getElementById("btnKirim");
+    btn.disabled=true;
+    btn.innerText="Mengirim...";
 
     const nama=document.getElementById("nama").value.trim();
     const gelar=document.getElementById("gelar").value;
@@ -180,6 +265,9 @@ async function kirim(){
 
     if(!nama || !file){
         alert("Nama dan Foto wajib diisi");
+        submitting=false;
+        btn.disabled=false;
+        btn.innerText="Kirim";
         return;
     }
 
@@ -201,23 +289,31 @@ async function kirim(){
 
         if(result.status==="success"){
 
-            // Ambil data terbaru untuk nomor anggota
-            const getRes = await fetch(WEB_APP_URL);
-            const getResult = await getRes.json();
-            const data = getResult.data || getResult;
-            const latest = data[data.length-1];
-            const nomor = latest["No Anggota"];
+            const nomor=result.nomor || "SKH-"+Date.now();
 
             generateCard(nama,gelar,nomor,e.target.result);
 
             alert("Berhasil terdaftar!");
+
+            document.getElementById("nama").value="";
+            document.getElementById("gelar").value="";
+            document.getElementById("foto").value="";
+
             tutupForm();
             loadAnggota();
         }
+
+        submitting=false;
+        btn.disabled=false;
+        btn.innerText="Kirim";
     };
+
     reader.readAsDataURL(file);
 }
 
+/* ================================
+   GENERATE CARD
+================================ */
 function generateCard(nama,gelar,nomor,foto){
 
     const canvas=document.createElement("canvas");
@@ -271,6 +367,7 @@ function generateCard(nama,gelar,nomor,foto){
     };
 }
 
+/* INIT */
 loadStruktur();
 loadAnggota();
 
