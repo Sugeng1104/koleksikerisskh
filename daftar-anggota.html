@@ -164,7 +164,7 @@ Memuat struktur...
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
 //////////////////////////////////////////////////
-// RESIZE & COMPRESS IMAGE (TANPA UBAH TAMPILAN)
+// RESIZE & COMPRESS IMAGE
 //////////////////////////////////////////////////
 
 const MAX_WIDTH = 800;
@@ -205,7 +205,7 @@ async function resizeImage(file){
 }
 
 //////////////////////////////////////////////////
-// LOAD STRUKTUR
+// STRUKTUR
 //////////////////////////////////////////////////
 
 function loadStruktur(){
@@ -240,24 +240,19 @@ function loadStruktur(){
 loadStruktur();
 
 //////////////////////////////////////////////////
-// SUPPORT SEMUA FORMAT FOTO
+// CONVERT LINK DRIVE (FIX HITAM)
 //////////////////////////////////////////////////
 
 function convertDriveLink(url){
-    if(!url) return "https://via.placeholder.com/55";
+    if(!url) return "";
 
     if(url.startsWith("data:image")){
         return url;
     }
 
-    let match = url.match(/\/d\/([^\/]+)/);
+    const match = url.match(/[-\w]{25,}/);
     if(match){
-        return "https://drive.google.com/uc?export=view&id=" + match[1];
-    }
-
-    match = url.match(/[?&]id=([^&]+)/);
-    if(match){
-        return "https://drive.google.com/uc?export=view&id=" + match[1];
+        return "https://drive.google.com/uc?export=view&id=" + match[0];
     }
 
     return url;
@@ -290,10 +285,7 @@ async function loadAnggota(){
 
             html+=`
             <tr>
-                <td>
-                    <img src="${foto}" class="foto-kecil"
-                    onerror="this.src='https://via.placeholder.com/55'">
-                </td>
+                <td><img src="${foto}" class="foto-kecil"></td>
                 <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
