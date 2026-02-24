@@ -164,47 +164,6 @@ Memuat struktur...
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyPgjLBrypb4XYa8BnQs-mm7NtevJoDGCadCBhDvImoZUSo2AGHX0dND8ShvKA0njVg/exec";
 
 //////////////////////////////////////////////////
-// RESIZE & COMPRESS IMAGE
-//////////////////////////////////////////////////
-
-const MAX_WIDTH = 800;
-const JPEG_QUALITY = 0.7;
-
-async function resizeImage(file){
-    return new Promise((resolve)=>{
-        const reader = new FileReader();
-
-        reader.onload = function(e){
-            const img = new Image();
-
-            img.onload = function(){
-                let width = img.width;
-                let height = img.height;
-
-                if(width > MAX_WIDTH){
-                    const ratio = MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                    height = height * ratio;
-                }
-
-                const canvas = document.createElement("canvas");
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img,0,0,width,height);
-
-                resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
-            };
-
-            img.src = e.target.result;
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
-
-//////////////////////////////////////////////////
 // STRUKTUR
 //////////////////////////////////////////////////
 
@@ -240,35 +199,13 @@ function loadStruktur(){
 loadStruktur();
 
 //////////////////////////////////////////////////
-// CONVERT LINK DRIVE (FIX HITAM)
-//////////////////////////////////////////////////
-
-function convertDriveLink(url){
-    if(!url) return "";
-
-    if(url.startsWith("data:image")){
-        return url;
-    }
-
-    const match = url.match(/[-\w]{25,}/);
-    if(match){
-        return "https://drive.google.com/uc?export=view&id=" + match[0];
-    }
-
-    return url;
-}
-
-//////////////////////////////////////////////////
 // LOAD ANGGOTA
 //////////////////////////////////////////////////
 
 async function loadAnggota(){
     try{
         const res=await fetch(WEB_APP_URL+"?_="+Date.now());
-        const response=await res.json();
-
-        const data = Array.isArray(response) ? response :
-                     Array.isArray(response.data) ? response.data : [];
+        const data=await res.json();
 
         if(!data.length){
             document.getElementById("listAnggota").innerHTML=
@@ -279,13 +216,12 @@ async function loadAnggota(){
         let html="";
 
         data.reverse().forEach(row=>{
-            const foto=convertDriveLink(row["Foto"]);
             const status=row["Status"]||"Nonaktif";
             const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
             html+=`
             <tr>
-                <td><img src="${foto}" class="foto-kecil"></td>
+                <td><img src="${row["Foto"]||""}" class="foto-kecil"></td>
                 <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
@@ -324,30 +260,39 @@ async function kirim(){
         return;
     }
 
-    try{
+    const reader=new FileReader();
 
-        const base64Image = await resizeImage(file);
+    reader.onload=async function(e){
 
-        await fetch(WEB_APP_URL,{
-            method:"POST",
-            body:JSON.stringify({
-                action:"add",
-                nama:nama,
-                gelar:document.getElementById("gelar").value,
-                alamat:document.getElementById("alamat").value,
-                nohp:document.getElementById("nohp").value,
-                foto:base64Image,
-                mimeType:"image/jpeg"
-            })
-        });
+        try{
 
-        alert("Berhasil terdaftar!");
-        tutupForm();
-        loadAnggota();
+            await fetch(WEB_APP_URL,{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    action:"add",
+                    nama:nama,
+                    gelar:document.getElementById("gelar").value,
+                    alamat:document.getElementById("alamat").value,
+                    nohp:document.getElementById("nohp").value,
+                    foto:e.target.result,
+                    mimeType:"image/jpeg"
+                })
+            });
 
-    }catch(error){
-        alert("Terjadi kesalahan saat mengirim data.");
-    }
+            alert("Berhasil terdaftar!");
+            tutupForm();
+            loadAnggota();
+
+        }catch(error){
+            alert("Gagal mengirim data");
+        }
+
+    };
+
+    reader.readAsDataURL(file);
 }
 
 </script>
