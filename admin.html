@@ -28,14 +28,21 @@ body{
   margin-left:240px;
   padding:30px;
 }
+.flex-row{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
 .card{
   background:#111;
   padding:20px;
   border-radius:10px;
   margin-bottom:20px;
+  flex:1;
 }
 input,select{
   padding:8px;
+  margin-right:5px;
 }
 button.tambah{
   background:#00cc66;
@@ -57,6 +64,10 @@ table{
 th,td{
   padding:10px;
   border-bottom:1px solid #333;
+}
+.stat-box{
+  font-size:18px;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -80,23 +91,45 @@ th,td{
 <div class="content">
   <h1>Dashboard Admin</h1>
 
-  <!-- STRUKTUR PENGURUS -->
-  <div class="card">
-    <h2>Struktur Pengurus</h2>
-    <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
-    <select id="jabatan">
-     <option>Ketua</option>
-     <option>Sekertaris</option>
-     <option>Bendahara</option>
-     <option>Korektor Pusaka</option>
-    </select>
-    <button class="tambah" onclick="tambahPengurus()">Tambah</button>
-    <ul id="listPengurus"></ul>
+  <div class="flex-row">
+
+    <!-- STRUKTUR PENGURUS -->
+    <div class="card">
+      <h2>Struktur Pengurus</h2>
+      <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
+      <select id="jabatan">
+       <option>Ketua</option>
+       <option>Sekertaris</option>
+       <option>Bendahara</option>
+       <option>Korektor Pusaka</option>
+      </select>
+      <button class="tambah" onclick="tambahPengurus()">Tambah</button>
+      <ul id="listPengurus"></ul>
+    </div>
+
+    <!-- STATISTIK -->
+    <div class="card">
+      <h2>Statistik Anggota</h2>
+      <div class="stat-box">Total Anggota: <strong id="totalAnggota">0</strong></div>
+      <div class="stat-box">Aktif: <strong id="totalAktif">0</strong></div>
+      <div class="stat-box">Nonaktif: <strong id="totalNonaktif">0</strong></div>
+    </div>
+
   </div>
 
   <!-- DAFTAR ANGGOTA -->
   <div class="card">
     <h2>Daftar Anggota</h2>
+
+    <!-- SEARCH & FILTER -->
+    <div style="margin-bottom:10px;">
+      <input type="text" id="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
+      <select id="filterStatus" onchange="renderTabel()">
+        <option value="">Semua Status</option>
+        <option value="Aktif">Aktif</option>
+        <option value="Nonaktif">Nonaktif</option>
+      </select>
+    </div>
 
     <table>
       <thead>
@@ -116,10 +149,6 @@ th,td{
 </div>
 
 <script>
-
-//////////////////////////////////////////////////
-// URL SERVER (SAMA DENGAN daftar-anggota.html)
-//////////////////////////////////////////////////
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
@@ -153,7 +182,7 @@ function logout(){
 }
 
 //////////////////////////////////////////////////
-// STRUKTUR PENGURUS (TETAP LOCAL STORAGE)
+// STRUKTUR PENGURUS
 //////////////////////////////////////////////////
 
 let pengurus = JSON.parse(localStorage.getItem("pengurus")) || [];
@@ -180,9 +209,7 @@ function tampilPengurus(){
 function tambahPengurus(){
   const nama=document.getElementById("namaPengurus").value.trim();
   const jabatan=document.getElementById("jabatan").value;
-
   if(nama==="") return alert("Isi nama!");
-
   pengurus.push({nama,jabatan});
   localStorage.setItem("pengurus",JSON.stringify(pengurus));
   document.getElementById("namaPengurus").value="";
@@ -198,102 +225,96 @@ function hapusPengurus(i){
 tampilPengurus();
 
 //////////////////////////////////////////////////
-// LOAD ANGGOTA DARI SERVER (FIX UTAMA)
+// DATA ANGGOTA
 //////////////////////////////////////////////////
 
-async function loadAnggota(){
-  const tabel=document.getElementById("tabelAnggota");
-  tabel.innerHTML="<tr><td colspan='4'>Memuat...</td></tr>";
+let allData=[];
 
+async function loadAnggota(){
   try{
     const res = await fetch(WEB_APP_URL);
     const result = await res.json();
-    const data = result.data || result;
-
-    if(!data || data.length===0){
-      tabel.innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
-      return;
-    }
-
-    let html="";
-
-    data.forEach((row,i)=>{
-      const status=row.Status||"Nonaktif";
-
-      html+=`
-        <tr>
-          <td>${row["No Anggota"]||"-"}</td>
-          <td>${row["Nama Lengkap"]||"-"}</td>
-          <td>
-            <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
-              <option ${status==="Aktif"?"selected":""}>Aktif</option>
-              <option ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
-            </select>
-          </td>
-          <td>
-            <button class="hapus" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
-          </td>
-        </tr>
-      `;
-    });
-
-    tabel.innerHTML=html;
-
+    allData = result.data || result || [];
+    updateStatistik();
+    renderTabel();
   }catch(error){
-    tabel.innerHTML="<tr><td colspan='4'>Gagal memuat data</td></tr>";
-    console.error(error);
+    document.getElementById("tabelAnggota").innerHTML=
+    "<tr><td colspan='4'>Gagal memuat data</td></tr>";
   }
 }
 
-loadAnggota();
+function updateStatistik(){
+  const total = allData.length;
+  const aktif = allData.filter(a=>a.Status==="Aktif").length;
+  const nonaktif = total - aktif;
 
-//////////////////////////////////////////////////
-// UBAH STATUS (KIRIM KE SERVER)
-//////////////////////////////////////////////////
+  document.getElementById("totalAnggota").innerText=total;
+  document.getElementById("totalAktif").innerText=aktif;
+  document.getElementById("totalNonaktif").innerText=nonaktif;
+}
+
+function renderTabel(){
+
+  const search=document.getElementById("searchInput").value.toLowerCase();
+  const filter=document.getElementById("filterStatus").value;
+
+  let filtered=allData.filter(row=>{
+    const nama=(row["Nama Lengkap"]||"").toLowerCase();
+    const no=(row["No Anggota"]||"").toLowerCase();
+    const status=row.Status||"Nonaktif";
+
+    return (
+      (nama.includes(search) || no.includes(search)) &&
+      (filter==="" || status===filter)
+    );
+  });
+
+  let html="";
+
+  filtered.forEach(row=>{
+    const status=row.Status||"Nonaktif";
+    html+=`
+      <tr>
+        <td>${row["No Anggota"]||"-"}</td>
+        <td>${row["Nama Lengkap"]||"-"}</td>
+        <td>
+          <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
+            <option ${status==="Aktif"?"selected":""}>Aktif</option>
+            <option ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
+          </select>
+        </td>
+        <td>
+          <button class="hapus" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("tabelAnggota").innerHTML =
+    filtered.length ? html :
+    "<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
+}
 
 async function ubahStatus(no,status){
-
   const formData = new URLSearchParams();
   formData.append("action","updateStatus");
   formData.append("no",no);
   formData.append("status",status);
 
-  try{
-    await fetch(WEB_APP_URL,{
-      method:"POST",
-      body:formData
-    });
-  }catch(error){
-    alert("Gagal update status");
-    console.error(error);
-  }
+  await fetch(WEB_APP_URL,{method:"POST",body:formData});
+  loadAnggota();
 }
 
-//////////////////////////////////////////////////
-// HAPUS ANGGOTA (KIRIM KE SERVER)
-//////////////////////////////////////////////////
-
 async function hapusAnggota(no){
-
   if(!confirm("Yakin ingin menghapus anggota ini?")) return;
-
   const formData = new URLSearchParams();
   formData.append("action","delete");
   formData.append("no",no);
-
-  try{
-    await fetch(WEB_APP_URL,{
-      method:"POST",
-      body:formData
-    });
-
-    loadAnggota();
-
-  }catch(error){
-    alert("Gagal menghapus anggota");
-    console.error(error);
-  }
+  await fetch(WEB_APP_URL,{method:"POST",body:formData});
+  loadAnggota();
 }
+
+loadAnggota();
 
 </script>
 
