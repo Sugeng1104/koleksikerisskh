@@ -24,7 +24,7 @@ h1{
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
-/* ===== Tombol Masuk ===== */
+/* ===== Tombol Keluar ===== */
 .login-top{
     position:absolute;
     top:0;
@@ -87,30 +87,6 @@ th{ background:#222; color:gold; }
 
 .button-group{ margin-top:15px; }
 
-#modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
-}
-
-.modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
-}
-
-.modal-content input,
-.modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-}
-
 .loading{
     text-align:center;
     color:gold;
@@ -122,11 +98,9 @@ th{ background:#222; color:gold; }
 
 <div class="container">
 
-<!-- Tombol Masuk -->
+<!-- Tombol Keluar -->
 <div class="login-top">
-    <a href="login.html">
-        <button class="btn btn-purple">Keluar</button>
-    </a>
+    <button class="btn btn-purple" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
@@ -169,28 +143,42 @@ Memuat struktur...
 </div>
 </div>
 
-<div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:gold;">Pendaftaran Anggota</h3>
-<input type="text" id="nama" placeholder="Nama Lengkap">
-<input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
-<input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
-<button class="btn btn-green" onclick="tutupForm()">Batal</button>
-</div>
-</div>
-
 <script>
+
+/* ===============================
+   PROTEKSI LOGIN & ROLE
+================================= */
+
+(function(){
+
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const role = localStorage.getItem("role");
+
+    if(!isLoggedIn){
+        window.location.href="login.html";
+        return;
+    }
+
+    // Role yang boleh akses dashboard ini
+    if(role !== "Super Admin" && role !== "Admin" && role !== "User"){
+        window.location.href="login.html";
+    }
+
+})();
+
+function logout(){
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
+    window.location.href="login.html";
+}
+
+/* ===============================
+   SISTEM UTAMA
+================================= */
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let submitting=false;
-
-/* ================================
-   LOAD STRUKTUR
-================================ */
 function loadStruktur(){
     const container = document.getElementById("strukturPengurus");
     const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
@@ -217,9 +205,6 @@ function loadStruktur(){
     `;
 }
 
-/* ================================
-   LOAD ANGGOTA
-================================ */
 async function loadAnggota(){
 
     try{
@@ -261,16 +246,10 @@ async function loadAnggota(){
     }
 }
 
-/* ================================
-   CETAK ULANG KARTU
-================================ */
 function cetakKartu(nama,gelar,nomor,foto){
     generateCard(nama,gelar,nomor,foto);
 }
 
-/* ================================
-   GENERATE CARD
-================================ */
 function generateCard(nama,gelar,nomor,foto){
 
     const canvas=document.createElement("canvas");
@@ -316,9 +295,6 @@ function generateCard(nama,gelar,nomor,foto){
     };
 }
 
-/* ================================
-   INIT
-================================ */
 loadStruktur();
 loadAnggota();
 
