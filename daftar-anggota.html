@@ -202,6 +202,24 @@ Memuat struktur...
 
 <script>
 
+/* ================================
+   AUTO REDIRECT JIKA SUDAH LOGIN
+================================ */
+(function(){
+
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const role = localStorage.getItem("role");
+
+    if(isLoggedIn === "true" && role){
+
+        // Semua role yang sudah login diarahkan ke dashboard
+        window.location.href =
+        "https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
+
+    }
+
+})();
+
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 let submitting=false;
