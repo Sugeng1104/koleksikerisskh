@@ -24,7 +24,6 @@ h1{
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
-/* ===== Tombol Keluar ===== */
 .login-top{
     position:absolute;
     top:0;
@@ -40,8 +39,6 @@ h1{
 }
 
 h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
 
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
 
@@ -80,12 +77,8 @@ th{ background:#222; color:gold; }
     cursor:pointer;
 }
 
-.btn-blue{ background:#007bff; color:white; }
 .btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
-.btn-purple{ background:#6f42c1; color:white; }
-
-.button-group{ margin-top:15px; }
+.btn-red{ background:#dc3545; color:white; }
 
 .loading{
     text-align:center;
@@ -98,19 +91,11 @@ th{ background:#222; color:gold; }
 
 <div class="container">
 
-<!-- Tombol Keluar -->
 <div class="login-top">
-    <button class="btn btn-purple" onclick="logout()">Keluar</button>
+    <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
-
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
-</div>
 
 <div class="card">
 <h2>Daftar Anggota</h2>
@@ -130,80 +115,33 @@ Memuat struktur...
 </tbody>
 </table>
 
-<div class="button-group">
-<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
-</div>
-
 </div>
 </div>
 
 <script>
 
 /* ===============================
-   PROTEKSI LOGIN & ROLE
+   PROTEKSI LOGIN
 ================================= */
 
-(function(){
+const role = localStorage.getItem("role");
+const usernameLogin = localStorage.getItem("username");
+const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const role = localStorage.getItem("role");
-
-    if(!isLoggedIn){
-        window.location.href="login.html";
-        return;
-    }
-
-    // Role yang boleh akses dashboard ini
-    if(role !== "Super Admin" && role !== "Admin" && role !== "User"){
-        window.location.href="login.html";
-    }
-
-})();
-
-function logout(){
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
+if(!isLoggedIn){
     window.location.href="login.html";
 }
 
+function logout(){
+    localStorage.clear();
+    window.location.href="daftar-anggota.html";
+}
+
 /* ===============================
-   SISTEM UTAMA
+   LOAD DATA
 ================================= */
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
-}
 
 async function loadAnggota(){
 
@@ -219,22 +157,51 @@ async function loadAnggota(){
         }
 
         let html="";
+
         data.slice().reverse().forEach(row=>{
+
+            const nama=row["Nama Lengkap"]||"-";
+            const gelar=row["Gelar"]||"";
+            const nomor=row["No Anggota"]||"-";
+            const foto=row["Foto"]||"";
             const status=row.Status||"Nonaktif";
             const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
+            let aksiButton="";
+
+            if(role === "Super Admin" || role === "Admin"){
+                aksiButton=`
+                <button class="btn btn-green"
+                onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
+                Cetak Kartu
+                </button>`;
+            }
+
+            else if(role === "User"){
+
+                // user default tidak boleh cetak
+                if(usernameLogin !== "user1"){
+
+                    const usernameData = nama.replace(/\s+/g,"").toLowerCase();
+
+                    if(usernameLogin === usernameData){
+                        aksiButton=`
+                        <button class="btn btn-green"
+                        onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
+                        Cetak Kartu
+                        </button>`;
+                    }
+
+                }
+            }
+
             html+=`
             <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"}</td>
-                <td>${row["No Anggota"]||"-"}</td>
+                <td><img src="${foto}" class="foto-kecil"></td>
+                <td>${nama}</td>
+                <td>${nomor}</td>
                 <td><span class="${statusClass}">${status}</span></td>
-                <td>
-                    <button class="btn btn-green" 
-                    onclick="cetakKartu('${row["Nama Lengkap"]}','${row["Gelar"]||""}','${row["No Anggota"]}','${row["Foto"]}')">
-                    Cetak Kartu
-                    </button>
-                </td>
+                <td>${aksiButton}</td>
             </tr>`;
         });
 
@@ -246,9 +213,9 @@ async function loadAnggota(){
     }
 }
 
-function cetakKartu(nama,gelar,nomor,foto){
-    generateCard(nama,gelar,nomor,foto);
-}
+/* ===============================
+   GENERATE CARD
+================================= */
 
 function generateCard(nama,gelar,nomor,foto){
 
@@ -295,7 +262,7 @@ function generateCard(nama,gelar,nomor,foto){
     };
 }
 
-loadStruktur();
+/* INIT */
 loadAnggota();
 
 </script>
