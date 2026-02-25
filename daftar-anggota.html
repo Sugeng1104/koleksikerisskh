@@ -1,299 +1,76 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Komunitas Keris SKH</title>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
-<style>
-body{
-    margin:0;
-    font-family:Georgia,serif;
-    background:#000;
-    color:white;
-    padding:40px;
-}
-.container{ max-width:1100px; margin:auto; }
-
-h1{
-    color:gold;
-    text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
-}
-
-/* tombol masuk pojok kanan */
-.login-top{
-    position:fixed;
-    top:20px;
-    right:30px;
-    z-index:999;
-}
-
-.login-top button{
-    padding:10px 20px;
-    border-radius:8px;
-    border:none;
-    cursor:pointer;
-    font-weight:bold;
-    background:gold;
-    color:black;
-}
-
-.card{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
-th, td{ border:1px solid #444; padding:10px; }
-
-th{ background:#222; color:gold; }
-
-.foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid gold;
-}
-
-.status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.status-nonaktif{
-    background:#aa0000;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.btn{
-    padding:10px 20px;
-    border-radius:8px;
-    margin-right:10px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-}
-
-.btn-blue{ background:#007bff; color:white; }
-.btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
-
-.button-group{ margin-top:15px; }
-
-.print-btn{
-    background:gold;
-    color:black;
-    padding:6px 12px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-</style>
+  <title>Login Admin</title>
+  <style>
+    body{
+      background:black;
+      color:#00ffcc;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      font-family:Arial;
+    }
+    .login-box{
+      background:#111;
+      padding:30px;
+      border-radius:10px;
+      width:300px;
+    }
+    input{
+      width:100%;
+      padding:10px;
+      margin:10px 0;
+      background:#222;
+      border:1px solid #00ffcc;
+      color:white;
+    }
+    button{
+      width:100%;
+      padding:10px;
+      background:#00ffcc;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- TOMBOL MASUK -->
-<div class="login-top">
-<button onclick="goLogin()" id="btnLogin">Masuk</button>
-</div>
-
-<div class="container">
-
-<h1>Komunitas Keris SKH</h1>
-
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
-</div>
-
-<div class="card">
-<h2>Daftar Anggota</h2>
-
-<table>
-<thead>
-<tr>
-<th>Foto</th>
-<th>Nama</th>
-<th>No Anggota</th>
-<th>Status</th>
-<th id="kolomAksi" style="display:none;">Aksi</th>
-</tr>
-</thead>
-<tbody id="listAnggota">
-<tr><td colspan="5">Memuat data...</td></tr>
-</tbody>
-</table>
-
-<div class="button-group">
-<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
-</div>
-
-</div>
+<div class="login-box">
+  <h2>Login Admin</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
 </div>
 
 <script>
+const defaultUsers = [
+  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" }
+];
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-/* ===========================
-   LOGIN CHECK
-=========================== */
-function checkLogin(){
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const username = localStorage.getItem("username");
-
-    if(isLoggedIn==="true"){
-        document.getElementById("btnLogin").innerText = "Logout ("+username+")";
-        document.getElementById("btnLogin").onclick = logout;
-        document.getElementById("kolomAksi").style.display="";
-        return true;
-    }
-    return false;
+if(!localStorage.getItem("adminUsers")){
+  localStorage.setItem("adminUsers", JSON.stringify(defaultUsers));
 }
 
-function goLogin(){
-    window.location.href="login.html";
+function login(){
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const users = JSON.parse(localStorage.getItem("adminUsers"));
+
+  const user = users.find(u=>u.username===username && u.password===password);
+
+  if(user){
+    localStorage.setItem("isLoggedIn","true");
+    localStorage.setItem("username",user.username);
+    localStorage.setItem("role",user.role);
+    window.location.href="admin.html";
+  }else{
+    alert("Username atau password salah!");
+  }
 }
-
-function logout(){
-    localStorage.clear();
-    location.reload();
-}
-
-/* ================================
-   LOAD ANGGOTA
-================================ */
-async function loadAnggota(){
-
-    const logged = checkLogin();
-
-    try{
-        const res = await fetch(WEB_APP_URL);
-        const result = await res.json();
-        const data = result.data || result;
-
-        let html="";
-
-        data.slice().reverse().forEach(row=>{
-            const status=row.Status||"Nonaktif";
-            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
-            html+=`
-            <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"}</td>
-                <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-            `;
-
-            if(logged){
-                html+=`
-                <td>
-                <button class="print-btn"
-                onclick="generateCard('${row["Nama Lengkap"]}','${row.Gelar||""}','${row["No Anggota"]}','${row.Foto||""}')">
-                Cetak Kartu
-                </button>
-                </td>`;
-            }
-
-            html+=`</tr>`;
-        });
-
-        document.getElementById("listAnggota").innerHTML=html;
-
-    }catch(e){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='5'>Gagal memuat data</td></tr>";
-    }
-}
-
-/* ================================
-   GENERATE CARD
-================================ */
-function generateCard(nama,gelar,nomor,foto){
-
-    const loginUser = localStorage.getItem("username");
-
-    if(!loginUser){
-        alert("Silakan login terlebih dahulu");
-        return;
-    }
-
-    const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
-    const ctx=canvas.getContext("2d");
-
-    ctx.fillStyle="#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    ctx.fillStyle="gold";
-    ctx.font="bold 48px Georgia";
-    ctx.textAlign="center";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
-
-    const img=new Image();
-    img.crossOrigin="anonymous";
-    img.src=foto;
-
-    img.onload=function(){
-        ctx.drawImage(img,80,200,200,250);
-
-        ctx.textAlign="left";
-        ctx.fillStyle="white";
-        ctx.font="bold 40px Georgia";
-        ctx.fillText(nama,320,260);
-
-        ctx.font="30px Georgia";
-        ctx.fillText(gelar||"",320,320);
-        ctx.fillText("No: "+nomor,320,380);
-
-        QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-            ctx.drawImage(qrCanvas,canvas.width/2-100,420);
-
-            ctx.font="20px Georgia";
-            ctx.textAlign="center";
-            ctx.fillText("Dicetak oleh: "+loginUser,canvas.width/2,600);
-
-            const link=document.createElement("a");
-            link.download="Kartu_"+nomor+".png";
-            link.href=canvas.toDataURL("image/png");
-            link.click();
-        });
-    };
-}
-
-/* INIT */
-loadAnggota();
-
 </script>
 
 </body>
