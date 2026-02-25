@@ -28,6 +28,13 @@ h1{
     position:absolute;
     top:0;
     right:0;
+    text-align:right;
+}
+
+.user-info{
+    font-size:14px;
+    margin-bottom:8px;
+    color:gold;
 }
 
 .card{
@@ -39,6 +46,8 @@ h1{
 }
 
 h2{ color:gold; margin-bottom:15px; }
+
+.pengurus-list{ font-size:18px; line-height:1.8; }
 
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
 
@@ -92,10 +101,18 @@ th{ background:#222; color:gold; }
 <div class="container">
 
 <div class="login-top">
+    <div class="user-info" id="userInfo"></div>
     <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
+
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<div class="pengurus-list" id="strukturPengurus">
+Memuat struktur...
+</div>
+</div>
 
 <div class="card">
 <h2>Daftar Anggota</h2>
@@ -121,102 +138,181 @@ th{ background:#222; color:gold; }
 <script>
 
 /* ===============================
-   PROTEKSI LOGIN
+   PROTEKSI BERLAPIS
+================================= */
+(function(){
+
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const role = localStorage.getItem("role");
+    const username = localStorage.getItem("username");
+    const users = JSON.parse(localStorage.getItem("adminUsers") || "[]");
+
+    const validUser = users.find(u =>
+        u.username === username &&
+        u.role === role
+    );
+
+    if(!isLoggedIn || !validUser){
+        localStorage.clear();
+        window.location.href="login.html";
+    }
+
+})();
+
+/* ===============================
+   INFO LOGIN
 ================================= */
 
 const role = localStorage.getItem("role");
 const usernameLogin = localStorage.getItem("username");
-const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-if(!isLoggedIn){
-    window.location.href="login.html";
-}
+document.getElementById("userInfo").innerHTML =
+`Login sebagai: <strong>${usernameLogin}</strong> (${role})`;
 
+/* ===============================
+   LOGOUT
+================================= */
 function logout(){
     localStorage.clear();
-    window.location.href="daftar-anggota.html";
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
 /* ===============================
-   LOAD DATA
+   LOAD STRUKTUR INSTAN
+================================= */
+function loadStruktur(){
+    const container = document.getElementById("strukturPengurus");
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
+
+    if(data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
+    }
+
+    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
+
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
+    });
+
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Kurator Pusaka : ${kurator}
+    `;
+}
+
+/* ===============================
+   DATA ANGGOTA FAST MODE
 ================================= */
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const CACHE_KEY = "cacheAnggota";
+const CACHE_TIME_KEY = "cacheTime";
+const CACHE_DURATION = 60000; // 60 detik
 
-async function loadAnggota(){
+function renderAnggota(data){
 
-    try{
-        const res = await fetch(WEB_APP_URL);
-        const result = await res.json();
-        const data = result.data || result;
+    let html="";
 
-        if(!data || data.length===0){
-            document.getElementById("listAnggota").innerHTML =
-            "<tr><td colspan='5'>Belum ada anggota</td></tr>";
-            return;
+    data.slice().reverse().forEach(row=>{
+
+        const nama=row["Nama Lengkap"]||"-";
+        const gelar=row["Gelar"]||"";
+        const nomor=row["No Anggota"]||"-";
+        const foto=row["Foto"]||"";
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+        let aksiButton="";
+
+        if(role === "Super Admin" || role === "Admin"){
+            aksiButton=`
+            <button class="btn btn-green"
+            onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
+            Cetak Kartu
+            </button>`;
         }
-
-        let html="";
-
-        data.slice().reverse().forEach(row=>{
-
-            const nama=row["Nama Lengkap"]||"-";
-            const gelar=row["Gelar"]||"";
-            const nomor=row["No Anggota"]||"-";
-            const foto=row["Foto"]||"";
-            const status=row.Status||"Nonaktif";
-            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
-            let aksiButton="";
-
-            if(role === "Super Admin" || role === "Admin"){
-                aksiButton=
+        else if(role === "User"){
+            const usernameData = nama.replace(/\s+/g,"").toLowerCase();
+            if(usernameLogin === usernameData){
+                aksiButton=`
                 <button class="btn btn-green"
                 onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
                 Cetak Kartu
-                </button>;
+                </button>`;
             }
+        }
 
-            else if(role === "User"){
+        html+=`
+        <tr>
+            <td><img src="${foto}" class="foto-kecil"></td>
+            <td>${nama}</td>
+            <td>${nomor}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>${aksiButton}</td>
+        </tr>`;
+    });
 
-                // user default tidak boleh cetak
-                if(usernameLogin !== "user1"){
+    document.getElementById("listAnggota").innerHTML=html;
+}
 
-                    const usernameData = nama.replace(/\s+/g,"").toLowerCase();
+async function fetchData(force=false){
 
-                    if(usernameLogin === usernameData){
-                        aksiButton=
-                        <button class="btn btn-green"
-                        onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
-                        Cetak Kartu
-                        </button>;
-                    }
+    const now = Date.now();
+    const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
 
-                }
-            }
+    if(!force && lastFetch && (now - lastFetch < CACHE_DURATION)){
+        return; // masih fresh
+    }
 
-            html+=
-            <tr>
-                <td><img src="${foto}" class="foto-kecil"></td>
-                <td>${nama}</td>
-                <td>${nomor}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-                <td>${aksiButton}</td>
-            </tr>;
-        });
+    try{
+        const res = await fetch(WEB_APP_URL + "?t=" + now);
+        const result = await res.json();
+        const data = result.data || result;
 
-        document.getElementById("listAnggota").innerHTML=html;
-
+        if(data && data.length>0){
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            localStorage.setItem(CACHE_TIME_KEY, now);
+            renderAnggota(data);
+        }
     }catch(e){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='5'>Gagal memuat data</td></tr>";
+        console.log("Server sleep / gagal fetch.");
     }
 }
+
+function loadAnggotaFast(){
+
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+
+    if(cache.length>0){
+        renderAnggota(cache);
+    }
+
+    fetchData(true); // force refresh awal
+}
+
+/* ===============================
+   WARM SERVER
+================================= */
+setTimeout(()=>{
+    fetch(WEB_APP_URL + "?warm=" + Date.now());
+},2000);
+
+/* ===============================
+   AUTO REFRESH
+================================= */
+setInterval(()=>{
+    fetchData(true);
+},30000);
 
 /* ===============================
    GENERATE CARD
 ================================= */
-
 function generateCard(nama,gelar,nomor,foto){
 
     const canvas=document.createElement("canvas");
@@ -263,7 +359,8 @@ function generateCard(nama,gelar,nomor,foto){
 }
 
 /* INIT */
-loadAnggota();
+loadStruktur();
+loadAnggotaFast();
 
 </script>
 
