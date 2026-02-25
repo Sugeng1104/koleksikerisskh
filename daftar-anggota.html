@@ -24,6 +24,24 @@ h1{
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
+/* tombol masuk pojok kanan */
+.login-top{
+    position:fixed;
+    top:20px;
+    right:30px;
+    z-index:999;
+}
+
+.login-top button{
+    padding:10px 20px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+    background:gold;
+    color:black;
+}
+
 .card{
     background:#111;
     padding:30px;
@@ -79,38 +97,25 @@ th{ background:#222; color:gold; }
 
 .button-group{ margin-top:15px; }
 
-#modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
+.print-btn{
+    background:gold;
+    color:black;
+    padding:6px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
-}
-
-.modal-content input,
-.modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-}
-
-.loading{
-    text-align:center;
-    color:gold;
-}
 </style>
 </head>
 
 <body>
+
+<!-- TOMBOL MASUK -->
+<div class="login-top">
+<button onclick="goLogin()" id="btnLogin">Masuk</button>
+</div>
 
 <div class="container">
 
@@ -133,10 +138,11 @@ Memuat struktur...
 <th>Nama</th>
 <th>No Anggota</th>
 <th>Status</th>
+<th id="kolomAksi" style="display:none;">Aksi</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="4" class="loading">Memuat data...</td></tr>
+<tr><td colspan="5">Memuat data...</td></tr>
 </tbody>
 </table>
 
@@ -153,71 +159,49 @@ Memuat struktur...
 </div>
 </div>
 
-<div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:gold;">Pendaftaran Anggota</h3>
-<input type="text" id="nama" placeholder="Nama Lengkap">
-<input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
-<input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
-<button class="btn btn-green" onclick="tutupForm()">Batal</button>
-</div>
-</div>
-
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let submitting=false;
+/* ===========================
+   LOGIN CHECK
+=========================== */
+function checkLogin(){
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const username = localStorage.getItem("username");
 
-/* ================================
-   LOAD STRUKTUR (LOCAL STORAGE)
-================================ */
-function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
+    if(isLoggedIn==="true"){
+        document.getElementById("btnLogin").innerText = "Logout ("+username+")";
+        document.getElementById("btnLogin").onclick = logout;
+        document.getElementById("kolomAksi").style.display="";
+        return true;
     }
+    return false;
+}
 
-    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
+function goLogin(){
+    window.location.href="login.html";
+}
 
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
+function logout(){
+    localStorage.clear();
+    location.reload();
 }
 
 /* ================================
-   LOAD ANGGOTA (SERVER)
+   LOAD ANGGOTA
 ================================ */
 async function loadAnggota(){
+
+    const logged = checkLogin();
 
     try{
         const res = await fetch(WEB_APP_URL);
         const result = await res.json();
         const data = result.data || result;
 
-        if(!data || data.length===0){
-            document.getElementById("listAnggota").innerHTML =
-            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
-            return;
-        }
-
         let html="";
+
         data.slice().reverse().forEach(row=>{
             const status=row.Status||"Nonaktif";
             const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
@@ -228,96 +212,40 @@ async function loadAnggota(){
                 <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
-            </tr>`;
+            `;
+
+            if(logged){
+                html+=`
+                <td>
+                <button class="print-btn"
+                onclick="generateCard('${row["Nama Lengkap"]}','${row.Gelar||""}','${row["No Anggota"]}','${row.Foto||""}')">
+                Cetak Kartu
+                </button>
+                </td>`;
+            }
+
+            html+=`</tr>`;
         });
 
         document.getElementById("listAnggota").innerHTML=html;
 
     }catch(e){
         document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+        "<tr><td colspan='5'>Gagal memuat data</td></tr>";
     }
 }
-
-/* ================================
-   FORM CONTROL
-================================ */
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
-}
-
-/* ================================
-   KIRIM DATA + AUTO CARD
-================================ */
-async function kirim(){
-
-    if(submitting) return;
-    submitting=true;
-
-    const btn=document.getElementById("btnKirim");
-    btn.disabled=true;
-    btn.innerText="Mengirim...";
-
-    const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
-    const file=document.getElementById("foto").files[0];
-
-    if(!nama || !file){
-        alert("Nama dan Foto wajib diisi");
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
-        return;
-    }
-
-    const reader=new FileReader();
-    reader.onload=async function(e){
-
-        const formData = new URLSearchParams();
-        formData.append("action","add");
-        formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("foto",e.target.result);
-
-        const res = await fetch(WEB_APP_URL,{
-            method:"POST",
-            body:formData
-        });
-
-        const result = await res.json();
-
-        if(result.status==="success"){
-
-            const nomor=result.nomor || "SKH-"+Date.now();
-
-            generateCard(nama,gelar,nomor,e.target.result);
-
-            alert("Berhasil terdaftar!");
-
-            document.getElementById("nama").value="";
-            document.getElementById("gelar").value="";
-            document.getElementById("foto").value="";
-
-            tutupForm();
-            loadAnggota();
-        }
-
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
-    };
-
-    reader.readAsDataURL(file);
-}
-
 
 /* ================================
    GENERATE CARD
 ================================ */
 function generateCard(nama,gelar,nomor,foto){
+
+    const loginUser = localStorage.getItem("username");
+
+    if(!loginUser){
+        alert("Silakan login terlebih dahulu");
+        return;
+    }
 
     const canvas=document.createElement("canvas");
     canvas.width=1016;
@@ -327,51 +255,43 @@ function generateCard(nama,gelar,nomor,foto){
     ctx.fillStyle="#111";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    const logo=new Image();
-    logo.src="logo-skh.png";
+    ctx.fillStyle="gold";
+    ctx.font="bold 48px Georgia";
+    ctx.textAlign="center";
+    ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
 
-    logo.onload=function(){
+    const img=new Image();
+    img.crossOrigin="anonymous";
+    img.src=foto;
 
-        ctx.drawImage(logo,30,30,120,120);
+    img.onload=function(){
+        ctx.drawImage(img,80,200,200,250);
 
-        ctx.fillStyle="gold";
-        ctx.font="bold 48px Georgia";
-        ctx.textAlign="center";
-        ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+        ctx.textAlign="left";
+        ctx.fillStyle="white";
+        ctx.font="bold 40px Georgia";
+        ctx.fillText(nama,320,260);
 
-        const img=new Image();
-        img.src=foto;
+        ctx.font="30px Georgia";
+        ctx.fillText(gelar||"",320,320);
+        ctx.fillText("No: "+nomor,320,380);
 
-        img.onload=function(){
-            ctx.drawImage(img,80,200,200,250);
+        QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
+            ctx.drawImage(qrCanvas,canvas.width/2-100,420);
 
-            ctx.textAlign="left";
-            ctx.fillStyle="white";
-            ctx.font="bold 40px Georgia";
-            ctx.fillText(nama,320,260);
+            ctx.font="20px Georgia";
+            ctx.textAlign="center";
+            ctx.fillText("Dicetak oleh: "+loginUser,canvas.width/2,600);
 
-            ctx.font="30px Georgia";
-            ctx.fillText(gelar,320,320);
-            ctx.fillText("No: "+nomor,320,380);
-
-            QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-                ctx.drawImage(qrCanvas,canvas.width/2-100,420);
-
-                ctx.font="22px Georgia";
-                ctx.textAlign="center";
-                ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
-
-                const link=document.createElement("a");
-                link.download="Kartu_"+nomor+".png";
-                link.href=canvas.toDataURL("image/png");
-                link.click();
-            });
-        };
+            const link=document.createElement("a");
+            link.download="Kartu_"+nomor+".png";
+            link.href=canvas.toDataURL("image/png");
+            link.click();
+        });
     };
 }
 
 /* INIT */
-loadStruktur();
 loadAnggota();
 
 </script>
