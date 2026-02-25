@@ -24,15 +24,11 @@ h1{
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
 
-/* ===== TOMBOL MASUK POJOK KANAN ===== */
 .login-top{
     position:fixed;
     top:20px;
     right:30px;
     z-index:999;
-}
-.login-top a{
-    text-decoration:none;
 }
 .login-top button{
     background:gold;
@@ -42,13 +38,7 @@ h1{
     border-radius:8px;
     font-weight:bold;
     cursor:pointer;
-    box-shadow:0 0 10px rgba(212,175,55,0.6);
-    transition:0.3s;
 }
-.login-top button:hover{
-    background:#ffcc00;
-}
-/* =================================== */
 
 .card{
     background:#111;
@@ -60,12 +50,8 @@ h1{
 
 h2{ color:gold; margin-bottom:15px; }
 
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
 th, td{ border:1px solid #444; padding:10px; }
-
 th{ background:#222; color:gold; }
 
 .foto-kecil{
@@ -128,23 +114,14 @@ th{ background:#222; color:gold; }
     padding:10px;
     margin:8px 0;
 }
-
-.loading{
-    text-align:center;
-    color:gold;
-}
 </style>
 </head>
 
 <body>
 
-<!-- ===== TOMBOL MASUK ===== -->
 <div class="login-top">
-    <a href="login.html">
-        <button>Masuk</button>
-    </a>
+<a href="login.html"><button>Masuk</button></a>
 </div>
-<!-- ========================= -->
 
 <div class="container">
 
@@ -152,9 +129,7 @@ th{ background:#222; color:gold; }
 
 <div class="card">
 <h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
+<div id="strukturPengurus">Memuat struktur...</div>
 </div>
 
 <div class="card">
@@ -170,18 +145,14 @@ Memuat struktur...
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="4" class="loading">Memuat data...</td></tr>
+<tr><td colspan="4">Memuat data...</td></tr>
 </tbody>
 </table>
 
 <div class="button-group">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
+<a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
+<a href="index.html"><button class="btn btn-gold">Kembali</button></a>
 </div>
 
 </div>
@@ -193,7 +164,7 @@ Memuat struktur...
 <input type="text" id="nama" placeholder="Nama Lengkap">
 <input type="text" id="gelar" placeholder="Gelar">
 <textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
+<input type="text" id="nohp" placeholder="No HP (08xxxx)">
 <input type="file" id="foto" accept="image/*">
 <button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
 <button class="btn btn-green" onclick="tutupForm()">Batal</button>
@@ -202,157 +173,163 @@ Memuat struktur...
 
 <script>
 
-/* ================================
-   AUTO REDIRECT JIKA SUDAH LOGIN
-================================ */
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+let submitting=false;
+
+/* ================= SECURITY REDIRECT ================= */
 (function(){
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const role = localStorage.getItem("role");
-    if(isLoggedIn === "true" && role){
-        window.location.href =
-        "https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
+    if(localStorage.getItem("isLoggedIn")==="true"){
+        window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
     }
 })();
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-const CACHE_KEY = "cacheAnggotaPublic";
-const CACHE_TIME_KEY = "cacheTimePublic";
-const CACHE_DURATION = 60000; // 60 detik
-
-let submitting=false;
-
-/* ================================
-   LOAD STRUKTUR INSTAN
-================================ */
+/* ================= FAST LOAD STRUCTURE ================= */
 function loadStruktur(){
-
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
+    const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
     if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
+        document.getElementById("strukturPengurus").innerHTML="Belum ditentukan.";
         return;
     }
-
-    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
-}
-
-/* ================================
-   RENDER DATA
-================================ */
-function renderAnggota(data){
-
-    if(!data || data.length===0){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Belum ada anggota</td></tr>";
-        return;
-    }
-
     let html="";
-
-    data.slice().reverse().forEach(row=>{
-        const status=row.Status||"Nonaktif";
-        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
-        html+=`
-        <tr>
-            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-            <td>${row["Nama Lengkap"]||"-"}</td>
-            <td>${row["No Anggota"]||"-"}</td>
-            <td><span class="${statusClass}">${status}</span></td>
-        </tr>`;
-    });
-
-    document.getElementById("listAnggota").innerHTML=html;
+    data.forEach(p=> html+=`${p.jabatan} : <strong>${p.nama}</strong><br>`);
+    document.getElementById("strukturPengurus").innerHTML=html;
 }
 
-/* ================================
-   FETCH DATA SMART
-================================ */
-async function fetchData(force=false){
-
-    const now = Date.now();
-    const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
-
-    if(!force && lastFetch && (now - lastFetch < CACHE_DURATION)){
-        return;
-    }
-
+/* ================= FAST LOAD ANGGOTA ================= */
+async function loadAnggota(){
     try{
-        const res = await fetch(WEB_APP_URL + "?t=" + now);
-        const result = await res.json();
-        const data = result.data || result;
-
-        if(data && data.length>0){
-            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-            localStorage.setItem(CACHE_TIME_KEY, now);
-            renderAnggota(data);
+        const res=await fetch(WEB_APP_URL+"?t="+Date.now());
+        const result=await res.json();
+        const data=result.data||result||[];
+        if(data.length===0){
+            document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
+            return;
         }
-    }catch(e){
-        console.log("Server sleep / gagal fetch.");
+        let html="";
+        data.slice().reverse().forEach(r=>{
+            const status=r.Status==="Aktif"?"status-aktif":"status-nonaktif";
+            html+=`<tr>
+            <td><img src="${r.Foto||""}" class="foto-kecil"></td>
+            <td>${r["Nama Lengkap"]||"-"}</td>
+            <td>${r["No Anggota"]||"-"}</td>
+            <td><span class="${status}">${r.Status||"Nonaktif"}</span></td>
+            </tr>`;
+        });
+        document.getElementById("listAnggota").innerHTML=html;
+    }catch{
+        document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat data</td></tr>";
     }
 }
 
-/* ================================
-   LOAD CEPAT
-================================ */
-function loadAnggotaFast(){
-
-    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
-
-    if(cache.length>0){
-        renderAnggota(cache);
+/* ================= PASSWORD SYSTEM ================= */
+function generatePassword(){
+    const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#";
+    let pass="";
+    for(let i=0;i<10;i++){
+        pass+=chars.charAt(Math.floor(Math.random()*chars.length));
     }
-
-    fetchData(true); // refresh background
+    return pass;
 }
 
-/* ================================
-   WARM SERVER
-================================ */
-setTimeout(()=>{
-    fetch(WEB_APP_URL + "?warm=" + Date.now());
-},2000);
-
-/* ================================
-   AUTO REFRESH
-================================ */
-setInterval(()=>{
-    fetchData(true);
-},30000);
-
-/* ================================
-   FORM
-================================ */
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
+function generateUsername(nama){
+    return nama.replace(/\s+/g,"").toLowerCase()+Math.floor(100+Math.random()*900);
 }
 
-/* ================================
-   INIT
-================================ */
+async function hashPassword(password){
+    const data=new TextEncoder().encode(password);
+    const hash=await crypto.subtle.digest("SHA-256",data);
+    return Array.from(new Uint8Array(hash))
+    .map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ================= FORM CONTROL ================= */
+function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
+function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
+
+/* ================= KIRIM DATA ================= */
+async function kirim(){
+
+if(submitting) return;
+submitting=true;
+
+const btn=document.getElementById("btnKirim");
+btn.disabled=true;
+btn.innerText="Memproses...";
+
+const nama=document.getElementById("nama").value.trim();
+const gelar=document.getElementById("gelar").value;
+const nohp=document.getElementById("nohp").value.trim();
+const file=document.getElementById("foto").files[0];
+
+if(!nama||!nohp||!file){
+alert("Nama, No HP, dan Foto wajib diisi");
+reset(); return;
+}
+
+let hp=nohp.replace(/\D/g,"");
+if(hp.startsWith("0")) hp="62"+hp.substring(1);
+if(!hp.startsWith("62")){ alert("Format nomor salah"); reset(); return; }
+
+const username=generateUsername(nama);
+const passwordPlain=generatePassword();
+const passwordHash=await hashPassword(passwordPlain);
+
+const reader=new FileReader();
+reader.onload=async function(e){
+
+const formData=new URLSearchParams();
+formData.append("action","add");
+formData.append("nama",nama);
+formData.append("gelar",gelar);
+formData.append("foto",e.target.result);
+
+const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+const result=await res.json();
+
+if(result.status==="success"){
+
+const nomor=result.nomor||"SKH-"+Date.now();
+
+let users=JSON.parse(localStorage.getItem("adminUsers")||"[]");
+users.push({username:username,password:passwordHash,role:"User"});
+localStorage.setItem("adminUsers",JSON.stringify(users));
+
+const pesan=encodeURIComponent(
+`Assalamu'alaikum ${nama}
+
+Selamat Anda resmi menjadi Anggota Komunitas Keris SKH.
+
+No Anggota : ${nomor}
+
+Username : ${username}
+Password : ${passwordPlain}
+
+Login:
+https://sugeng1104.github.io/koleksikerisskh/login.html`
+);
+
+window.open(`https://wa.me/${hp}?text=${pesan}`,"_blank");
+
+alert("Berhasil! Akun dikirim ke WhatsApp.");
+
+tutupForm();
+loadAnggota();
+}
+
+reset();
+};
+reader.readAsDataURL(file);
+
+function reset(){
+submitting=false;
+btn.disabled=false;
+btn.innerText="Kirim";
+}
+}
+
 loadStruktur();
-loadAnggotaFast();
+loadAnggota();
 
 </script>
-
 </body>
 </html>
