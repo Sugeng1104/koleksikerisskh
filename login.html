@@ -1,295 +1,104 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Komunitas Keris SKH</title>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
-<style>
-body{
-    margin:0;
-    font-family:Georgia,serif;
-    background:#000;
-    color:white;
-    padding:40px;
-}
-.container{ max-width:1100px; margin:auto; position:relative; }
-
-h1{
-    color:gold;
-    text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
-}
-
-.login-top{
-    position:absolute;
-    top:0;
-    right:0;
-}
-
-.card{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
-th, td{ border:1px solid #444; padding:10px; text-align:center; }
-
-th{ background:#222; color:gold; }
-
-.foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid gold;
-}
-
-.status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.status-nonaktif{
-    background:#aa0000;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.btn{
-    padding:8px 14px;
-    border-radius:8px;
-    margin:4px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-}
-
-.btn-blue{ background:#007bff; color:white; }
-.btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
-.btn-purple{ background:#6f42c1; color:white; }
-
-.button-group{ margin-top:15px; }
-
-.loading{
-    text-align:center;
-    color:gold;
-}
-
-/* ===== Modal Preview ===== */
-#modalPreview{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.95);
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    z-index:9999;
-}
-
-.preview-box{
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-}
-
-.preview-box canvas{
-    max-width:90vw;
-    border:3px solid gold;
-    border-radius:10px;
-    margin-bottom:15px;
-}
-</style>
+  <title>Login Admin</title>
+  <style>
+    body{
+      background:black;
+      color:#00ffcc;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      font-family:Arial;
+    }
+    .login-box{
+      background:#111;
+      padding:30px;
+      border-radius:10px;
+      width:320px;
+    }
+    input, select{
+      width:100%;
+      padding:10px;
+      margin:10px 0;
+      background:#222;
+      border:1px solid #00ffcc;
+      color:white;
+    }
+    button{
+      width:100%;
+      padding:10px;
+      background:#00ffcc;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="login-box">
+  <h2>Login Panel</h2>
 
-<div class="login-top">
-    <a href="login.html">
-        <button class="btn btn-purple">Masuk</button>
-    </a>
-</div>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
 
-<h1>Komunitas Keris SKH</h1>
+  <select id="role">
+    <option value="">-- Pilih Role --</option>
+    <option value="Super Admin">Super Admin</option>
+    <option value="Admin">Admin</option>
+  </select>
 
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
-</div>
-
-<div class="card">
-<h2>Daftar Anggota</h2>
-
-<table>
-<thead>
-<tr>
-<th>Foto</th>
-<th>Nama</th>
-<th>No Anggota</th>
-<th>Status</th>
-<th>Aksi</th>
-</tr>
-</thead>
-<tbody id="listAnggota">
-<tr><td colspan="5" class="loading">Memuat data...</td></tr>
-</tbody>
-</table>
-
-</div>
-</div>
-
-<!-- MODAL PREVIEW -->
-<div id="modalPreview">
-<div class="preview-box">
-<canvas id="previewCanvas"></canvas>
-<br>
-<button class="btn btn-green" onclick="downloadKartu()">Download</button>
-<button class="btn btn-gold" onclick="tutupPreview()">Tutup</button>
-</div>
+  <button onclick="login()">Login</button>
 </div>
 
 <script>
+const defaultUsers = [
+  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
+  { username:"Admin1", password:"admin123", role:"Admin" }
+];
 
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+// Ambil data lama jika ada
+let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
-let lastNomor="";
+// Pastikan default user selalu ada
+defaultUsers.forEach(defUser => {
+  const exists = storedUsers.find(u => u.username === defUser.username);
+  if(!exists){
+    storedUsers.push(defUser);
+  }
+});
 
-/* LOAD ANGGOTA */
-async function loadAnggota(){
-    try{
-        const res=await fetch(WEB_APP_URL);
-        const result=await res.json();
-        const data=result.data||result;
+// Simpan kembali ke localStorage
+localStorage.setItem("adminUsers", JSON.stringify(storedUsers));
 
-        if(!data||data.length===0){
-            document.getElementById("listAnggota").innerHTML=
-            "<tr><td colspan='5'>Belum ada anggota</td></tr>";
-            return;
-        }
+function login(){
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const selectedRole = document.getElementById("role").value;
 
-        let html="";
-        data.slice().reverse().forEach(row=>{
-            const status=row.Status||"Nonaktif";
-            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+  if(selectedRole === ""){
+    return alert("Pilih role terlebih dahulu!");
+  }
 
-            html+=`
-            <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"}</td>
-                <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-                <td>
-                    <button class="btn btn-green"
-                    onclick="previewKartu('${row["Nama Lengkap"]}','${row["Gelar"]||""}','${row["No Anggota"]}','${row["Foto"]}')">
-                    Cetak Kartu
-                    </button>
-                </td>
-            </tr>`;
-        });
+  const users = JSON.parse(localStorage.getItem("adminUsers"));
 
-        document.getElementById("listAnggota").innerHTML=html;
+  const user = users.find(u =>
+    u.username === username &&
+    u.password === password &&
+    u.role === selectedRole
+  );
 
-    }catch(e){
-        document.getElementById("listAnggota").innerHTML=
-        "<tr><td colspan='5'>Gagal memuat data</td></tr>";
-    }
+  if(user){
+    localStorage.setItem("isLoggedIn","true");
+    localStorage.setItem("username",user.username);
+    localStorage.setItem("role",user.role);
+    window.location.href="admin.html";
+  }else{
+    alert("Login gagal! Username / Password / Role salah.");
+  }
 }
-
-/* PREVIEW KARTU */
-function previewKartu(nama,gelar,nomor,foto){
-
-    lastNomor=nomor;
-
-    const canvas=document.getElementById("previewCanvas");
-    canvas.width=1016;
-    canvas.height=638;
-    const ctx=canvas.getContext("2d");
-
-    ctx.fillStyle="#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    /* WATERMARK LOGO */
-    const watermark=new Image();
-    watermark.src="logo-skh.png";
-
-    watermark.onload=function(){
-        ctx.globalAlpha=0.08;
-        ctx.drawImage(watermark,canvas.width/2-250,canvas.height/2-250,500,500);
-        ctx.globalAlpha=1;
-
-        ctx.fillStyle="gold";
-        ctx.font="bold 48px Georgia";
-        ctx.textAlign="center";
-        ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
-
-        const img=new Image();
-        img.src=foto;
-
-        img.onload=function(){
-            ctx.drawImage(img,80,200,200,250);
-
-            ctx.textAlign="left";
-            ctx.fillStyle="white";
-            ctx.font="bold 40px Georgia";
-            ctx.fillText(nama,320,260);
-
-            ctx.font="30px Georgia";
-            ctx.fillText(gelar||"",320,320);
-            ctx.fillText("No: "+nomor,320,380);
-
-            QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-                ctx.drawImage(qrCanvas,canvas.width/2-100,420);
-
-                ctx.font="22px Georgia";
-                ctx.textAlign="center";
-                ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
-
-                document.getElementById("modalPreview").style.display="flex";
-            });
-        };
-    };
-}
-
-/* DOWNLOAD */
-function downloadKartu(){
-    const canvas=document.getElementById("previewCanvas");
-    const link=document.createElement("a");
-    link.download="Kartu_"+lastNomor+".png";
-    link.href=canvas.toDataURL("image/png");
-    link.click();
-}
-
-/* TUTUP PREVIEW */
-function tutupPreview(){
-    document.getElementById("modalPreview").style.display="none";
-}
-
-loadAnggota();
-
 </script>
 
 </body>
