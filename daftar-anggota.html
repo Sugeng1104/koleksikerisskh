@@ -184,51 +184,22 @@ Memuat struktur...
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let submitting=false;
-
-/* ================================
-   LOAD STRUKTUR
-================================ */
-function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
-}
+let lastNomor="";
+let lastCanvas=null;
 
 /* ================================
    LOAD ANGGOTA
 ================================ */
 async function loadAnggota(){
-
     try{
-        const res = await fetch(WEB_APP_URL);
-        const result = await res.json();
-        const data = result.data || result;
+        const res=await fetch(WEB_APP_URL);
+        const result=await res.json();
+        const data=result.data||result;
 
-        if(!data || data.length===0){
-            document.getElementById("listAnggota").innerHTML =
+        if(!data||data.length===0){
+            document.getElementById("listAnggota").innerHTML=
             "<tr><td colspan='5'>Belum ada anggota</td></tr>";
             return;
         }
@@ -245,8 +216,8 @@ async function loadAnggota(){
                 <td>${row["No Anggota"]||"-"}</td>
                 <td><span class="${statusClass}">${status}</span></td>
                 <td>
-                    <button class="btn btn-green" 
-                    onclick="cetakKartu('${row["Nama Lengkap"]}','${row["Gelar"]||""}','${row["No Anggota"]}','${row["Foto"]}')">
+                    <button class="btn btn-green"
+                    onclick='previewKartu(${JSON.stringify(row["Nama Lengkap"]||"")},${JSON.stringify(row["Gelar"]||"")},${JSON.stringify(row["No Anggota"]||"")},${JSON.stringify(row["Foto"]||"")})'>
                     Cetak Kartu
                     </button>
                 </td>
@@ -256,70 +227,112 @@ async function loadAnggota(){
         document.getElementById("listAnggota").innerHTML=html;
 
     }catch(e){
-        document.getElementById("listAnggota").innerHTML =
+        document.getElementById("listAnggota").innerHTML=
         "<tr><td colspan='5'>Gagal memuat data</td></tr>";
     }
 }
 
 /* ================================
-   CETAK ULANG KARTU
+   PREVIEW KARTU (FIX STABIL)
 ================================ */
-function cetakKartu(nama,gelar,nomor,foto){
-    generateCard(nama,gelar,nomor,foto);
-}
+function previewKartu(nama,gelar,nomor,foto){
 
-/* ================================
-   GENERATE CARD
-================================ */
-function generateCard(nama,gelar,nomor,foto){
+    lastNomor=nomor;
 
-    const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
+    const canvas=document.getElementById("previewCanvas");
     const ctx=canvas.getContext("2d");
 
+    canvas.width=1016;
+    canvas.height=638;
+
+    lastCanvas=canvas;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Background
     ctx.fillStyle="#111";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    ctx.fillStyle="gold";
-    ctx.font="bold 48px Georgia";
-    ctx.textAlign="center";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+    // Watermark (tidak menggantung jika gagal load)
+    const watermark=new Image();
+    watermark.src="logo-skh.png";
 
-    const img=new Image();
-    img.src=foto;
-
-    img.onload=function(){
-        ctx.drawImage(img,80,200,200,250);
-
-        ctx.textAlign="left";
-        ctx.fillStyle="white";
-        ctx.font="bold 40px Georgia";
-        ctx.fillText(nama,320,260);
-
-        ctx.font="30px Georgia";
-        ctx.fillText(gelar||"",320,320);
-        ctx.fillText("No: "+nomor,320,380);
-
-        QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-            ctx.drawImage(qrCanvas,canvas.width/2-100,420);
-
-            ctx.font="22px Georgia";
-            ctx.textAlign="center";
-            ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
-
-            const link=document.createElement("a");
-            link.download="Kartu_"+nomor+".png";
-            link.href=canvas.toDataURL("image/png");
-            link.click();
-        });
+    watermark.onload=function(){
+        ctx.globalAlpha=0.08;
+        ctx.drawImage(watermark,canvas.width/2-250,canvas.height/2-250,500,500);
+        ctx.globalAlpha=1;
+        renderCardContent();
     };
+
+    watermark.onerror=function(){
+        renderCardContent();
+    };
+
+    function renderCardContent(){
+
+        ctx.fillStyle="gold";
+        ctx.font="bold 48px Georgia";
+        ctx.textAlign="center";
+        ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+
+        const img=new Image();
+        img.crossOrigin="anonymous";
+        img.src=foto;
+
+        img.onload=function(){
+            ctx.drawImage(img,80,200,200,250);
+            drawTextAndQR();
+        };
+
+        img.onerror=function(){
+            drawTextAndQR();
+        };
+
+        function drawTextAndQR(){
+
+            ctx.textAlign="left";
+            ctx.fillStyle="white";
+            ctx.font="bold 40px Georgia";
+            ctx.fillText(nama,320,260);
+
+            ctx.font="30px Georgia";
+            ctx.fillText(gelar||"",320,320);
+            ctx.fillText("No: "+nomor,320,380);
+
+            QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
+                if(!err){
+                    ctx.drawImage(qrCanvas,canvas.width/2-100,420);
+                }
+
+                ctx.font="22px Georgia";
+                ctx.textAlign="center";
+                ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
+
+                // TAMPILKAN PREVIEW SETELAH SEMUA SELESAI
+                document.getElementById("modalPreview").style.display="flex";
+            });
+        }
+    }
 }
 
 /* ================================
-   INIT
+   DOWNLOAD
 ================================ */
-loadStruktur();
+function downloadKartu(){
+    if(!lastCanvas) return;
+    const link=document.createElement("a");
+    link.download="Kartu_"+lastNomor+".png";
+    link.href=lastCanvas.toDataURL("image/png");
+    link.click();
+}
+
+/* ================================
+   TUTUP PREVIEW
+================================ */
+function tutupPreview(){
+    document.getElementById("modalPreview").style.display="none";
+}
+
 loadAnggota();
 
 </script>
