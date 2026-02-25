@@ -200,7 +200,6 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- HANYA SCRIPT BAGIAN BAWAH YANG DIGANTI TOTAL -->
 <script>
 
 /* ================================
@@ -217,142 +216,141 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
+const CACHE_KEY = "cacheAnggotaPublic";
+const CACHE_TIME_KEY = "cacheTimePublic";
+const CACHE_DURATION = 60000; // 60 detik
+
 let submitting=false;
 
 /* ================================
-   KOMPRES GAMBAR SUPER CEPAT
+   LOAD STRUKTUR INSTAN
 ================================ */
-function compressImage(file){
+function loadStruktur(){
 
-    return new Promise((resolve)=>{
+    const container = document.getElementById("strukturPengurus");
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
 
-        const reader=new FileReader();
+    if(data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
+    }
 
-        reader.onload=function(e){
+    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
 
-            const img=new Image();
-            img.src=e.target.result;
-
-            img.onload=function(){
-
-                const canvas=document.createElement("canvas");
-                const MAX_WIDTH=800;
-
-                let width=img.width;
-                let height=img.height;
-
-                if(width>MAX_WIDTH){
-                    height*=MAX_WIDTH/width;
-                    width=MAX_WIDTH;
-                }
-
-                canvas.width=width;
-                canvas.height=height;
-
-                const ctx=canvas.getContext("2d");
-                ctx.drawImage(img,0,0,width,height);
-
-                resolve(canvas.toDataURL("image/jpeg",0.7)); // kompres 70%
-            };
-        };
-
-        reader.readAsDataURL(file);
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
     });
+
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Kurator Pusaka : ${kurator}
+    `;
 }
 
 /* ================================
-   KIRIM DATA CEPAT
+   RENDER DATA
 ================================ */
-async function kirim(){
+function renderAnggota(data){
 
-    if(submitting) return;
-    submitting=true;
+    if(!data || data.length===0){
+        document.getElementById("listAnggota").innerHTML =
+        "<tr><td colspan='4'>Belum ada anggota</td></tr>";
+        return;
+    }
 
-    const btn=document.getElementById("btnKirim");
-    btn.disabled=true;
-    btn.innerText="Memproses...";
+    let html="";
 
-    const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
-    const file=document.getElementById("foto").files[0];
+    data.slice().reverse().forEach(row=>{
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
-    if(!nama || !file){
-        alert("Nama dan Foto wajib diisi");
-        resetButton();
+        html+=`
+        <tr>
+            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+            <td>${row["Nama Lengkap"]||"-"}</td>
+            <td>${row["No Anggota"]||"-"}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+        </tr>`;
+    });
+
+    document.getElementById("listAnggota").innerHTML=html;
+}
+
+/* ================================
+   FETCH DATA SMART
+================================ */
+async function fetchData(force=false){
+
+    const now = Date.now();
+    const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
+
+    if(!force && lastFetch && (now - lastFetch < CACHE_DURATION)){
         return;
     }
 
     try{
-
-        // 🔥 Kompres dulu
-        const compressedImage = await compressImage(file);
-
-        btn.innerText="Mengirim...";
-
-        const formData = new URLSearchParams();
-        formData.append("action","add");
-        formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("foto",compressedImage);
-
-        // ⏱ Timeout 20 detik
-        const controller = new AbortController();
-        const timeout = setTimeout(()=>controller.abort(),20000);
-
-        const res = await fetch(WEB_APP_URL,{
-            method:"POST",
-            body:formData,
-            signal:controller.signal
-        });
-
-        clearTimeout(timeout);
-
+        const res = await fetch(WEB_APP_URL + "?t=" + now);
         const result = await res.json();
+        const data = result.data || result;
 
-        if(result.status==="success"){
-
-            const nomor=result.nomor || "SKH-"+Date.now();
-
-            // Buat akun otomatis
-            let users = JSON.parse(localStorage.getItem("adminUsers")) || [];
-            let newUsername = nama.replace(/\s+/g,"").toLowerCase();
-            let newPassword = newUsername + "@";
-
-            if(!users.find(u => u.username === newUsername)){
-                users.push({
-                    username:newUsername,
-                    password:newPassword,
-                    role:"User"
-                });
-                localStorage.setItem("adminUsers", JSON.stringify(users));
-            }
-
-            alert("Berhasil terdaftar!\n\nUsername: "+newUsername+"\nPassword: "+newPassword);
-
-            document.getElementById("nama").value="";
-            document.getElementById("gelar").value="";
-            document.getElementById("foto").value="";
-
-            tutupForm();
-            loadAnggota();
+        if(data && data.length>0){
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            localStorage.setItem(CACHE_TIME_KEY, now);
+            renderAnggota(data);
         }
-
     }catch(e){
-        alert("Server lambat / koneksi bermasalah. Silakan coba lagi.");
+        console.log("Server sleep / gagal fetch.");
+    }
+}
+
+/* ================================
+   LOAD CEPAT
+================================ */
+function loadAnggotaFast(){
+
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+
+    if(cache.length>0){
+        renderAnggota(cache);
     }
 
-    resetButton();
+    fetchData(true); // refresh background
 }
 
-function resetButton(){
-    submitting=false;
-    const btn=document.getElementById("btnKirim");
-    btn.disabled=false;
-    btn.innerText="Kirim";
+/* ================================
+   WARM SERVER
+================================ */
+setTimeout(()=>{
+    fetch(WEB_APP_URL + "?warm=" + Date.now());
+},2000);
+
+/* ================================
+   AUTO REFRESH
+================================ */
+setInterval(()=>{
+    fetchData(true);
+},30000);
+
+/* ================================
+   FORM
+================================ */
+function bukaForm(){
+    document.getElementById("modalDaftar").style.display="flex";
+}
+function tutupForm(){
+    document.getElementById("modalDaftar").style.display="none";
 }
 
+/* ================================
+   INIT
+================================ */
 loadStruktur();
-loadAnggota();
+loadAnggotaFast();
 
 </script>
 
