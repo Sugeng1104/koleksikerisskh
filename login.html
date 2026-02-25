@@ -48,6 +48,7 @@
     <option value="">-- Pilih Role --</option>
     <option value="Super Admin">Super Admin</option>
     <option value="Admin">Admin</option>
+    <option value="User">User</option>
   </select>
 
   <button onclick="login()">Login</button>
@@ -59,10 +60,8 @@ const defaultUsers = [
   { username:"Admin1", password:"admin123", role:"Admin" }
 ];
 
-// Ambil data lama jika ada
 let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
-// Pastikan default user selalu ada
 defaultUsers.forEach(defUser => {
   const exists = storedUsers.find(u => u.username === defUser.username);
   if(!exists){
@@ -70,7 +69,6 @@ defaultUsers.forEach(defUser => {
   }
 });
 
-// Simpan kembali ke localStorage
 localStorage.setItem("adminUsers", JSON.stringify(storedUsers));
 
 function login(){
@@ -94,7 +92,13 @@ function login(){
     localStorage.setItem("isLoggedIn","true");
     localStorage.setItem("username",user.username);
     localStorage.setItem("role",user.role);
-    window.location.href="admin.html";
+
+    if(user.role==="User"){
+      window.location.href="daftar-anggota.html";
+    }else{
+      window.location.href="admin.html";
+    }
+
   }else{
     alert("Login gagal! Username / Password / Role salah.");
   }
