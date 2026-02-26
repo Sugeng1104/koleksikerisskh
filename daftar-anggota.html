@@ -306,15 +306,23 @@ return;
 
 const nomor=result.nomor||"SKH-"+Date.now();
 
-/* === USERNAME UNIQUE === */
-let baseUsername=nama.replace(/\s+/g,"").toLowerCase();
-let username=baseUsername;
-let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
-let counter=1;
-while(users.find(u=>u.username===username)){
-username=baseUsername+counter;
-counter++;
-}
+/* === USERNAME LEBIH PENDEK + KODE UNIK === */
+
+let users = JSON.parse(localStorage.getItem("adminUsers")) || [];
+
+// Ambil nama depan saja
+let namaDepan = nama.trim().split(" ")[0].toLowerCase();
+
+// Hapus karakter selain huruf
+namaDepan = namaDepan.replace(/[^a-z]/g,'');
+
+// Buat kode unik 4 digit
+let username;
+do{
+    const kodeUnik = Math.floor(1000 + Math.random() * 9000); // 4 digit
+    username = namaDepan + kodeUnik;
+}while(users.find(u => u.username === username));
+
 
 /* === PASSWORD STRONG === */
 const password=generateStrongPassword();
