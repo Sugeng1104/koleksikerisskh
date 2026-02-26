@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login Admin</title>
+  <title>Login Panel SKH</title>
   <style>
     body{
       background:black;
@@ -17,6 +17,7 @@
       padding:30px;
       border-radius:10px;
       width:320px;
+      box-shadow:0 0 20px rgba(0,255,204,0.4);
     }
     input, select{
       width:100%;
@@ -34,12 +35,15 @@
       cursor:pointer;
       font-weight:bold;
     }
+    button:hover{
+      background:#00ddb3;
+    }
   </style>
 </head>
 <body>
 
 <div class="login-box">
-  <h2>Login Panel</h2>
+  <h2>Login Panel SKH</h2>
 
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
@@ -57,38 +61,54 @@
 <script>
 
 /* ===============================
-   DEFAULT USERS
+   INITIALIZE USER STORAGE
 ================================= */
-const defaultUsers = [
-  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
-  { username:"Admin1", password:"admin123", role:"Admin" },
-  { username:"user1", password:"User1@", role:"User" }
-];
 
-let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
+function initUsers(){
 
-defaultUsers.forEach(defUser => {
-  const exists = storedUsers.find(u => u.username === defUser.username);
-  if(!exists){
-    storedUsers.push(defUser);
+  let users = JSON.parse(localStorage.getItem("adminUsers"));
+
+  if(!Array.isArray(users)){
+    users = [];
   }
-});
 
-localStorage.setItem("adminUsers", JSON.stringify(storedUsers));
+  const defaultUsers = [
+    { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
+    { username:"Admin1", password:"admin123", role:"Admin" },
+    { username:"user1", password:"User1@", role:"User" }
+  ];
+
+  defaultUsers.forEach(def=>{
+    const exists = users.find(u => u.username === def.username);
+    if(!exists){
+      users.push(def);
+    }
+  });
+
+  localStorage.setItem("adminUsers", JSON.stringify(users));
+}
+
+initUsers();
 
 /* ===============================
    LOGIN FUNCTION
 ================================= */
+
 function login(){
+
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
   const selectedRole = document.getElementById("role").value;
+
+  if(!username || !password){
+    return alert("Username dan Password wajib diisi!");
+  }
 
   if(selectedRole === ""){
     return alert("Pilih role terlebih dahulu!");
   }
 
-  const users = JSON.parse(localStorage.getItem("adminUsers"));
+  const users = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
   const user = users.find(u =>
     u.username === username &&
@@ -96,26 +116,24 @@ function login(){
     u.role === selectedRole
   );
 
-  if(user){
-
-    localStorage.setItem("isLoggedIn","true");
-    localStorage.setItem("username",user.username);
-    localStorage.setItem("role",user.role);
-
-    /* ===========================
-       ROLE REDIRECT
-    ============================ */
-
-    if(user.role === "Super Admin" || user.role === "Admin"){
-        window.location.href="admin.html";
-    } 
-    else if(user.role === "User"){
-        window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
-    }
-
-  }else{
-    alert("Login gagal! Username / Password / Role salah.");
+  if(!user){
+    return alert("Login gagal! Username / Password / Role salah.");
   }
+
+  /* SAVE SESSION */
+  localStorage.setItem("isLoggedIn","true");
+  localStorage.setItem("username",user.username);
+  localStorage.setItem("role",user.role);
+  localStorage.setItem("loginTime",Date.now());
+
+  /* REDIRECT */
+  if(user.role === "Super Admin" || user.role === "Admin"){
+      window.location.href="admin.html";
+  } 
+  else if(user.role === "User"){
+      window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
+  }
+
 }
 
 </script>
