@@ -130,15 +130,13 @@ th{ background:#222; color:gold; }
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- ================= STRUKTUR ================= -->
 <div class="card">
 <h2>Struktur Pengurus</h2>
 <div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
+Belum ditentukan.
 </div>
 </div>
 
-<!-- ================= ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -169,7 +167,6 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- ================= MODAL ================= -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
@@ -186,39 +183,10 @@ Memuat struktur...
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ===============================
-   PASSWORD GENERATOR
-================================= */
-function generateStrongPassword(length=10){
-const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
-let password="";
-for(let i=0;i<length;i++){
-password+=chars.charAt(Math.floor(Math.random()*chars.length));
-}
-return password;
-}
-
-/* ===============================
-   HASH SHA-256
-================================= */
-async function hashPassword(password){
-const encoder=new TextEncoder();
-const data=encoder.encode(password);
-const hash=await crypto.subtle.digest("SHA-256",data);
-return Array.from(new Uint8Array(hash))
-.map(b=>b.toString(16).padStart(2,"0"))
-.join("");
-}
-
-/* ===============================
-   LOAD STRUKTUR
-================================= */
-function loadStruktur(){
+/* ===== LOAD STRUKTUR INSTAN ===== */
+(function(){
 const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-if(data.length===0){
-document.getElementById("strukturPengurus").innerHTML="Belum ditentukan.";
-return;
-}
+if(data.length===0) return;
 let ketua="-",sekretaris="-",bendahara="-",kurator="-";
 data.forEach(p=>{
 if(p.jabatan==="Ketua") ketua=p.nama;
@@ -231,20 +199,18 @@ document.getElementById("strukturPengurus").innerHTML=
 Sekretaris : ${sekretaris}<br>
 Bendahara : ${bendahara}<br>
 Kurator Pusaka : ${kurator}`;
-}
+})();
 
-/* ===============================
-   LOAD ANGGOTA FAST
-================================= */
+/* ===== LOAD ANGGOTA CEPAT + TIMEOUT ===== */
 async function loadAnggota(){
 try{
-const res=await fetch(WEB_APP_URL+"?t="+Date.now());
+const controller=new AbortController();
+setTimeout(()=>controller.abort(),5000);
+
+const res=await fetch(WEB_APP_URL+"?t="+Date.now(),{signal:controller.signal});
 const result=await res.json();
 const data=result.data||result;
-if(!data||data.length===0){
-document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
-return;
-}
+
 let html="";
 data.slice().reverse().forEach(row=>{
 const status=row.Status||"Nonaktif";
@@ -258,20 +224,23 @@ html+=`
 </tr>`;
 });
 document.getElementById("listAnggota").innerHTML=html;
+
 }catch(e){
 document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat</td></tr>";
 }
 }
+loadAnggota();
 
-/* ===============================
-   FORM CONTROL
-================================= */
+/* ===== FORM ===== */
 function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
 function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
-/* ===============================
-   KIRIM PENDAFTARAN
-================================= */
+/* ===== PASSWORD SIMPLE CEPAT ===== */
+function generatePassword(){
+return Math.random().toString(36).slice(-8)+"@";
+}
+
+/* ===== KIRIM ===== */
 async function kirim(){
 
 const nama=document.getElementById("nama").value.trim();
@@ -287,9 +256,6 @@ return;
 const reader=new FileReader();
 reader.onload=async function(e){
 
-try{
-
-/* === SIMPAN KE GOOGLE SHEET === */
 const formData=new URLSearchParams();
 formData.append("action","add");
 formData.append("nama",nama);
@@ -299,84 +265,45 @@ formData.append("foto",e.target.result);
 const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
 const result=await res.json();
 
-if(result.status!=="success"){
-alert("Gagal menyimpan data.");
-return;
-}
+if(result.status==="success"){
 
-const nomor=result.nomor||"SKH-"+Date.now();
-
-/* === USERNAME LEBIH PENDEK + KODE UNIK === */
-
-let users = JSON.parse(localStorage.getItem("adminUsers")) || [];
-
-// Ambil nama depan saja
-let namaDepan = nama.trim().split(" ")[0].toLowerCase();
-
-// Hapus karakter selain huruf
-namaDepan = namaDepan.replace(/[^a-z]/g,'');
-
-// Buat kode unik 4 digit
+/* USERNAME PENDEK */
+let namaDepan=nama.split(" ")[0].toLowerCase().replace(/[^a-z]/g,'');
+let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
 let username;
 do{
-    const kodeUnik = Math.floor(1000 + Math.random() * 9000); // 4 digit
-    username = namaDepan + kodeUnik;
-}while(users.find(u => u.username === username));
+username=namaDepan+Math.floor(1000+Math.random()*9000);
+}while(users.find(u=>u.username===username));
 
-
-/* === PASSWORD STRONG === */
-const password=generateStrongPassword();
-const hashed=await hashPassword(password);
-
-users.push({username,password:hashed,role:"User"});
+const password=generatePassword();
+users.push({username,password,role:"User"});
 localStorage.setItem("adminUsers",JSON.stringify(users));
 
-/* === FORMAT NOMOR WA === */
+/* FORMAT WA */
 let nomorWA=nohp.replace(/\D/g,'');
 if(nomorWA.startsWith("08")) nomorWA="62"+nomorWA.substring(1);
 if(nomorWA.startsWith("8")) nomorWA="62"+nomorWA;
 
-/* === PESAN WA === */
 const pesan=
-‘🔐 AKUN KOMUNITAS KERIS SKH 🔐’
+`🔐 AKUN KOMUNITAS KERIS SKH
 
 Halo ${nama},
-
-Pendaftaran berhasil.
-
-Terimakasih sudah bergabung dengan kami
 
 Username: ${username}
 Password: ${password}
 
-Simpan dengan aman.
+Simpan dengan aman.`;
 
-Situs resmi https://sugeng1104.github.io/koleksikerisskh/index.html
-
-Login di https://sugeng1104.github.io/koleksikerisskh/login.html
-untuk cetak kartu anggota
-
-Admin`;
-
-/* === REDIRECT LANGSUNG TANPA POPUP === */
+/* REDIRECT STABIL */
 window.location.href=
 "https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan);
 
-}catch(err){
-alert("Terjadi kesalahan.");
 }
-
 };
-
 reader.readAsDataURL(file);
 }
-
-/* INIT */
-loadStruktur();
-loadAnggota();
 
 </script>
 
 </body>
 </html>
-
