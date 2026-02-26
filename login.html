@@ -96,92 +96,61 @@
 
 <script>
 
-/* ==============================
-   GANTI DENGAN WEB APP URL ANDA
-============================== */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ==============================
-   AUTO REDIRECT JIKA SUDAH LOGIN
-============================== */
-window.onload = function(){
-  if(sessionStorage.getItem("isLoggedIn") === "true"){
-    const role = sessionStorage.getItem("role");
-
-    if(role === "Super Admin" || role === "Admin"){
-      window.location.href="admin.html";
-    }else{
-      window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
-    }
-  }
-};
-
-/* ==============================
-   LOGIN SERVER SIDE
-============================== */
+/* =========================
+   LOGIN
+========================= */
 async function login(){
 
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
   const role     = document.getElementById("role").value;
-  const errorText = document.getElementById("errorText");
-  const loadingText = document.getElementById("loadingText");
-  const loginBtn = document.getElementById("loginBtn");
-
-  errorText.innerText = "";
 
   if(!username || !password || !role){
-    errorText.innerText = "Semua field wajib diisi!";
+    alert("Semua field wajib diisi!");
     return;
   }
 
-  loginBtn.disabled = true;
-  loadingText.style.display = "block";
+  const formData = new URLSearchParams();
+  formData.append("action","login");
+  formData.append("username",username);
+  formData.append("password",password);
+  formData.append("role",role);
 
-  try{
+  const res = await fetch(WEB_APP_URL,{
+    method:"POST",
+    body:formData
+  });
 
-    const formData = new URLSearchParams();
-    formData.append("action","login");
-    formData.append("username",username);
-    formData.append("password",password);
-    formData.append("role",role);
+  const result = await res.json();
 
-    const res = await fetch(WEB_APP_URL,{
-      method:"POST",
-      body:formData,
-      redirect:"follow"
-    });
+  if(result.status === "success"){
 
-    if(!res.ok){
-      throw new Error("Server error");
-    }
+    /* SESSION HANYA UNTUK TAB INI */
+    sessionStorage.setItem("isLoggedIn","true");
+    sessionStorage.setItem("username",result.username);
+    sessionStorage.setItem("role",result.role);
 
-    const result = await res.json();
-
-    if(result.status === "success"){
-
-      sessionStorage.setItem("isLoggedIn","true");
-      sessionStorage.setItem("username",username);
-      sessionStorage.setItem("role",role);
-
-      if(role === "Super Admin" || role === "Admin"){
-        window.location.href="admin.html";
-      } 
-      else{
-        window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
-      }
-
+    if(result.role === "Super Admin"){
+      window.location.href="admin.html";
+    }else if(result.role === "Admin"){
+      window.location.href="admin-panel.html";
     }else{
-      errorText.innerText = "Login gagal! Username / Password / Role salah.";
+      window.location.href="anggota/dashboard-daftar-anggota.html";
     }
 
-  }catch(err){
-    errorText.innerText = "Server tidak merespon atau URL Web App salah.";
+  }else{
+    alert("Login gagal!");
   }
-
-  loginBtn.disabled = false;
-  loadingText.style.display = "none";
 }
+
+/* =========================
+   AUTO LOGOUT SAAT TAB DITUTUP
+========================= */
+window.addEventListener("beforeunload", function () {
+  sessionStorage.clear();
+});
 
 </script>
 
