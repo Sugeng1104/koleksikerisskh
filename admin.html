@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard Admin</title>
+<title>Dashboard Admin SKH</title>
 <style>
 body{
   margin:0;
@@ -28,33 +28,11 @@ body{
   margin-left:240px;
   padding:30px;
 }
-.flex-row{
-  display:flex;
-  gap:20px;
-  align-items:flex-start;
-}
 .card{
   background:#111;
   padding:20px;
   border-radius:10px;
   margin-bottom:20px;
-  flex:1;
-}
-input,select{
-  padding:8px;
-  margin-right:5px;
-}
-button.tambah{
-  background:#00cc66;
-  color:white;
-  border:none;
-  padding:8px 12px;
-}
-button.hapus{
-  background:red;
-  color:white;
-  border:none;
-  padding:6px 10px;
 }
 table{
   width:100%;
@@ -69,67 +47,51 @@ th,td{
   font-size:18px;
   margin-bottom:10px;
 }
+.logout-btn{
+  background:red !important;
+  color:white;
+}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  <h2>ADMIN</h2>
+  <h2>ADMIN PANEL</h2>
   <p id="userInfo"></p>
   <p id="roleInfo"></p>
 
-  <button onclick="window.location.href='index.html'">Halaman Depan</button>
+  <button onclick="window.location.href='index.html'">
+    Halaman Depan
+  </button>
 
-  <button id="menuKelola" style="display:none;"
-          onclick="window.location.href='kelola-akun.html'">
+  <button id="menuSuper" style="display:none;"
+          onclick="alert('Menu khusus Super Admin')">
     Kelola Akun
   </button>
 
-  <button onclick="logout()">Logout</button>
+  <button class="logout-btn" onclick="logout()">
+    Logout
+  </button>
 </div>
 
 <div class="content">
-  <h1>Dashboard Admin</h1>
+  <h1>Dashboard Admin SKH</h1>
 
-  <div class="flex-row">
-
-    <!-- STRUKTUR PENGURUS -->
-    <div class="card">
-      <h2>Struktur Pengurus</h2>
-      <input type="text" id="namaPengurus" placeholder="Nama Pengurus">
-      <select id="jabatan">
-       <option>Ketua</option>
-       <option>Sekertaris</option>
-       <option>Bendahara</option>
-       <option>Kurator Pusaka</option>
-      </select>
-      <button class="tambah" onclick="tambahPengurus()">Tambah</button>
-      <ul id="listPengurus"></ul>
+  <div class="card">
+    <h2>Statistik Anggota</h2>
+    <div class="stat-box">
+      Total Anggota: <strong id="totalAnggota">0</strong>
     </div>
-
-    <!-- STATISTIK -->
-    <div class="card">
-      <h2>Statistik Anggota</h2>
-      <div class="stat-box">Total Anggota: <strong id="totalAnggota">0</strong></div>
-      <div class="stat-box">Aktif: <strong id="totalAktif">0</strong></div>
-      <div class="stat-box">Nonaktif: <strong id="totalNonaktif">0</strong></div>
+    <div class="stat-box">
+      Aktif: <strong id="totalAktif">0</strong>
     </div>
-
+    <div class="stat-box">
+      Nonaktif: <strong id="totalNonaktif">0</strong>
+    </div>
   </div>
 
-  <!-- DAFTAR ANGGOTA -->
   <div class="card">
     <h2>Daftar Anggota</h2>
-
-    <!-- SEARCH & FILTER -->
-    <div style="margin-bottom:10px;">
-      <input type="text" id="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
-      <select id="filterStatus" onchange="renderTabel()">
-        <option value="">Semua Status</option>
-        <option value="Aktif">Aktif</option>
-        <option value="Nonaktif">Nonaktif</option>
-      </select>
-    </div>
 
     <table>
       <thead>
@@ -137,11 +99,10 @@ th,td{
           <th>No Anggota</th>
           <th>Nama</th>
           <th>Status</th>
-          <th>Aksi</th>
         </tr>
       </thead>
       <tbody id="tabelAnggota">
-        <tr><td colspan="4">Memuat...</td></tr>
+        <tr><td colspan="3">Memuat...</td></tr>
       </tbody>
     </table>
   </div>
@@ -153,83 +114,30 @@ th,td{
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 //////////////////////////////////////////////////
-// CEK LOGIN + ROLE (KHUSUS SUPER ADMIN)
+// CEK LOGIN
 //////////////////////////////////////////////////
 
-const isLoggedIn = sessionStorage.getItem("isLoggedIn");
-const username   = sessionStorage.getItem("username");
-const role       = sessionStorage.getItem("role");
-
-if(isLoggedIn !== "true" || role !== "Super Admin"){
-  alert("Akses ditolak! Halaman khusus Super Admin.");
-  window.location.href="login.htm";
+if(localStorage.getItem("isLoggedIn") !== "true"){
+  window.location.href="login.html";
 }
+
+const username = localStorage.getItem("username");
+const role = localStorage.getItem("role");
 
 document.getElementById("userInfo").innerText="User: "+username;
 document.getElementById("roleInfo").innerText="Role: "+role;
 
-//////////////////////////////////////////////////
-// LOGOUT
-//////////////////////////////////////////////////
+if(role === "Super Admin"){
+  document.getElementById("menuSuper").style.display="block";
+}
 
 function logout(){
-  sessionStorage.clear();
-  window.location.href="login.htm";
+  localStorage.clear();
+  window.location.href="login.html";
 }
 
 //////////////////////////////////////////////////
-// AUTO LOGOUT SAAT TAB DITUTUP
-//////////////////////////////////////////////////
-
-window.addEventListener("beforeunload", function () {
-  sessionStorage.clear();
-});
-
-//////////////////////////////////////////////////
-// STRUKTUR PENGURUS
-//////////////////////////////////////////////////
-
-let pengurus = JSON.parse(localStorage.getItem("pengurus")) || [];
-
-function tampilPengurus(){
-  const list=document.getElementById("listPengurus");
-  list.innerHTML="";
-
-  if(pengurus.length===0){
-    list.innerHTML="<li>Belum ada pengurus</li>";
-    return;
-  }
-
-  pengurus.forEach((p,i)=>{
-    list.innerHTML+=`
-      <li>
-        ${p.nama} - ${p.jabatan}
-        <button class="hapus" onclick="hapusPengurus(${i})">Hapus</button>
-      </li>
-    `;
-  });
-}
-
-function tambahPengurus(){
-  const nama=document.getElementById("namaPengurus").value.trim();
-  const jabatan=document.getElementById("jabatan").value;
-  if(nama==="") return alert("Isi nama!");
-  pengurus.push({nama,jabatan});
-  localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  document.getElementById("namaPengurus").value="";
-  tampilPengurus();
-}
-
-function hapusPengurus(i){
-  pengurus.splice(i,1);
-  localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  tampilPengurus();
-}
-
-tampilPengurus();
-
-//////////////////////////////////////////////////
-// DATA ANGGOTA
+// LOAD DATA ANGGOTA
 //////////////////////////////////////////////////
 
 let allData=[];
@@ -237,13 +145,15 @@ let allData=[];
 async function loadAnggota(){
   try{
     const res = await fetch(WEB_APP_URL);
-    const result = await res.json();
-    allData = result || [];
+    const data = await res.json();
+    allData = data || [];
+
     updateStatistik();
     renderTabel();
-  }catch(error){
-    document.getElementById("tabelAnggota").innerHTML=
-    "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+
+  }catch(err){
+    document.getElementById("tabelAnggota").innerHTML =
+    "<tr><td colspan='3'>Gagal memuat data</td></tr>";
   }
 }
 
@@ -259,63 +169,21 @@ function updateStatistik(){
 
 function renderTabel(){
 
-  const search=document.getElementById("searchInput").value.toLowerCase();
-  const filter=document.getElementById("filterStatus").value;
-
-  let filtered=allData.filter(row=>{
-    const nama=(row["Nama"]||"").toLowerCase();
-    const no=(row["No Anggota"]||"").toLowerCase();
-    const status=row.Status||"Nonaktif";
-
-    return (
-      (nama.includes(search) || no.includes(search)) &&
-      (filter==="" || status===filter)
-    );
-  });
-
   let html="";
 
-  filtered.forEach(row=>{
-    const status=row.Status||"Nonaktif";
+  allData.forEach(row=>{
     html+=`
       <tr>
         <td>${row["No Anggota"]||"-"}</td>
-        <td>${row["Nama"]||"-"}</td>
-        <td>
-          <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
-            <option ${status==="Aktif"?"selected":""}>Aktif</option>
-            <option ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
-          </select>
-        </td>
-        <td>
-          <button class="hapus" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
-        </td>
+        <td>${row["Nama Lengkap"]||"-"}</td>
+        <td>${row.Status||"Nonaktif"}</td>
       </tr>
     `;
   });
 
   document.getElementById("tabelAnggota").innerHTML =
-    filtered.length ? html :
-    "<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
-}
-
-async function ubahStatus(no,status){
-  const formData = new URLSearchParams();
-  formData.append("action","updateStatus");
-  formData.append("no",no);
-  formData.append("status",status);
-
-  await fetch(WEB_APP_URL,{method:"POST",body:formData});
-  loadAnggota();
-}
-
-async function hapusAnggota(no){
-  if(!confirm("Yakin ingin menghapus anggota ini?")) return;
-  const formData = new URLSearchParams();
-  formData.append("action","delete");
-  formData.append("no",no);
-  await fetch(WEB_APP_URL,{method:"POST",body:formData});
-  loadAnggota();
+    allData.length ? html :
+    "<tr><td colspan='3'>Belum ada anggota</td></tr>";
 }
 
 loadAnggota();
