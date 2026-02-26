@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Login Panel SKH</title>
+  <meta charset="UTF-8">
   <style>
     body{
       background:black;
@@ -17,9 +18,9 @@
       padding:30px;
       border-radius:10px;
       width:320px;
-      box-shadow:0 0 20px rgba(0,255,204,0.4);
+      box-shadow:0 0 20px rgba(0,255,204,0.3);
     }
-    input, select{
+    input{
       width:100%;
       padding:10px;
       margin:10px 0;
@@ -35,8 +36,10 @@
       cursor:pointer;
       font-weight:bold;
     }
-    button:hover{
-      background:#00ddb3;
+    .error{
+      color:red;
+      margin-top:10px;
+      text-align:center;
     }
   </style>
 </head>
@@ -48,29 +51,18 @@
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
 
-  <select id="role">
-    <option value="">-- Pilih Role --</option>
-    <option value="Super Admin">Super Admin</option>
-    <option value="Admin">Admin</option>
-    <option value="User">User</option>
-  </select>
-
   <button onclick="login()">Login</button>
+
+  <div class="error" id="errorBox"></div>
 </div>
 
 <script>
 
 /* ===============================
-   INITIALIZE USER STORAGE
+   ENTERPRISE USER SYNC
 ================================= */
 
-function initUsers(){
-
-  let users = JSON.parse(localStorage.getItem("adminUsers"));
-
-  if(!Array.isArray(users)){
-    users = [];
-  }
+function ensureDefaultUsers(){
 
   const defaultUsers = [
     { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
@@ -78,62 +70,79 @@ function initUsers(){
     { username:"user1", password:"User1@", role:"User" }
   ];
 
-  defaultUsers.forEach(def=>{
-    const exists = users.find(u => u.username === def.username);
-    if(!exists){
-      users.push(def);
+  let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
+
+  defaultUsers.forEach(defUser=>{
+    if(!storedUsers.find(u=>u.username===defUser.username)){
+      storedUsers.push(defUser);
     }
   });
 
-  localStorage.setItem("adminUsers", JSON.stringify(users));
+  localStorage.setItem("adminUsers",JSON.stringify(storedUsers));
 }
 
-initUsers();
+ensureDefaultUsers();
 
 /* ===============================
-   LOGIN FUNCTION
+   AUTO REDIRECT IF LOGGED IN
+================================= */
+
+(function(){
+  if(localStorage.getItem("isLoggedIn")==="true"){
+    redirectByRole(localStorage.getItem("role"));
+  }
+})();
+
+/* ===============================
+   LOGIN FUNCTION STABIL
 ================================= */
 
 function login(){
 
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-  const selectedRole = document.getElementById("role").value;
+  const errorBox = document.getElementById("errorBox");
 
   if(!username || !password){
-    return alert("Username dan Password wajib diisi!");
-  }
-
-  if(selectedRole === ""){
-    return alert("Pilih role terlebih dahulu!");
+    errorBox.innerText="Username dan Password wajib diisi.";
+    return;
   }
 
   const users = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
   const user = users.find(u =>
     u.username === username &&
-    u.password === password &&
-    u.role === selectedRole
+    u.password === password
   );
 
   if(!user){
-    return alert("Login gagal! Username / Password / Role salah.");
+    errorBox.innerText="Login gagal! Username atau Password salah.";
+    return;
   }
 
-  /* SAVE SESSION */
+  // SIMPAN SESSION
   localStorage.setItem("isLoggedIn","true");
   localStorage.setItem("username",user.username);
   localStorage.setItem("role",user.role);
   localStorage.setItem("loginTime",Date.now());
 
-  /* REDIRECT */
-  if(user.role === "Super Admin" || user.role === "Admin"){
-      window.location.href="admin.html";
-  } 
-  else if(user.role === "User"){
-      window.location.href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html";
-  }
+  redirectByRole(user.role);
+}
 
+/* ===============================
+   ROLE REDIRECT
+================================= */
+
+function redirectByRole(role){
+
+  if(role === "Super Admin" || role === "Admin"){
+      window.location.replace("admin.html");
+  } 
+  else if(role === "User"){
+      window.location.replace(
+      "https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html"
+      );
+  }
 }
 
 </script>
