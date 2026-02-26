@@ -182,7 +182,33 @@ Belum ditentukan.
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* LOAD DATA CEPAT */
+/* ===============================
+   PASSWORD GENERATOR ENTERPRISE
+================================= */
+function generateStrongPassword(length=12){
+const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+let password="";
+for(let i=0;i<length;i++){
+password+=chars.charAt(Math.floor(Math.random()*chars.length));
+}
+return password;
+}
+
+/* ===============================
+   HASH SHA-256
+================================= */
+async function hashPassword(password){
+const encoder=new TextEncoder();
+const data=encoder.encode(password);
+const hash=await crypto.subtle.digest("SHA-256",data);
+return Array.from(new Uint8Array(hash))
+.map(b=>b.toString(16).padStart(2,"0"))
+.join("");
+}
+
+/* ===============================
+   LOAD ANGGOTA FAST MODE
+================================= */
 async function loadAnggota(){
 try{
 const res=await fetch(WEB_APP_URL+"?t="+Date.now());
@@ -213,7 +239,22 @@ document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memu
 function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
 function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
-/* KIRIM PENDAFTARAN + WA REDIRECT STABIL */
+/* ===============================
+   SESSION TOKEN ENTERPRISE
+================================= */
+function createSession(username,role){
+const token=Math.random().toString(36).substring(2)+Date.now();
+const expire=Date.now()+2*60*60*1000; // 2 jam
+localStorage.setItem("sessionToken",token);
+localStorage.setItem("sessionExpire",expire);
+localStorage.setItem("username",username);
+localStorage.setItem("role",role);
+localStorage.setItem("isLoggedIn","true");
+}
+
+/* ===============================
+   KIRIM PENDAFTARAN ENTERPRISE
+================================= */
 async function kirim(){
 
 const nama=document.getElementById("nama").value.trim();
@@ -241,36 +282,44 @@ const result=await res.json();
 if(result.status==="success"){
 
 const nomor=result.nomor||"SKH-"+Date.now();
-let username=nama.replace(/\s+/g,"").toLowerCase();
-let password=username+"@";
 
+/* USERNAME UNIQUE */
+let baseUsername=nama.replace(/\s+/g,"").toLowerCase();
+let username=baseUsername;
 let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
-if(!users.find(u=>u.username===username)){
-users.push({username,password,role:"User"});
-localStorage.setItem("adminUsers",JSON.stringify(users));
+let counter=1;
+while(users.find(u=>u.username===username)){
+username=baseUsername+counter;
+counter++;
 }
+
+/* PASSWORD STRONG */
+const password=generateStrongPassword();
+const hashed=await hashPassword(password);
+
+users.push({username,password:hashed,role:"User"});
+localStorage.setItem("adminUsers",JSON.stringify(users));
 
 /* FORMAT NOMOR 62 */
 let nomorWA=nohp.replace(/\D/g,'');
 if(nomorWA.startsWith("08")) nomorWA="62"+nomorWA.substring(1);
 if(nomorWA.startsWith("8")) nomorWA="62"+nomorWA;
 
-/* PESAN WA */
+/* PESAN PROFESIONAL */
 const pesan=
 `🔐 AKUN KOMUNITAS KERIS SKH
 
 Halo ${nama},
 
-Pendaftaran berhasil.
+Pendaftaran Anda berhasil.
 
 Username: ${username}
 Password: ${password}
 
-Silakan login di website resmi https://sugeng1104.github.io/koleksikerisskh/index.html
+Simpan data ini dengan aman.
+Jangan bagikan kepada siapa pun.`;
 
-Admin: 083862607875`;
-
-/* REDIRECT STABIL */
+/* REDIRECT WA STABIL */
 setTimeout(()=>{
 window.location.href="https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan);
 },800);
@@ -283,6 +332,7 @@ reader.readAsDataURL(file);
 }
 
 loadAnggota();
+
 </script>
 
 </body>
