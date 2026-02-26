@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Komunitas Keris SKH</title>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
 <style>
 body{
     margin:0;
@@ -22,6 +20,22 @@ h1{
     text-align:center;
     margin-bottom:40px;
     text-shadow:0 0 10px rgba(212,175,55,0.6);
+}
+
+.login-top{
+    position:fixed;
+    top:20px;
+    right:30px;
+    z-index:999;
+}
+.login-top button{
+    background:gold;
+    color:black;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
 }
 
 .card{
@@ -96,26 +110,27 @@ th{ background:#222; color:gold; }
     width:400px;
 }
 
-.modal-content input,
-.modal-content textarea{
+.modal-content input{
     width:100%;
     padding:10px;
     margin:8px 0;
-}
-
-.loading{
-    text-align:center;
-    color:gold;
 }
 </style>
 </head>
 
 <body>
 
+<div class="login-top">
+<a href="login.html">
+<button>Masuk</button>
+</a>
+</div>
+
 <div class="container">
 
 <h1>Komunitas Keris SKH</h1>
 
+<!-- ================= STRUKTUR ================= -->
 <div class="card">
 <h2>Struktur Pengurus</h2>
 <div class="pengurus-list" id="strukturPengurus">
@@ -123,6 +138,7 @@ Memuat struktur...
 </div>
 </div>
 
+<!-- ================= ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -136,7 +152,7 @@ Memuat struktur...
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="4" class="loading">Memuat data...</td></tr>
+<tr><td colspan="4">Memuat...</td></tr>
 </tbody>
 </table>
 
@@ -153,221 +169,206 @@ Memuat struktur...
 </div>
 </div>
 
+<!-- ================= MODAL ================= -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
 <input type="text" id="nama" placeholder="Nama Lengkap">
 <input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
+<input type="text" id="nohp" placeholder="No HP (08xxxx)">
 <input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
+<button class="btn btn-blue" onclick="kirim()">Kirim</button>
 <button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
 </div>
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let submitting=false;
+/* ===============================
+   PASSWORD GENERATOR
+================================= */
+function generateStrongPassword(length=10){
+const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+let password="";
+for(let i=0;i<length;i++){
+password+=chars.charAt(Math.floor(Math.random()*chars.length));
+}
+return password;
+}
 
-/* ================================
-   LOAD STRUKTUR (LOCAL STORAGE)
-================================ */
+/* ===============================
+   HASH SHA-256
+================================= */
+async function hashPassword(password){
+const encoder=new TextEncoder();
+const data=encoder.encode(password);
+const hash=await crypto.subtle.digest("SHA-256",data);
+return Array.from(new Uint8Array(hash))
+.map(b=>b.toString(16).padStart(2,"0"))
+.join("");
+}
+
+/* ===============================
+   LOAD STRUKTUR
+================================= */
 function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
+const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
+if(data.length===0){
+document.getElementById("strukturPengurus").innerHTML="Belum ditentukan.";
+return;
+}
+let ketua="-",sekretaris="-",bendahara="-",kurator="-";
+data.forEach(p=>{
+if(p.jabatan==="Ketua") ketua=p.nama;
+if(p.jabatan==="Sekertaris"||p.jabatan==="Sekretaris") sekretaris=p.nama;
+if(p.jabatan==="Bendahara") bendahara=p.nama;
+if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
+});
+document.getElementById("strukturPengurus").innerHTML=
+`Ketua : <strong>${ketua}</strong><br>
+Sekretaris : ${sekretaris}<br>
+Bendahara : ${bendahara}<br>
+Kurator Pusaka : ${kurator}`;
 }
 
-/* ================================
-   LOAD ANGGOTA (SERVER)
-================================ */
+/* ===============================
+   LOAD ANGGOTA FAST
+================================= */
 async function loadAnggota(){
-
-    try{
-        const res = await fetch(WEB_APP_URL);
-        const result = await res.json();
-        const data = result.data || result;
-
-        if(!data || data.length===0){
-            document.getElementById("listAnggota").innerHTML =
-            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
-            return;
-        }
-
-        let html="";
-        data.slice().reverse().forEach(row=>{
-            const status=row.Status||"Nonaktif";
-            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
-
-            html+=`
-            <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"}</td>
-                <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-            </tr>`;
-        });
-
-        document.getElementById("listAnggota").innerHTML=html;
-
-    }catch(e){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-    }
+try{
+const res=await fetch(WEB_APP_URL+"?t="+Date.now());
+const result=await res.json();
+const data=result.data||result;
+if(!data||data.length===0){
+document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
+return;
+}
+let html="";
+data.slice().reverse().forEach(row=>{
+const status=row.Status||"Nonaktif";
+const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+html+=`
+<tr>
+<td><img src="${row.Foto||""}" class="foto-kecil"></td>
+<td>${row["Nama Lengkap"]||"-"}</td>
+<td>${row["No Anggota"]||"-"}</td>
+<td><span class="${statusClass}">${status}</span></td>
+</tr>`;
+});
+document.getElementById("listAnggota").innerHTML=html;
+}catch(e){
+document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat</td></tr>";
+}
 }
 
-/* ================================
+/* ===============================
    FORM CONTROL
-================================ */
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
-}
+================================= */
+function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
+function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
-/* ================================
-   KIRIM DATA + AUTO CARD
-================================ */
+/* ===============================
+   KIRIM PENDAFTARAN
+================================= */
 async function kirim(){
 
-    if(submitting) return;
-    submitting=true;
+const nama=document.getElementById("nama").value.trim();
+const gelar=document.getElementById("gelar").value.trim();
+const nohp=document.getElementById("nohp").value.trim();
+const file=document.getElementById("foto").files[0];
 
-    const btn=document.getElementById("btnKirim");
-    btn.disabled=true;
-    btn.innerText="Mengirim...";
-
-    const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
-    const file=document.getElementById("foto").files[0];
-
-    if(!nama || !file){
-        alert("Nama dan Foto wajib diisi");
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
-        return;
-    }
-
-    const reader=new FileReader();
-    reader.onload=async function(e){
-
-        const formData = new URLSearchParams();
-        formData.append("action","add");
-        formData.append("nama",nama);
-        formData.append("gelar",gelar);
-        formData.append("foto",e.target.result);
-
-        const res = await fetch(WEB_APP_URL,{
-            method:"POST",
-            body:formData
-        });
-
-        const result = await res.json();
-
-        if(result.status==="success"){
-
-            const nomor=result.nomor || "SKH-"+Date.now();
-
-            generateCard(nama,gelar,nomor,e.target.result);
-
-            alert("Berhasil terdaftar!");
-
-            document.getElementById("nama").value="";
-            document.getElementById("gelar").value="";
-            document.getElementById("foto").value="";
-
-            tutupForm();
-            loadAnggota();
-        }
-
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
-    };
-
-    reader.readAsDataURL(file);
+if(!nama||!file||!nohp){
+alert("Nama, Foto dan No HP wajib diisi");
+return;
 }
 
+const reader=new FileReader();
+reader.onload=async function(e){
 
-/* ================================
-   GENERATE CARD
-================================ */
-function generateCard(nama,gelar,nomor,foto){
+try{
 
-    const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
-    const ctx=canvas.getContext("2d");
+/* === SIMPAN KE GOOGLE SHEET === */
+const formData=new URLSearchParams();
+formData.append("action","add");
+formData.append("nama",nama);
+formData.append("gelar",gelar);
+formData.append("foto",e.target.result);
 
-    ctx.fillStyle="#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+const result=await res.json();
 
-    const logo=new Image();
-    logo.src="logo-skh.png";
+if(result.status!=="success"){
+alert("Gagal menyimpan data.");
+return;
+}
 
-    logo.onload=function(){
+const nomor=result.nomor||"SKH-"+Date.now();
 
-        ctx.drawImage(logo,30,30,120,120);
+/* === USERNAME LEBIH PENDEK + KODE UNIK === */
 
-        ctx.fillStyle="gold";
-        ctx.font="bold 48px Georgia";
-        ctx.textAlign="center";
-        ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+let users = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
-        const img=new Image();
-        img.src=foto;
+// Ambil nama depan saja
+let namaDepan = nama.trim().split(" ")[0].toLowerCase();
 
-        img.onload=function(){
-            ctx.drawImage(img,80,200,200,250);
+// Hapus karakter selain huruf
+namaDepan = namaDepan.replace(/[^a-z]/g,'');
 
-            ctx.textAlign="left";
-            ctx.fillStyle="white";
-            ctx.font="bold 40px Georgia";
-            ctx.fillText(nama,320,260);
+// Buat kode unik 4 digit
+let username;
+do{
+    const kodeUnik = Math.floor(1000 + Math.random() * 9000); // 4 digit
+    username = namaDepan + kodeUnik;
+}while(users.find(u => u.username === username));
 
-            ctx.font="30px Georgia";
-            ctx.fillText(gelar,320,320);
-            ctx.fillText("No: "+nomor,320,380);
 
-            QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-                ctx.drawImage(qrCanvas,canvas.width/2-100,420);
+/* === PASSWORD STRONG === */
+const password=generateStrongPassword();
+const hashed=await hashPassword(password);
 
-                ctx.font="22px Georgia";
-                ctx.textAlign="center";
-                ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
+users.push({username,password:hashed,role:"User"});
+localStorage.setItem("adminUsers",JSON.stringify(users));
 
-                const link=document.createElement("a");
-                link.download="Kartu_"+nomor+".png";
-                link.href=canvas.toDataURL("image/png");
-                link.click();
-            });
-        };
-    };
+/* === FORMAT NOMOR WA === */
+let nomorWA=nohp.replace(/\D/g,'');
+if(nomorWA.startsWith("08")) nomorWA="62"+nomorWA.substring(1);
+if(nomorWA.startsWith("8")) nomorWA="62"+nomorWA;
+
+/* === PESAN WA === */
+const pesan=
+‘🔐 AKUN KOMUNITAS KERIS SKH 🔐’
+
+Halo ${nama},
+
+Pendaftaran berhasil.
+
+Terimakasih sudah bergabung dengan kami
+
+Username: ${username}
+Password: ${password}
+
+Simpan dengan aman.
+
+Situs resmi https://sugeng1104.github.io/koleksikerisskh/index.html
+
+Login di https://sugeng1104.github.io/koleksikerisskh/login.html
+untuk cetak kartu anggota
+
+Admin`;
+
+/* === REDIRECT LANGSUNG TANPA POPUP === */
+window.location.href=
+"https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan);
+
+}catch(err){
+alert("Terjadi kesalahan.");
+}
+
+};
+
+reader.readAsDataURL(file);
 }
 
 /* INIT */
