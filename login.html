@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login Panel SKH</title>
+  <title>Login Admin</title>
   <meta charset="UTF-8">
   <style>
     body{
@@ -20,7 +20,7 @@
       width:320px;
       box-shadow:0 0 20px rgba(0,255,204,0.3);
     }
-    input{
+    input, select{
       width:100%;
       padding:10px;
       margin:10px 0;
@@ -36,57 +36,51 @@
       cursor:pointer;
       font-weight:bold;
     }
-    .error{
-      color:red;
-      margin-top:10px;
-      text-align:center;
-    }
   </style>
 </head>
 <body>
 
 <div class="login-box">
-  <h2>Login Panel SKH</h2>
+  <h2>Login Panel</h2>
 
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
 
-  <button onclick="login()">Login</button>
+  <select id="role">
+    <option value="">-- Pilih Role --</option>
+    <option value="Super Admin">Super Admin</option>
+    <option value="Admin">Admin</option>
+    <option value="User">User</option>
+  </select>
 
-  <div class="error" id="errorBox"></div>
+  <button onclick="login()">Login</button>
 </div>
 
 <script>
 
 /* ===============================
-   ENTERPRISE USER SYNC
+   DEFAULT USERS SYNC
 ================================= */
+const defaultUsers = [
+  { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
+  { username:"Admin1", password:"admin123", role:"Admin" },
+  { username:"user1", password:"User1@", role:"User" }
+];
 
-function ensureDefaultUsers(){
+let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
 
-  const defaultUsers = [
-    { username:"Sugeng11", password:"300507Sg#", role:"Super Admin" },
-    { username:"Admin1", password:"admin123", role:"Admin" },
-    { username:"user1", password:"User1@", role:"User" }
-  ];
+defaultUsers.forEach(defUser => {
+  const exists = storedUsers.find(u => u.username === defUser.username);
+  if(!exists){
+    storedUsers.push(defUser);
+  }
+});
 
-  let storedUsers = JSON.parse(localStorage.getItem("adminUsers")) || [];
-
-  defaultUsers.forEach(defUser=>{
-    if(!storedUsers.find(u=>u.username===defUser.username)){
-      storedUsers.push(defUser);
-    }
-  });
-
-  localStorage.setItem("adminUsers",JSON.stringify(storedUsers));
-}
-
-ensureDefaultUsers();
+localStorage.setItem("adminUsers", JSON.stringify(storedUsers));
 
 /* ===============================
-   AUTO REDIRECT IF LOGGED IN
+   AUTO REDIRECT JIKA SUDAH LOGIN
 ================================= */
-
 (function(){
   if(localStorage.getItem("isLoggedIn")==="true"){
     redirectByRole(localStorage.getItem("role"));
@@ -94,17 +88,16 @@ ensureDefaultUsers();
 })();
 
 /* ===============================
-   LOGIN FUNCTION STABIL
+   LOGIN FUNCTION
 ================================= */
-
 function login(){
 
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-  const errorBox = document.getElementById("errorBox");
+  const selectedRole = document.getElementById("role").value;
 
-  if(!username || !password){
-    errorBox.innerText="Username dan Password wajib diisi.";
+  if(selectedRole === ""){
+    alert("Pilih role terlebih dahulu!");
     return;
   }
 
@@ -112,27 +105,27 @@ function login(){
 
   const user = users.find(u =>
     u.username === username &&
-    u.password === password
+    u.password === password &&
+    u.role === selectedRole
   );
 
-  if(!user){
-    errorBox.innerText="Login gagal! Username atau Password salah.";
-    return;
+  if(user){
+
+    localStorage.setItem("isLoggedIn","true");
+    localStorage.setItem("username",user.username);
+    localStorage.setItem("role",user.role);
+    localStorage.setItem("loginTime",Date.now());
+
+    redirectByRole(user.role);
+
+  }else{
+    alert("Login gagal! Username / Password / Role salah.");
   }
-
-  // SIMPAN SESSION
-  localStorage.setItem("isLoggedIn","true");
-  localStorage.setItem("username",user.username);
-  localStorage.setItem("role",user.role);
-  localStorage.setItem("loginTime",Date.now());
-
-  redirectByRole(user.role);
 }
 
 /* ===============================
-   ROLE REDIRECT
+   REDIRECT SESUAI ROLE
 ================================= */
-
 function redirectByRole(role){
 
   if(role === "Super Admin" || role === "Admin"){
