@@ -153,33 +153,37 @@ th,td{
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 //////////////////////////////////////////////////
-// CEK LOGIN
+// CEK LOGIN + ROLE (KHUSUS SUPER ADMIN)
 //////////////////////////////////////////////////
 
-if(
-  localStorage.getItem("isLoggedIn")!=="true" ||
-  !localStorage.getItem("username") ||
-  !localStorage.getItem("role")
-){
-  window.location.href="login.html";
-}
+const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+const username   = sessionStorage.getItem("username");
+const role       = sessionStorage.getItem("role");
 
-const username=localStorage.getItem("username");
-const role=localStorage.getItem("role");
+if(isLoggedIn !== "true" || role !== "Super Admin"){
+  alert("Akses ditolak! Halaman khusus Super Admin.");
+  window.location.href="login.htm";
+}
 
 document.getElementById("userInfo").innerText="User: "+username;
 document.getElementById("roleInfo").innerText="Role: "+role;
 
-if(role==="Super Admin"){
-  document.getElementById("menuKelola").style.display="block";
-}
+//////////////////////////////////////////////////
+// LOGOUT
+//////////////////////////////////////////////////
 
 function logout(){
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("username");
-  localStorage.removeItem("role");
-  window.location.href="login.html";
+  sessionStorage.clear();
+  window.location.href="login.htm";
 }
+
+//////////////////////////////////////////////////
+// AUTO LOGOUT SAAT TAB DITUTUP
+//////////////////////////////////////////////////
+
+window.addEventListener("beforeunload", function () {
+  sessionStorage.clear();
+});
 
 //////////////////////////////////////////////////
 // STRUKTUR PENGURUS
@@ -234,7 +238,7 @@ async function loadAnggota(){
   try{
     const res = await fetch(WEB_APP_URL);
     const result = await res.json();
-    allData = result.data || result || [];
+    allData = result || [];
     updateStatistik();
     renderTabel();
   }catch(error){
@@ -259,7 +263,7 @@ function renderTabel(){
   const filter=document.getElementById("filterStatus").value;
 
   let filtered=allData.filter(row=>{
-    const nama=(row["Nama Lengkap"]||"").toLowerCase();
+    const nama=(row["Nama"]||"").toLowerCase();
     const no=(row["No Anggota"]||"").toLowerCase();
     const status=row.Status||"Nonaktif";
 
@@ -276,7 +280,7 @@ function renderTabel(){
     html+=`
       <tr>
         <td>${row["No Anggota"]||"-"}</td>
-        <td>${row["Nama Lengkap"]||"-"}</td>
+        <td>${row["Nama"]||"-"}</td>
         <td>
           <select onchange="ubahStatus('${row["No Anggota"]}', this.value)">
             <option ${status==="Aktif"?"selected":""}>Aktif</option>
