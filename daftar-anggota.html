@@ -191,33 +191,27 @@ Belum ditentukan.
 </div>
 
 <script>
-
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* LOAD STRUKTUR CEPAT */
+/* AUTO REDIRECT BERDASARKAN ROLE */
 (function(){
-const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-if(data.length===0) return;
-let ketua="-",sekretaris="-",bendahara="-",kurator="-";
-data.forEach(p=>{
-if(p.jabatan==="Ketua") ketua=p.nama;
-if(p.jabatan==="Sekertaris"||p.jabatan==="Sekretaris") sekretaris=p.nama;
-if(p.jabatan==="Bendahara") bendahara=p.nama;
-if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-});
-document.getElementById("strukturPengurus").innerHTML=
-`Ketua : <strong>${ketua}</strong><br>
-Sekretaris : ${sekretaris}<br>
-Bendahara : ${bendahara}<br>
-Kurator Pusaka : ${kurator}`;
+const isLogin=sessionStorage.getItem("isLoggedIn");
+const role=sessionStorage.getItem("role");
+
+if(isLogin==="true"){
+if(role==="Super Admin"){
+window.location.replace("admin.html");
+}else{
+window.location.replace("anggota/dashboard-daftar-anggota.html");
+}
+}
 })();
 
-/* LOAD ANGGOTA SUPER CEPAT */
+/* LOAD DATA ANGGOTA */
 async function loadAnggota(){
 try{
 const res=await fetch(WEB_APP_URL+"?t="+Date.now());
-const result=await res.json();
-const data=result.data||result;
+const data=await res.json();
 
 if(!data||data.length===0){
 document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
@@ -226,16 +220,19 @@ return;
 
 let html="";
 data.slice().reverse().forEach(row=>{
+
 const status=row.Status||"Nonaktif";
 const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
 html+=`
 <tr>
 <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-<td>${row["Nama Lengkap"]||"-"}</td>
-<td>${row["No Anggota"]||"-"}</td>
+<td>${row.Nama||"-"}</td>
+<td>${row.No||"-"}</td>
 <td><span class="${statusClass}">${status}</span></td>
 </tr>`;
 });
+
 document.getElementById("listAnggota").innerHTML=html;
 
 }catch(e){
@@ -244,16 +241,7 @@ document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memu
 }
 loadAnggota();
 
-/* FORM */
-function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
-
-/* PASSWORD */
-function generatePassword(){
-return Math.random().toString(36).slice(-8)+"@";
-}
-
-/* KIRIM */
+/* KIRIM DATA */
 async function kirim(){
 
 const nama=document.getElementById("nama").value.trim();
@@ -273,6 +261,7 @@ const formData=new URLSearchParams();
 formData.append("action","add");
 formData.append("nama",nama);
 formData.append("gelar",gelar);
+formData.append("nohp",nohp);
 formData.append("foto",e.target.result);
 
 const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
@@ -280,28 +269,16 @@ const result=await res.json();
 
 if(result.status==="success"){
 
-let namaDepan=nama.split(" ")[0].toLowerCase().replace(/[^a-z]/g,'');
-let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
-let username;
-do{
-username=namaDepan+Math.floor(1000+Math.random()*9000);
-}while(users.find(u=>u.username===username));
-
-const password=generatePassword();
-users.push({username,password,role:"User"});
-localStorage.setItem("adminUsers",JSON.stringify(users));
-
 let nomorWA=nohp.replace(/\D/g,'');
 if(nomorWA.startsWith("08")) nomorWA="62"+nomorWA.substring(1);
-if(nomorWA.startsWith("8")) nomorWA="62"+nomorWA;
 
 const pesan=
 `🔐 AKUN KOMUNITAS KERIS SKH
 
 Halo ${nama},
 
-Username: ${username}
-Password: ${password}
+Username: ${result.username}
+Password: ${result.password}
 
 Simpan dengan aman.`;
 
@@ -312,7 +289,6 @@ window.location.href=
 };
 reader.readAsDataURL(file);
 }
-
 </script>
 
 </body>
