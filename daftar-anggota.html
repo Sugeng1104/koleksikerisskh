@@ -14,19 +14,16 @@ body{
     padding:40px;
 }
 .container{ max-width:1100px; margin:auto; }
-
 h1{
     color:gold;
     text-align:center;
     margin-bottom:40px;
     text-shadow:0 0 10px rgba(212,175,55,0.6);
 }
-
 .login-top{
     position:fixed;
     top:20px;
     right:30px;
-    z-index:999;
 }
 .login-top button{
     background:gold;
@@ -37,7 +34,6 @@ h1{
     font-weight:bold;
     cursor:pointer;
 }
-
 .card{
     background:#111;
     padding:30px;
@@ -45,17 +41,10 @@ h1{
     margin-bottom:25px;
     box-shadow:0 0 20px rgba(212,175,55,0.3);
 }
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
+h2{ color:gold; }
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
 th, td{ border:1px solid #444; padding:10px; }
-
 th{ background:#222; color:gold; }
-
 .foto-kecil{
     width:55px;
     height:55px;
@@ -63,21 +52,18 @@ th{ background:#222; color:gold; }
     border-radius:8px;
     border:2px solid gold;
 }
-
 .status-aktif{
     background:#00aa00;
     padding:5px 10px;
     border-radius:6px;
     font-weight:bold;
 }
-
 .status-nonaktif{
     background:#aa0000;
     padding:5px 10px;
     border-radius:6px;
     font-weight:bold;
 }
-
 .btn{
     padding:10px 20px;
     border-radius:8px;
@@ -86,13 +72,9 @@ th{ background:#222; color:gold; }
     border:none;
     cursor:pointer;
 }
-
 .btn-blue{ background:#007bff; color:white; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
-
-.button-group{ margin-top:15px; }
-
 #modalDaftar{
     display:none;
     position:fixed;
@@ -102,14 +84,12 @@ th{ background:#222; color:gold; }
     justify-content:center;
     align-items:center;
 }
-
 .modal-content{
     background:#0f172a;
     padding:30px;
     border-radius:15px;
     width:400px;
 }
-
 .modal-content input{
     width:100%;
     padding:10px;
@@ -117,13 +97,10 @@ th{ background:#222; color:gold; }
 }
 </style>
 </head>
-
 <body>
 
 <div class="login-top">
-<a href="login.html">
-<button>Masuk</button>
-</a>
+<a href="login.html"><button>Masuk</button></a>
 </div>
 
 <div class="container">
@@ -132,9 +109,7 @@ th{ background:#222; color:gold; }
 
 <div class="card">
 <h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Belum ditentukan.
-</div>
+<div id="strukturPengurus">Belum ditentukan.</div>
 </div>
 
 <div class="card">
@@ -154,14 +129,10 @@ Belum ditentukan.
 </tbody>
 </table>
 
-<div class="button-group">
+<div style="margin-top:15px;">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
+<a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
+<a href="index.html"><button class="btn btn-gold">Kembali</button></a>
 </div>
 
 </div>
@@ -183,10 +154,14 @@ Belum ditentukan.
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ===== LOAD STRUKTUR INSTAN ===== */
+/* ===============================
+   LOAD STRUKTUR CEPAT
+================================= */
 (function(){
+try{
 const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
-if(data.length===0) return;
+if(!Array.isArray(data)||data.length===0) return;
+
 let ketua="-",sekretaris="-",bendahara="-",kurator="-";
 data.forEach(p=>{
 if(p.jabatan==="Ketua") ketua=p.nama;
@@ -194,53 +169,81 @@ if(p.jabatan==="Sekertaris"||p.jabatan==="Sekretaris") sekretaris=p.nama;
 if(p.jabatan==="Bendahara") bendahara=p.nama;
 if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
 });
+
 document.getElementById("strukturPengurus").innerHTML=
 `Ketua : <strong>${ketua}</strong><br>
 Sekretaris : ${sekretaris}<br>
 Bendahara : ${bendahara}<br>
 Kurator Pusaka : ${kurator}`;
+
+}catch(e){}
 })();
 
-/* ===== LOAD ANGGOTA CEPAT + TIMEOUT ===== */
+/* ===============================
+   LOAD ANGGOTA SUPER STABIL
+================================= */
 async function loadAnggota(){
-try{
-const controller=new AbortController();
-setTimeout(()=>controller.abort(),5000);
 
-const res=await fetch(WEB_APP_URL+"?t="+Date.now(),{signal:controller.signal});
-const result=await res.json();
-const data=result.data||result;
+const tbody=document.getElementById("listAnggota");
+
+try{
+
+const controller=new AbortController();
+setTimeout(()=>controller.abort(),7000);
+
+const res=await fetch(WEB_APP_URL+"?cache="+Date.now(),{signal:controller.signal});
+const text=await res.text();
+
+let data;
+
+try{
+const json=JSON.parse(text);
+data=json.data||json;
+}catch{
+throw new Error("Invalid JSON");
+}
+
+if(!Array.isArray(data)||data.length===0){
+tbody.innerHTML="<tr><td colspan='4'>Belum ada anggota</td></tr>";
+return;
+}
 
 let html="";
-data.slice().reverse().forEach(row=>{
+data.reverse().forEach(row=>{
 const status=row.Status||"Nonaktif";
 const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
 html+=`
 <tr>
-<td><img src="${row.Foto||""}" class="foto-kecil"></td>
-<td>${row["Nama Lengkap"]||"-"}</td>
-<td>${row["No Anggota"]||"-"}</td>
+<td><img src="${row.Foto||''}" class="foto-kecil"></td>
+<td>${row["Nama Lengkap"]||'-'}</td>
+<td>${row["No Anggota"]||'-'}</td>
 <td><span class="${statusClass}">${status}</span></td>
 </tr>`;
 });
-document.getElementById("listAnggota").innerHTML=html;
+
+tbody.innerHTML=html;
 
 }catch(e){
-document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat</td></tr>";
+tbody.innerHTML="<tr><td colspan='4'>Server lambat / gagal memuat</td></tr>";
 }
 }
+
 loadAnggota();
 
-/* ===== FORM ===== */
-function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
+/* ===============================
+   FORM
+================================= */
+function bukaForm(){document.getElementById("modalDaftar").style.display="flex";}
+function tutupForm(){document.getElementById("modalDaftar").style.display="none";}
 
-/* ===== PASSWORD SIMPLE CEPAT ===== */
 function generatePassword(){
 return Math.random().toString(36).slice(-8)+"@";
 }
 
-/* ===== KIRIM ===== */
+/* ===============================
+   KIRIM + WA + USER CREATE
+================================= */
 async function kirim(){
 
 const nama=document.getElementById("nama").value.trim();
@@ -256,20 +259,20 @@ return;
 const reader=new FileReader();
 reader.onload=async function(e){
 
+try{
+
 const formData=new URLSearchParams();
 formData.append("action","add");
 formData.append("nama",nama);
 formData.append("gelar",gelar);
 formData.append("foto",e.target.result);
 
-const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
-const result=await res.json();
+await fetch(WEB_APP_URL,{method:"POST",body:formData});
 
-if(result.status==="success"){
-
-/* USERNAME PENDEK */
+/* USERNAME UNIK */
 let namaDepan=nama.split(" ")[0].toLowerCase().replace(/[^a-z]/g,'');
 let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
+
 let username;
 do{
 username=namaDepan+Math.floor(1000+Math.random()*9000);
@@ -294,12 +297,15 @@ Password: ${password}
 
 Simpan dengan aman.`;
 
-/* REDIRECT STABIL */
 window.location.href=
 "https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan);
 
+}catch{
+alert("Gagal kirim, coba lagi.");
 }
+
 };
+
 reader.readAsDataURL(file);
 }
 
