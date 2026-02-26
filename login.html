@@ -1,157 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Login Panel SKH</title>
+<meta charset="UTF-8">
+<title>Login Panel SKH</title>
 
-  <style>
-    body{
-      background:black;
-      color:#00ffcc;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      font-family:Arial;
-    }
-
-    .login-box{
-      background:#111;
-      padding:30px;
-      border-radius:10px;
-      width:340px;
-      box-shadow:0 0 20px rgba(0,255,204,0.3);
-    }
-
-    h2{
-      text-align:center;
-      margin-bottom:20px;
-    }
-
-    input, select{
-      width:100%;
-      padding:10px;
-      margin:10px 0;
-      background:#222;
-      border:1px solid #00ffcc;
-      color:white;
-      border-radius:6px;
-    }
-
-    button{
-      width:100%;
-      padding:10px;
-      background:#00ffcc;
-      border:none;
-      cursor:pointer;
-      font-weight:bold;
-      border-radius:6px;
-      transition:0.3s;
-    }
-
-    button:hover{
-      background:#00ddaa;
-    }
-
-    button:disabled{
-      background:#555;
-      cursor:not-allowed;
-    }
-
-    .loading{
-      text-align:center;
-      font-size:13px;
-      margin-top:10px;
-      display:none;
-    }
-
-    .error{
-      color:#ff4444;
-      font-size:13px;
-      text-align:center;
-      margin-top:10px;
-    }
-  </style>
+<style>
+body{
+  background:black;
+  color:#00ffcc;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:Arial;
+}
+.login-box{
+  background:#111;
+  padding:30px;
+  border-radius:10px;
+  width:340px;
+  box-shadow:0 0 20px rgba(0,255,204,0.3);
+}
+input{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  background:#222;
+  border:1px solid #00ffcc;
+  color:white;
+  border-radius:6px;
+}
+button{
+  width:100%;
+  padding:10px;
+  background:#00ffcc;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+  border-radius:6px;
+}
+button:hover{ background:#00ddaa; }
+</style>
 </head>
 <body>
 
 <div class="login-box">
-  <h2>Login Panel SKH</h2>
-
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-
-  <select id="role">
-    <option value="">-- Pilih Role --</option>
-    <option value="Super Admin">Super Admin</option>
-    <option value="Admin">Admin</option>
-    <option value="User">User</option>
-  </select>
-
-  <button id="loginBtn" onclick="login()">Login</button>
-
-  <div class="loading" id="loadingText">Sedang memproses login...</div>
-  <div class="error" id="errorText"></div>
+<h2 style="text-align:center;">Login Panel SKH</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
 </div>
 
 <script>
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-/* =========================
-   LOGIN
-========================= */
 async function login(){
 
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const role     = document.getElementById("role").value;
+const username=document.getElementById("username").value.trim();
+const password=document.getElementById("password").value.trim();
 
-  if(!username || !password || !role){
-    alert("Semua field wajib diisi!");
-    return;
-  }
-
-  const formData = new URLSearchParams();
-  formData.append("action","login");
-  formData.append("username",username);
-  formData.append("password",password);
-  formData.append("role",role);
-
-  const res = await fetch(WEB_APP_URL,{
-    method:"POST",
-    body:formData
-  });
-
-  const result = await res.json();
-
-  if(result.status === "success"){
-
-    /* SESSION HANYA UNTUK TAB INI */
-    sessionStorage.setItem("isLoggedIn","true");
-    sessionStorage.setItem("username",result.username);
-    sessionStorage.setItem("role",result.role);
-
-    if(result.role === "Super Admin"){
-      window.location.href="admin.html";
-    }else if(result.role === "Admin"){
-      window.location.href="admin-panel.html";
-    }else{
-      window.location.href="anggota/dashboard-daftar-anggota.html";
-    }
-
-  }else{
-    alert("Login gagal!");
-  }
+if(!username||!password){
+alert("Username & Password wajib diisi");
+return;
 }
 
-/* =========================
-   AUTO LOGOUT SAAT TAB DITUTUP
-========================= */
-window.addEventListener("beforeunload", function () {
-  sessionStorage.clear();
-});
+const formData=new URLSearchParams();
+formData.append("action","login");
+formData.append("username",username);
+formData.append("password",password);
 
+const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+const result=await res.json();
+
+if(result.status==="success"){
+
+sessionStorage.setItem("isLoggedIn","true");
+sessionStorage.setItem("username",result.username);
+sessionStorage.setItem("role",result.role);
+
+if(result.role==="Super Admin"){
+window.location.href="admin.html";
+}else if(result.role==="Admin"){
+window.location.href="admin-panel.html";
+}else{
+window.location.href="anggota/dashboard-daftar-anggota.html";
+}
+
+}else{
+alert("Login gagal");
+}
+}
+
+/* AUTO LOGOUT SAAT TAB DITUTUP */
+window.addEventListener("beforeunload",function(){
+sessionStorage.clear();
+});
 </script>
 
 </body>
