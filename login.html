@@ -16,9 +16,9 @@
       background:#111;
       padding:30px;
       border-radius:10px;
-      width:320px;
+      width:330px;
     }
-    input{
+    input, select{
       width:100%;
       padding:10px;
       margin:10px 0;
@@ -41,6 +41,13 @@
 <div class="login-box">
   <h2>Login Panel</h2>
 
+  <select id="role">
+    <option value="">-- Pilih Role --</option>
+    <option value="Super Admin">Super Admin</option>
+    <option value="Admin">Admin</option>
+    <option value="User">User</option>
+  </select>
+
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
 
@@ -48,16 +55,54 @@
 </div>
 
 <script>
+
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+/* ==============================
+   AKUN TETAP (MASTER ACCOUNT)
+============================== */
+
+const masterAccounts = [
+  {
+    role:"Super Admin",
+    username:"Sugeng11",
+    password:"123@Sugeng"
+  },
+  {
+    role:"Admin",
+    username:"Admin",
+    password:"admin1"
+  }
+];
 
 async function login(){
 
+  const role = document.getElementById("role").value;
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if(!username || !password){
-    return alert("Isi username dan password!");
+  if(!role || !username || !password){
+    return alert("Lengkapi semua data!");
   }
+
+  /* ==============================
+     CEK MASTER ACCOUNT DULU
+  ============================== */
+
+  const master = masterAccounts.find(acc =>
+    acc.role === role &&
+    acc.username === username &&
+    acc.password === password
+  );
+
+  if(master){
+    setSession(username, role);
+    return;
+  }
+
+  /* ==============================
+     CEK KE SERVER (SPREADSHEET)
+  ============================== */
 
   const formData = new URLSearchParams();
   formData.append("action","login");
@@ -71,18 +116,20 @@ async function login(){
 
   const result = await res.json();
 
-  if(result.status === "success"){
-
-    localStorage.setItem("isLoggedIn","true");
-    localStorage.setItem("username",result.username);
-    localStorage.setItem("role",result.role);
-
-    window.location.href="admin.html";
-
+  if(result.status === "success" && result.role === role){
+    setSession(result.username, result.role);
   }else{
-    alert("Login gagal! Username atau Password salah.");
+    alert("Login gagal! Username / Password / Role salah.");
   }
 }
+
+function setSession(username, role){
+  localStorage.setItem("isLoggedIn","true");
+  localStorage.setItem("username",username);
+  localStorage.setItem("role",role);
+  window.location.href="admin.html";
+}
+
 </script>
 
 </body>
