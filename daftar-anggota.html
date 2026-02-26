@@ -187,7 +187,31 @@ Memuat struktur...
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 /* ===============================
-   LOAD STRUKTUR CEPAT
+   PASSWORD GENERATOR
+================================= */
+function generateStrongPassword(length=10){
+const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+let password="";
+for(let i=0;i<length;i++){
+password+=chars.charAt(Math.floor(Math.random()*chars.length));
+}
+return password;
+}
+
+/* ===============================
+   HASH SHA-256
+================================= */
+async function hashPassword(password){
+const encoder=new TextEncoder();
+const data=encoder.encode(password);
+const hash=await crypto.subtle.digest("SHA-256",data);
+return Array.from(new Uint8Array(hash))
+.map(b=>b.toString(16).padStart(2,"0"))
+.join("");
+}
+
+/* ===============================
+   LOAD STRUKTUR
 ================================= */
 function loadStruktur(){
 const data=JSON.parse(localStorage.getItem("pengurus")||"[]");
@@ -210,7 +234,7 @@ Kurator Pusaka : ${kurator}`;
 }
 
 /* ===============================
-   LOAD ANGGOTA FAST MODE
+   LOAD ANGGOTA FAST
 ================================= */
 async function loadAnggota(){
 try{
@@ -246,8 +270,91 @@ function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"
 function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
 
 /* ===============================
-   INIT
+   KIRIM PENDAFTARAN
 ================================= */
+async function kirim(){
+
+const nama=document.getElementById("nama").value.trim();
+const gelar=document.getElementById("gelar").value.trim();
+const nohp=document.getElementById("nohp").value.trim();
+const file=document.getElementById("foto").files[0];
+
+if(!nama||!file||!nohp){
+alert("Nama, Foto dan No HP wajib diisi");
+return;
+}
+
+const reader=new FileReader();
+reader.onload=async function(e){
+
+try{
+
+/* === SIMPAN KE GOOGLE SHEET === */
+const formData=new URLSearchParams();
+formData.append("action","add");
+formData.append("nama",nama);
+formData.append("gelar",gelar);
+formData.append("foto",e.target.result);
+
+const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
+const result=await res.json();
+
+if(result.status!=="success"){
+alert("Gagal menyimpan data.");
+return;
+}
+
+const nomor=result.nomor||"SKH-"+Date.now();
+
+/* === USERNAME UNIQUE === */
+let baseUsername=nama.replace(/\s+/g,"").toLowerCase();
+let username=baseUsername;
+let users=JSON.parse(localStorage.getItem("adminUsers"))||[];
+let counter=1;
+while(users.find(u=>u.username===username)){
+username=baseUsername+counter;
+counter++;
+}
+
+/* === PASSWORD STRONG === */
+const password=generateStrongPassword();
+const hashed=await hashPassword(password);
+
+users.push({username,password:hashed,role:"User"});
+localStorage.setItem("adminUsers",JSON.stringify(users));
+
+/* === FORMAT NOMOR WA === */
+let nomorWA=nohp.replace(/\D/g,'');
+if(nomorWA.startsWith("08")) nomorWA="62"+nomorWA.substring(1);
+if(nomorWA.startsWith("8")) nomorWA="62"+nomorWA;
+
+/* === PESAN WA === */
+const pesan=
+`🔐 AKUN KOMUNITAS KERIS SKH
+
+Halo ${nama},
+
+Pendaftaran berhasil.
+
+Username: ${username}
+Password: ${password}
+
+Simpan dengan aman.`;
+
+/* === REDIRECT LANGSUNG TANPA POPUP === */
+window.location.href=
+"https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan);
+
+}catch(err){
+alert("Terjadi kesalahan.");
+}
+
+};
+
+reader.readAsDataURL(file);
+}
+
+/* INIT */
 loadStruktur();
 loadAnggota();
 
