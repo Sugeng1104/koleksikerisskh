@@ -138,19 +138,21 @@ Memuat struktur...
 <script>
 
 /* ===============================
-   PROTEKSI BERLAPIS
+   PROTEKSI LOGIN KHUSUS ANGGOTA
 ================================= */
 (function(){
 
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const role = localStorage.getItem("role");
     const username = localStorage.getItem("username");
-    const users = JSON.parse(localStorage.getItem("adminUsers") || "[]");
 
-    const validUser = users.find(u =>
-        u.username === username &&
-        u.role === role
-    );
+    // Wajib login dari anggota-login.html
+    if(isLoggedIn !== "true" || !username || !role){
+        localStorage.clear();
+        window.location.href = "anggota-login.html";
+    }
+
+})();
 
     if(!isLoggedIn || !validUser){
         localStorage.clear();
