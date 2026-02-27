@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Komunitas Keris SKH</title>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
 <style>
 body{
     margin:0;
@@ -15,8 +13,6 @@ body{
     color:white;
     padding:40px;
 }
-
-/* ===== TOMBOL MASUK POJOK ===== */
 .login-top{
     position:fixed;
     top:20px;
@@ -28,41 +24,19 @@ body{
     font-weight:bold;
     text-decoration:none;
     box-shadow:0 0 15px rgba(0,120,255,0.6);
-    transition:0.3s;
-    z-index:1000;
 }
-.login-top:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 25px rgba(0,150,255,0.9);
-}
-
 .container{ max-width:1100px; margin:auto; }
-
-h1{
-    color:gold;
-    text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
-}
-
+h1{ color:gold; text-align:center; margin-bottom:40px; }
 .card{
     background:#111;
     padding:30px;
     border-radius:15px;
     margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
 }
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
+h2{ color:gold; }
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
 th, td{ border:1px solid #444; padding:10px; }
-
 th{ background:#222; color:gold; }
-
 .foto-kecil{
     width:55px;
     height:55px;
@@ -70,14 +44,12 @@ th{ background:#222; color:gold; }
     border-radius:8px;
     border:2px solid gold;
 }
-
 .status-aktif{
     background:#00aa00;
     padding:5px 10px;
     border-radius:6px;
     font-weight:bold;
 }
-
 .btn{
     padding:10px 20px;
     border-radius:8px;
@@ -86,12 +58,9 @@ th{ background:#222; color:gold; }
     border:none;
     cursor:pointer;
 }
-
 .btn-blue{ background:#007bff; color:white; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
-
-.button-group{ margin-top:15px; }
 
 #modalDaftar{
     display:none;
@@ -102,21 +71,18 @@ th{ background:#222; color:gold; }
     justify-content:center;
     align-items:center;
 }
-
 .modal-content{
     background:#0f172a;
     padding:30px;
     border-radius:15px;
     width:400px;
 }
-
 .modal-content input,
 .modal-content textarea{
     width:100%;
     padding:10px;
     margin:8px 0;
 }
-
 .loading{
     text-align:center;
     color:gold;
@@ -126,7 +92,6 @@ th{ background:#222; color:gold; }
 
 <body>
 
-<!-- TOMBOL MASUK -->
 <a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">
 Masuk
 </a>
@@ -137,9 +102,7 @@ Masuk
 
 <div class="card">
 <h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
+<div id="strukturPengurus">Memuat struktur...</div>
 </div>
 
 <div class="card">
@@ -159,27 +122,23 @@ Memuat struktur...
 </tbody>
 </table>
 
-<div class="button-group">
+<div style="margin-top:20px;">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
+<a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
+<a href="index.html"><button class="btn btn-gold">Kembali</button></a>
 </div>
 
 </div>
 </div>
 
-<!-- MODAL DAFTAR -->
+<!-- MODAL -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
 <input type="text" id="nama" placeholder="Nama Lengkap">
 <input type="text" id="gelar" placeholder="Gelar">
 <textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
+<input type="text" id="nohp" placeholder="No HP (08xxxx)">
 <input type="file" id="foto" accept="image/*">
 <button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
 <button class="btn btn-green" onclick="tutupForm()">Batal</button>
@@ -188,88 +147,58 @@ Memuat struktur...
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let lastHash = "";
 let submitting=false;
 
 /* LOAD STRUKTUR */
 async function loadStruktur(){
-    const container = document.getElementById("strukturPengurus");
     try{
-        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
-        const data = await res.json();
+        const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+        const data=await res.json();
 
-        let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
+        let html="";
         (data||[]).forEach(p=>{
-            if(p.Status!=="Aktif") return;
-            if(p.Jabatan==="Ketua") ketua=p.Nama;
-            if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
-            if(p.Jabatan==="Bendahara") bendahara=p.Nama;
-            if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
+            html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";
         });
 
-        container.innerHTML=`
-        Ketua : <strong>${ketua}</strong><br>
-        Sekretaris : ${sekretaris}<br>
-        Bendahara : ${bendahara}<br>
-        Kurator Pusaka : ${kurator}
-        `;
+        document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
+
     }catch{
-        container.innerHTML="Gagal memuat struktur.";
+        document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
     }
 }
 
 /* LOAD ANGGOTA */
 async function loadAnggota(){
     try{
-        const [anggotaRes, pengurusRes] = await Promise.all([
-            fetch(WEB_APP_URL),
-            fetch(WEB_APP_URL + "?action=getPengurus")
-        ]);
-
-        const anggotaData = await anggotaRes.json();
-        const pengurusData = await pengurusRes.json();
-
-        const namaPengurusAktif = (pengurusData||[])
-            .filter(p=>p.Status==="Aktif")
-            .map(p=>p.Nama);
+        const res=await fetch(WEB_APP_URL);
+        const data=await res.json();
 
         let html="";
-
-        (anggotaData||[])
-        .filter(row=>row.Status==="Aktif")
+        (data||[])
+        .filter(r=>r.Status==="Aktif")
         .reverse()
-        .forEach(row=>{
-            const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
-            const badge = isPengurus
-            ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
-            : "";
-
+        .forEach(r=>{
             html+=`
             <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
-                <td>${row["No Anggota"]||"-"}</td>
+                <td><img src="${r.Foto||""}" class="foto-kecil"></td>
+                <td>${r["Nama Lengkap"]||"-"}</td>
+                <td>${r["No Anggota"]||"-"}</td>
                 <td><span class="status-aktif">Aktif</span></td>
             </tr>`;
         });
 
-        const newHash = btoa(html);
-        if(newHash!==lastHash){
-            document.getElementById("listAnggota").innerHTML =
-            html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
-            lastHash=newHash;
-        }
+        document.getElementById("listAnggota").innerHTML=
+        html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
 
     }catch{
-        document.getElementById("listAnggota").innerHTML =
+        document.getElementById("listAnggota").innerHTML=
         "<tr><td colspan='4'>Gagal memuat data</td></tr>";
     }
 }
 
-/* FORM CONTROL */
+/* FORM */
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
 }
@@ -277,7 +206,7 @@ function tutupForm(){
     document.getElementById("modalDaftar").style.display="none";
 }
 
-/* KIRIM PENDAFTARAN */
+/* KIRIM */
 async function kirim(){
 
     if(submitting) return;
@@ -288,58 +217,65 @@ async function kirim(){
     btn.innerText="Mengirim...";
 
     const nama=document.getElementById("nama").value.trim();
-    const gelar=document.getElementById("gelar").value;
+    const gelar=document.getElementById("gelar").value.trim();
+    const alamat=document.getElementById("alamat").value.trim();
+    const nohp=document.getElementById("nohp").value.trim();
     const file=document.getElementById("foto").files[0];
 
-    if(!nama || !file){
-        alert("Nama dan Foto wajib diisi");
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
+    if(!nama || !file || !nohp){
+        alert("Nama, No HP, dan Foto wajib diisi");
+        resetBtn();
         return;
     }
 
     const reader=new FileReader();
     reader.onload=async function(e){
 
-        const formData = new URLSearchParams();
-        formData.append("action","add");
+        const formData=new URLSearchParams();
+        formData.append("action","addAnggota");
         formData.append("nama",nama);
         formData.append("gelar",gelar);
+        formData.append("alamat",alamat);
+        formData.append("nohp",nohp);
         formData.append("foto",e.target.result);
 
-        const res = await fetch(WEB_APP_URL,{
-            method:"POST",
-            body:formData
-        });
+        try{
+            const res=await fetch(WEB_APP_URL,{
+                method:"POST",
+                body:formData
+            });
 
-        const result = await res.json();
+            const result=await res.json();
 
-        if(result.status==="success"){
-            alert("Berhasil terdaftar!");
-            tutupForm();
-            loadAnggota();
+            if(result.status==="success"){
+                alert("Pendaftaran Berhasil ✅");
+                window.open(result.wa,"_blank");
+                tutupForm();
+                loadAnggota();
+            }
+            else if(result.status==="duplicate"){
+                alert("Nama sudah terdaftar ❌");
+            }
+            else{
+                alert("Terjadi kesalahan.");
+            }
+
+        }catch{
+            alert("Gagal koneksi ke server.");
         }
 
-        submitting=false;
-        btn.disabled=false;
-        btn.innerText="Kirim";
+        resetBtn();
     };
 
     reader.readAsDataURL(file);
 }
 
-/* SMART REALTIME */
-document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible"){
-        loadStruktur();
-        loadAnggota();
-    }
-});
-window.addEventListener("focus",()=>{
-    loadStruktur();
-    loadAnggota();
-});
+function resetBtn(){
+    submitting=false;
+    const btn=document.getElementById("btnKirim");
+    btn.disabled=false;
+    btn.innerText="Kirim";
+}
 
 /* INIT */
 loadStruktur();
