@@ -1,1 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komunitas Keris SKH</title>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Georgia,serif;
+    background:#000;
+    color:white;
+    padding:40px;
+}
+
+/* ===== TOMBOL MASUK POJOK ===== */
+.login-top{
+    position:fixed;
+    top:20px;
+    right:30px;
+    background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);
+    color:white;
+    padding:10px 22px;
+    border-radius:8px;
+    font-weight:bold;
+    text-decoration:none;
+    box-shadow:0 0 15px rgba(0,120,255,0.6);
+    transition:0.3s;
+    z-index:1000;
+}
+.login-top:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 25px rgba(0,150,255,0.9);
+}
+
+.container{ max-width:1100px; margin:auto; }
+
+h1{
+    color:gold;
+    text-align:center;
+    margin-bottom:40px;
+    text-shadow:0 0 10px rgba(212,175,55,0.6);
+}
+
+.card{
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+h2{ color:gold; margin-bottom:15px; }
+
+.pengurus-list{ font-size:18px; line-height:1.8; }
+
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+
+th, td{ border:1px solid #444; padding:10px; }
+
+th{ background:#222; color:gold; }
+
+.foto-kecil{
+    width:55px;
+    height:55px;
+    object-fit:cover;
+    border-radius:8px;
+    border:2px solid gold;
+}
+
+.status-aktif{
+    background:#00aa00;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.btn{
+    padding:10px 20px;
+    border-radius:8px;
+    margin-right:10px;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+}
+
+.btn-blue{ background:#007bff; color:white; }
+.btn-green{ background:#28a745; color:white; }
+.btn-gold{ background:gold; color:black; }
+
+.button-group{ margin-top:15px; }
+
+.loading{
+    text-align:center;
+    color:gold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOMBOL MASUK -->
+<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">
+Masuk
+</a>
+
+<div class="container">
+
+<h1>Komunitas Keris SKH</h1>
+
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<div class="pengurus-list" id="strukturPengurus">
+Memuat struktur...
+</div>
+</div>
+
+<div class="card">
+<h2>Daftar Anggota</h2>
+
+<table>
+<thead>
+<tr>
+<th>Foto</th>
+<th>Nama</th>
+<th>No Anggota</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="listAnggota">
+<tr><td colspan="4" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+
+<div class="button-group">
+<a href="verifikasi.html">
+<button class="btn btn-green">Verifikasi QR</button>
+</a>
+<a href="index.html">
+<button class="btn btn-gold">Kembali</button>
+</a>
+</div>
+
+</div>
+</div>
+
+<script>
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+let lastHash = "";
+
+/* LOAD STRUKTUR */
+async function loadStruktur(){
+    const container = document.getElementById("strukturPengurus");
+
+    try{
+        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
+        const data = await res.json();
+
+        let ketua="-", sekretaris="-", bendahara="-", kurator="-";
+
+        (data||[]).forEach(p=>{
+            if(p.Status!=="Aktif") return;
+            if(p.Jabatan==="Ketua") ketua=p.Nama;
+            if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
+            if(p.Jabatan==="Bendahara") bendahara=p.Nama;
+            if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
+        });
+
+        container.innerHTML=`
+        Ketua : <strong>${ketua}</strong><br>
+        Sekretaris : ${sekretaris}<br>
+        Bendahara : ${bendahara}<br>
+        Kurator Pusaka : ${kurator}
+        `;
+
+    }catch{
+        container.innerHTML="Gagal memuat struktur.";
+    }
+}
+
+/* LOAD ANGGOTA + BADGE AUTO REMOVE */
+async function loadAnggota(){
+
+    try{
+        const [anggotaRes, pengurusRes] = await Promise.all([
+            fetch(WEB_APP_URL),
+            fetch(WEB_APP_URL + "?action=getPengurus")
+        ]);
+
+        const anggotaData = await anggotaRes.json();
+        const pengurusData = await pengurusRes.json();
+
+        const namaPengurusAktif = (pengurusData||[])
+            .filter(p=>p.Status==="Aktif")
+            .map(p=>p.Nama);
+
+        let html="";
+
+        (anggotaData||[])
+        .filter(row=>row.Status==="Aktif")
+        .reverse()
+        .forEach(row=>{
+
+            const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
+
+            const badge = isPengurus
+            ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
+            : "";
+
+            html+=`
+            <tr>
+                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+                <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
+                <td>${row["No Anggota"]||"-"}</td>
+                <td><span class="status-aktif">Aktif</span></td>
+            </tr>`;
+        });
+
+        const newHash = btoa(html);
+        if(newHash!==lastHash){
+            document.getElementById("listAnggota").innerHTML =
+            html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+            lastHash=newHash;
+        }
+
+    }catch{
+        document.getElementById("listAnggota").innerHTML =
+        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+    }
+}
+
+/* SMART REALTIME */
+document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible"){
+        loadStruktur();
+        loadAnggota();
+    }
+});
+window.addEventListener("focus",()=>{
+    loadStruktur();
+    loadAnggota();
+});
+
+/* INIT */
+loadStruktur();
+loadAnggota();
+
+</script>
+
+</body>
+</html>
