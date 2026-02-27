@@ -15,27 +15,6 @@ body{
     color:white;
     padding:40px;
 }
-
-/* ===== TOMBOL MASUK POJOK ===== */
-.login-top{
-    position:fixed;
-    top:20px;
-    right:30px;
-    background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);
-    color:white;
-    padding:10px 22px;
-    border-radius:8px;
-    font-weight:bold;
-    text-decoration:none;
-    box-shadow:0 0 15px rgba(0,120,255,0.6);
-    transition:0.3s;
-    z-index:1000;
-}
-.login-top:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 25px rgba(0,150,255,0.9);
-}
-
 .container{ max-width:1100px; margin:auto; }
 
 h1{
@@ -73,6 +52,13 @@ th{ background:#222; color:gold; }
 
 .status-aktif{
     background:#00aa00;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.status-nonaktif{
+    background:#aa0000;
     padding:5px 10px;
     border-radius:6px;
     font-weight:bold;
@@ -126,11 +112,6 @@ th{ background:#222; color:gold; }
 
 <body>
 
-<!-- TOMBOL MASUK -->
-<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">
-Masuk
-</a>
-
 <div class="container">
 
 <h1>Komunitas Keris SKH</h1>
@@ -172,7 +153,6 @@ Memuat struktur...
 </div>
 </div>
 
-<!-- MODAL DAFTAR -->
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
@@ -190,86 +170,78 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let lastHash = "";
 let submitting=false;
 
-/* LOAD STRUKTUR */
-async function loadStruktur(){
+/* ================================
+   LOAD STRUKTUR (LOCAL STORAGE)
+================================ */
+function loadStruktur(){
     const container = document.getElementById("strukturPengurus");
-    try{
-        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
-        const data = await res.json();
+    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
 
-        let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-        (data||[]).forEach(p=>{
-            if(p.Status!=="Aktif") return;
-            if(p.Jabatan==="Ketua") ketua=p.Nama;
-            if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
-            if(p.Jabatan==="Bendahara") bendahara=p.Nama;
-            if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
-        });
-
-        container.innerHTML=`
-        Ketua : <strong>${ketua}</strong><br>
-        Sekretaris : ${sekretaris}<br>
-        Bendahara : ${bendahara}<br>
-        Kurator Pusaka : ${kurator}
-        `;
-    }catch{
-        container.innerHTML="Gagal memuat struktur.";
+    if(data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
     }
+
+    let ketua="-", sekretaris="-", bendahara="-", korektor="-";
+
+    data.forEach(p=>{
+        if(p.jabatan==="Ketua") ketua=p.nama;
+        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
+        if(p.jabatan==="Bendahara") bendahara=p.nama;
+        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
+    });
+
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Kurator Pusaka : ${kurator}
+    `;
 }
 
-/* LOAD ANGGOTA */
+/* ================================
+   LOAD ANGGOTA (SERVER)
+================================ */
 async function loadAnggota(){
+
     try{
-        const [anggotaRes, pengurusRes] = await Promise.all([
-            fetch(WEB_APP_URL),
-            fetch(WEB_APP_URL + "?action=getPengurus")
-        ]);
+        const res = await fetch(WEB_APP_URL);
+        const result = await res.json();
+        const data = result.data || result;
 
-        const anggotaData = await anggotaRes.json();
-        const pengurusData = await pengurusRes.json();
-
-        const namaPengurusAktif = (pengurusData||[])
-            .filter(p=>p.Status==="Aktif")
-            .map(p=>p.Nama);
+        if(!data || data.length===0){
+            document.getElementById("listAnggota").innerHTML =
+            "<tr><td colspan='4'>Belum ada anggota</td></tr>";
+            return;
+        }
 
         let html="";
-
-        (anggotaData||[])
-        .filter(row=>row.Status==="Aktif")
-        .reverse()
-        .forEach(row=>{
-            const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
-            const badge = isPengurus
-            ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
-            : "";
+        data.slice().reverse().forEach(row=>{
+            const status=row.Status||"Nonaktif";
+            const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
             html+=`
             <tr>
                 <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
+                <td>${row["Nama Lengkap"]||"-"}</td>
                 <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="status-aktif">Aktif</span></td>
+                <td><span class="${statusClass}">${status}</span></td>
             </tr>`;
         });
 
-        const newHash = btoa(html);
-        if(newHash!==lastHash){
-            document.getElementById("listAnggota").innerHTML =
-            html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
-            lastHash=newHash;
-        }
+        document.getElementById("listAnggota").innerHTML=html;
 
-    }catch{
+    }catch(e){
         document.getElementById("listAnggota").innerHTML =
         "<tr><td colspan='4'>Gagal memuat data</td></tr>";
     }
 }
 
-/* FORM CONTROL */
+/* ================================
+   FORM CONTROL
+================================ */
 function bukaForm(){
     document.getElementById("modalDaftar").style.display="flex";
 }
@@ -277,7 +249,9 @@ function tutupForm(){
     document.getElementById("modalDaftar").style.display="none";
 }
 
-/* KIRIM PENDAFTARAN */
+/* ================================
+   KIRIM DATA + AUTO CARD
+================================ */
 async function kirim(){
 
     if(submitting) return;
@@ -316,7 +290,17 @@ async function kirim(){
         const result = await res.json();
 
         if(result.status==="success"){
+
+            const nomor=result.nomor || "SKH-"+Date.now();
+
+            generateCard(nama,gelar,nomor,e.target.result);
+
             alert("Berhasil terdaftar!");
+
+            document.getElementById("nama").value="";
+            document.getElementById("gelar").value="";
+            document.getElementById("foto").value="";
+
             tutupForm();
             loadAnggota();
         }
@@ -329,17 +313,62 @@ async function kirim(){
     reader.readAsDataURL(file);
 }
 
-/* SMART REALTIME */
-document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible"){
-        loadStruktur();
-        loadAnggota();
-    }
-});
-window.addEventListener("focus",()=>{
-    loadStruktur();
-    loadAnggota();
-});
+
+/* ================================
+   GENERATE CARD
+================================ */
+function generateCard(nama,gelar,nomor,foto){
+
+    const canvas=document.createElement("canvas");
+    canvas.width=1016;
+    canvas.height=638;
+    const ctx=canvas.getContext("2d");
+
+    ctx.fillStyle="#111";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    const logo=new Image();
+    logo.src="logo-skh.png";
+
+    logo.onload=function(){
+
+        ctx.drawImage(logo,30,30,120,120);
+
+        ctx.fillStyle="gold";
+        ctx.font="bold 48px Georgia";
+        ctx.textAlign="center";
+        ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+
+        const img=new Image();
+        img.src=foto;
+
+        img.onload=function(){
+            ctx.drawImage(img,80,200,200,250);
+
+            ctx.textAlign="left";
+            ctx.fillStyle="white";
+            ctx.font="bold 40px Georgia";
+            ctx.fillText(nama,320,260);
+
+            ctx.font="30px Georgia";
+            ctx.fillText(gelar,320,320);
+            ctx.fillText("No: "+nomor,320,380);
+
+            QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
+                ctx.drawImage(qrCanvas,canvas.width/2-100,420);
+
+                ctx.font="22px Georgia";
+                ctx.textAlign="center";
+                ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
+
+                const link=document.createElement("a");
+                link.download="Kartu_"+nomor+".png";
+                link.href=canvas.toDataURL("image/png");
+                link.click();
+            });
+        };
+    };
+}
 
 /* INIT */
 loadStruktur();
