@@ -93,6 +93,30 @@ th{ background:#222; color:gold; }
 
 .button-group{ margin-top:15px; }
 
+#modalDaftar{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.9);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:#0f172a;
+    padding:30px;
+    border-radius:15px;
+    width:400px;
+}
+
+.modal-content input,
+.modal-content textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+}
+
 .loading{
     text-align:center;
     color:gold;
@@ -136,6 +160,7 @@ Memuat struktur...
 </table>
 
 <div class="button-group">
+<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
 <a href="verifikasi.html">
 <button class="btn btn-green">Verifikasi QR</button>
 </a>
@@ -147,16 +172,30 @@ Memuat struktur...
 </div>
 </div>
 
+<!-- MODAL DAFTAR -->
+<div id="modalDaftar">
+<div class="modal-content">
+<h3 style="color:gold;">Pendaftaran Anggota</h3>
+<input type="text" id="nama" placeholder="Nama Lengkap">
+<input type="text" id="gelar" placeholder="Gelar">
+<textarea id="alamat" placeholder="Alamat"></textarea>
+<input type="text" id="nohp" placeholder="No HP">
+<input type="file" id="foto" accept="image/*">
+<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
+<button class="btn btn-green" onclick="tutupForm()">Batal</button>
+</div>
+</div>
+
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 let lastHash = "";
+let submitting=false;
 
 /* LOAD STRUKTUR */
 async function loadStruktur(){
     const container = document.getElementById("strukturPengurus");
-
     try{
         const res = await fetch(WEB_APP_URL + "?action=getPengurus");
         const data = await res.json();
@@ -177,15 +216,13 @@ async function loadStruktur(){
         Bendahara : ${bendahara}<br>
         Kurator Pusaka : ${kurator}
         `;
-
     }catch{
         container.innerHTML="Gagal memuat struktur.";
     }
 }
 
-/* LOAD ANGGOTA + BADGE AUTO REMOVE */
+/* LOAD ANGGOTA */
 async function loadAnggota(){
-
     try{
         const [anggotaRes, pengurusRes] = await Promise.all([
             fetch(WEB_APP_URL),
@@ -205,9 +242,7 @@ async function loadAnggota(){
         .filter(row=>row.Status==="Aktif")
         .reverse()
         .forEach(row=>{
-
             const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
-
             const badge = isPengurus
             ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
             : "";
@@ -232,6 +267,66 @@ async function loadAnggota(){
         document.getElementById("listAnggota").innerHTML =
         "<tr><td colspan='4'>Gagal memuat data</td></tr>";
     }
+}
+
+/* FORM CONTROL */
+function bukaForm(){
+    document.getElementById("modalDaftar").style.display="flex";
+}
+function tutupForm(){
+    document.getElementById("modalDaftar").style.display="none";
+}
+
+/* KIRIM PENDAFTARAN */
+async function kirim(){
+
+    if(submitting) return;
+    submitting=true;
+
+    const btn=document.getElementById("btnKirim");
+    btn.disabled=true;
+    btn.innerText="Mengirim...";
+
+    const nama=document.getElementById("nama").value.trim();
+    const gelar=document.getElementById("gelar").value;
+    const file=document.getElementById("foto").files[0];
+
+    if(!nama || !file){
+        alert("Nama dan Foto wajib diisi");
+        submitting=false;
+        btn.disabled=false;
+        btn.innerText="Kirim";
+        return;
+    }
+
+    const reader=new FileReader();
+    reader.onload=async function(e){
+
+        const formData = new URLSearchParams();
+        formData.append("action","add");
+        formData.append("nama",nama);
+        formData.append("gelar",gelar);
+        formData.append("foto",e.target.result);
+
+        const res = await fetch(WEB_APP_URL,{
+            method:"POST",
+            body:formData
+        });
+
+        const result = await res.json();
+
+        if(result.status==="success"){
+            alert("Berhasil terdaftar!");
+            tutupForm();
+            loadAnggota();
+        }
+
+        submitting=false;
+        btn.disabled=false;
+        btn.innerText="Kirim";
+    };
+
+    reader.readAsDataURL(file);
 }
 
 /* SMART REALTIME */
