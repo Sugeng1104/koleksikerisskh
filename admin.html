@@ -171,24 +171,43 @@ if(role==="Super Admin"){
 
 function logout(){
   localStorage.clear();
-  window.location.href="login.html";
+  window.location.href="https://sugeng1104.github.io/koleksikerisskh/index.html";
 }
 
 //////////////////////////////////////////////////
-// STRUKTUR PENGURUS (LOCAL STORAGE)
+// LOADING SPINNER
+//////////////////////////////////////////////////
+
+function showLoading(){
+  document.getElementById("tabelAnggota").innerHTML =
+  "<tr><td colspan='4'>Memuat data...</td></tr>";
+}
+
+//////////////////////////////////////////////////
+// STRUKTUR PENGURUS (HANYA DARI ANGGOTA AKTIF)
 //////////////////////////////////////////////////
 
 let pengurus = JSON.parse(localStorage.getItem("pengurus")) || [];
 
+function isiDropdownPengurus(){
+  const select = document.getElementById("namaPengurus");
+  select.innerHTML = "";
+  const aktif = allData.filter(a=>a.Status==="Aktif");
+  aktif.forEach(a=>{
+    const opt=document.createElement("option");
+    opt.value=a["Nama Lengkap"];
+    opt.textContent=a["Nama Lengkap"];
+    select.appendChild(opt);
+  });
+}
+
 function tampilPengurus(){
   const list=document.getElementById("listPengurus");
   list.innerHTML="";
-
   if(pengurus.length===0){
     list.innerHTML="<li>Belum ada pengurus</li>";
     return;
   }
-
   pengurus.forEach((p,i)=>{
     list.innerHTML+=`
       <li>
@@ -200,12 +219,11 @@ function tampilPengurus(){
 }
 
 function tambahPengurus(){
-  const nama=document.getElementById("namaPengurus").value.trim();
+  const nama=document.getElementById("namaPengurus").value;
   const jabatan=document.getElementById("jabatan").value;
-  if(nama==="") return alert("Isi nama!");
+  if(!nama) return alert("Pilih nama!");
   pengurus.push({nama,jabatan});
   localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  document.getElementById("namaPengurus").value="";
   tampilPengurus();
 }
 
@@ -218,17 +236,21 @@ function hapusPengurus(i){
 tampilPengurus();
 
 //////////////////////////////////////////////////
-// DATA ANGGOTA
+// DATA ANGGOTA + PAGINATION
 //////////////////////////////////////////////////
 
 let allData=[];
+let currentPage=1;
+const rowsPerPage=10;
 
 async function loadAnggota(){
+  showLoading();
   try{
     const res = await fetch(WEB_APP_URL);
     const data = await res.json();
     allData = data || [];
     updateStatistik();
+    isiDropdownPengurus();
     renderTabel();
   }catch(error){
     document.getElementById("tabelAnggota").innerHTML=
@@ -240,31 +262,34 @@ function updateStatistik(){
   const total = allData.length;
   const aktif = allData.filter(a=>a.Status==="Aktif").length;
   const nonaktif = total - aktif;
-
   document.getElementById("totalAnggota").innerText=total;
   document.getElementById("totalAktif").innerText=aktif;
   document.getElementById("totalNonaktif").innerText=nonaktif;
 }
 
-function renderTabel(){
-
+function getFilteredData(){
   const search=document.getElementById("searchInput").value.toLowerCase();
   const filter=document.getElementById("filterStatus").value;
-
-  let filtered=allData.filter(row=>{
+  return allData.filter(row=>{
     const nama=(row["Nama Lengkap"]||"").toLowerCase();
     const no=(row["No Anggota"]||"").toLowerCase();
     const status=row.Status||"Nonaktif";
-
     return (
       (nama.includes(search) || no.includes(search)) &&
       (filter==="" || status===filter)
     );
   });
+}
+
+function renderTabel(){
+
+  const filtered=getFilteredData();
+  const start=(currentPage-1)*rowsPerPage;
+  const end=start+rowsPerPage;
+  const pageData=filtered.slice(start,end);
 
   let html="";
-
-  filtered.forEach(row=>{
+  pageData.forEach(row=>{
     const status=row.Status||"Nonaktif";
     html+=`
       <tr>
@@ -284,9 +309,44 @@ function renderTabel(){
   });
 
   document.getElementById("tabelAnggota").innerHTML =
-    filtered.length ? html :
+    pageData.length ? html :
     "<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
+
+  renderPagination(filtered.length);
 }
+
+function renderPagination(totalRows){
+  const totalPages=Math.ceil(totalRows/rowsPerPage);
+  if(totalPages<=1) return;
+
+  let controls=`
+    <div style="margin-top:10px;">
+      <button onclick="prevPage()">Prev</button>
+      Halaman ${currentPage} dari ${totalPages}
+      <button onclick="nextPage(${totalPages})">Next</button>
+      <button onclick="exportExcel()">Export Excel</button>
+    </div>
+  `;
+  document.querySelector(".card:last-child").innerHTML+=controls;
+}
+
+function prevPage(){
+  if(currentPage>1){
+    currentPage--;
+    renderTabel();
+  }
+}
+
+function nextPage(totalPages){
+  if(currentPage<totalPages){
+    currentPage++;
+    renderTabel();
+  }
+}
+
+//////////////////////////////////////////////////
+// UPDATE TANPA RELOAD PENUH
+//////////////////////////////////////////////////
 
 async function ubahStatus(no,status){
   const formData = new URLSearchParams();
@@ -294,7 +354,11 @@ async function ubahStatus(no,status){
   formData.append("no",no);
   formData.append("status",status);
   await fetch(WEB_APP_URL,{method:"POST",body:formData});
-  loadAnggota();
+  const item=allData.find(a=>a["No Anggota"]===no);
+  if(item) item.Status=status;
+  updateStatistik();
+  renderTabel();
+  alert("Status berhasil diperbarui");
 }
 
 async function hapusAnggota(no){
@@ -303,7 +367,33 @@ async function hapusAnggota(no){
   formData.append("action","delete");
   formData.append("no",no);
   await fetch(WEB_APP_URL,{method:"POST",body:formData});
-  loadAnggota();
+  allData=allData.filter(a=>a["No Anggota"]!==no);
+  updateStatistik();
+  renderTabel();
+}
+
+//////////////////////////////////////////////////
+// EXPORT EXCEL
+//////////////////////////////////////////////////
+
+function exportExcel(){
+  const data=getFilteredData();
+  if(data.length===0) return alert("Tidak ada data untuk diexport");
+
+  let csv="";
+  const headers=Object.keys(data[0]);
+  csv+=headers.join(",")+"\n";
+
+  data.forEach(row=>{
+    csv+=headers.map(h=>`"${row[h]||""}"`).join(",")+"\n";
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="data-anggota.csv";
+  a.click();
 }
 
 loadAnggota();
