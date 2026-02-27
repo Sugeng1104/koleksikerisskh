@@ -86,7 +86,7 @@ th{ background:#222; color:gold; }
     cursor:pointer;
 }
 
-.btn-green{ background:#28a745; color:white; }
+.btn-blue{ background:#007bff; color:white; }
 .btn-red{ background:#dc3545; color:white; }
 
 .loading{
@@ -137,19 +137,18 @@ Memuat struktur...
 
 <script>
 
-/* ==================================================
+/* ==============================
    KONFIGURASI
-================================================== */
+============================== */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 const CACHE_KEY = "cacheAnggota";
 const CACHE_TIME_KEY = "cacheTime";
-const CACHE_DURATION = 60000; // 60 detik
+const CACHE_DURATION = 60000;
 
-/* ==================================================
-   PROTEKSI LOGIN (COMPATIBLE VERSION)
-================================================== */
+/* ==============================
+   PROTEKSI LOGIN (SAFE)
+============================== */
 (function(){
-
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
     const role = localStorage.getItem("role");
@@ -159,20 +158,17 @@ const CACHE_DURATION = 60000; // 60 detik
         window.location.href = "anggota-login.html";
         return;
     }
-
 })();
 
-/* ==================================================
-   INFO LOGIN
-================================================== */
+/* ==============================
+   INFO LOGIN + LEVEL FALLBACK
+============================== */
 const usernameLogin = localStorage.getItem("username");
 const roleLogin = localStorage.getItem("role");
+
 let levelLogin = parseInt(localStorage.getItem("level"));
 
-// Fallback jika sistem lama (belum pakai level)
 if(!levelLogin){
-    const roleLogin = localStorage.getItem("role");
-
     if(roleLogin === "Super Admin") levelLogin = 3;
     else if(roleLogin === "Admin") levelLogin = 2;
     else levelLogin = 1;
@@ -181,9 +177,9 @@ if(!levelLogin){
 document.getElementById("userInfo").innerHTML =
 `Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
 
-/* ==================================================
+/* ==============================
    LOGOUT
-================================================== */
+============================== */
 function logout(){
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
@@ -192,9 +188,9 @@ function logout(){
     window.location.href="anggota-login.html";
 }
 
-/* ==================================================
+/* ==============================
    STRUKTUR PENGURUS
-================================================== */
+============================== */
 function loadStruktur(){
 
     const container = document.getElementById("strukturPengurus");
@@ -222,9 +218,9 @@ function loadStruktur(){
     `;
 }
 
-/* ==================================================
-   RENDER DATA ANGGOTA
-================================================== */
+/* ==============================
+   RENDER ANGGOTA
+============================== */
 function renderAnggota(data){
 
     let html="";
@@ -238,26 +234,30 @@ function renderAnggota(data){
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
+        const safeNama = nama.replace(/'/g,"\\'");
+        const safeGelar = gelar.replace(/'/g,"\\'");
+        const safeNomor = nomor.replace(/'/g,"\\'");
+        const safeFoto = foto.replace(/'/g,"\\'");
+
         let aksiButton="";
 
-        // Level system:
-        // 3 = Super Admin
-        // 2 = Admin
-        // 1 = User
-
         if(levelLogin >= 2){
-            aksiButton=`
-            <button class="btn btn-green"
-            onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
+
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
             Cetak Kartu
             </button>`;
-        }
-        else if(levelLogin === 1){
+
+        }else if(levelLogin === 1){
+
             const usernameData = nama.replace(/\s+/g,"").toLowerCase();
+
             if(usernameLogin.toLowerCase() === usernameData){
-                aksiButton=`
-                <button class="btn btn-green"
-                onclick="generateCard('${nama}','${gelar}','${nomor}','${foto}')">
+
+                aksiButton = `
+                <button class="btn btn-blue"
+                onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
                 Cetak Kartu
                 </button>`;
             }
@@ -276,9 +276,9 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ==================================================
-   FETCH DATA + CACHE
-================================================== */
+/* ==============================
+   FETCH + CACHE
+============================== */
 async function fetchData(force=false){
 
     const now = Date.now();
@@ -304,33 +304,30 @@ async function fetchData(force=false){
 }
 
 function loadAnggotaFast(){
-
     const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
-
     if(cache.length>0){
         renderAnggota(cache);
     }
-
     fetchData(true);
 }
 
-/* ==================================================
+/* ==============================
    WARM SERVER
-================================================== */
+============================== */
 setTimeout(()=>{
     fetch(WEB_APP_URL + "?warm=" + Date.now());
 },2000);
 
-/* ==================================================
+/* ==============================
    AUTO REFRESH
-================================================== */
+============================== */
 setInterval(()=>{
     fetchData(true);
 },30000);
 
-/* ==================================================
+/* ==============================
    GENERATE KARTU
-================================================== */
+============================== */
 function generateCard(nama,gelar,nomor,foto){
 
     const canvas=document.createElement("canvas");
@@ -378,9 +375,7 @@ function generateCard(nama,gelar,nomor,foto){
     };
 }
 
-/* ==================================================
-   INIT
-================================================== */
+/* INIT */
 loadStruktur();
 loadAnggotaFast();
 
