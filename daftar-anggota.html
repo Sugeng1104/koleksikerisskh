@@ -135,9 +135,15 @@ Memuat struktur...
 
 <div class="button-group">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
+
 <a href="verifikasi.html">
 <button class="btn btn-green">Verifikasi QR</button>
 </a>
+
+<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html">
+<button class="btn btn-green">Masuk</button>
+</a>
+
 <a href="index.html">
 <button class="btn btn-gold">Kembali</button>
 </a>
@@ -163,23 +169,50 @@ Memuat struktur...
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let currentVersion = "";
+/* ================================
+   CACHE PINTAR
+================================ */
+function getCache(key){
+    const data = localStorage.getItem(key);
+    if(!data) return null;
+    const parsed = JSON.parse(data);
+    if(Date.now() > parsed.expiry){
+        localStorage.removeItem(key);
+        return null;
+    }
+    return parsed.value;
+}
+
+function setCache(key,value,ttl=15000){
+    localStorage.setItem(key,JSON.stringify({
+        value:value,
+        expiry:Date.now()+ttl
+    }));
+}
 
 /* ================================
-   RENDER DATA
+   LOAD STRUKTUR
 ================================ */
-function renderData(anggotaData, pengurusData){
+async function loadStruktur(){
 
     const container = document.getElementById("strukturPengurus");
-    const table = document.getElementById("listAnggota");
 
-    const pengurusAktif = (pengurusData || [])
-        .filter(p=>p.Status==="Aktif")
-        .map(p=>p.Nama);
+    let data = getCache("strukturCache");
+
+    if(!data){
+        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
+        data = await res.json();
+        setCache("strukturCache",data);
+    }
+
+    if(!data || data.length===0){
+        container.innerHTML="Belum ditentukan.";
+        return;
+    }
 
     let ketua="-", sekretaris="-", bendahara="-", kurator="-";
 
-    pengurusData.forEach(p=>{
+    data.forEach(p=>{
         if(p.Status!=="Aktif") return;
         if(p.Jabatan==="Ketua") ketua=p.Nama;
         if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
@@ -193,15 +226,40 @@ function renderData(anggotaData, pengurusData){
     Bendahara : ${bendahara}<br>
     Kurator Pusaka : ${kurator}
     `;
+}
+
+/* ================================
+   LOAD ANGGOTA + BADGE AUTO REMOVE
+================================ */
+async function loadAnggota(){
+
+    let anggotaData = getCache("anggotaCache");
+    let pengurusData = getCache("pengurusCache");
+
+    if(!anggotaData){
+        const res = await fetch(WEB_APP_URL);
+        anggotaData = await res.json();
+        setCache("anggotaCache",anggotaData);
+    }
+
+    if(!pengurusData){
+        const res2 = await fetch(WEB_APP_URL + "?action=getPengurus");
+        pengurusData = await res2.json();
+        setCache("pengurusCache",pengurusData);
+    }
+
+    const namaPengurusAktif = (pengurusData || [])
+        .filter(p=>p.Status==="Aktif")
+        .map(p=>p.Nama);
 
     let html="";
 
     (anggotaData || [])
-    .filter(a=>a.Status==="Aktif")
+    .filter(row=>row.Status==="Aktif")
     .reverse()
-    .forEach(a=>{
+    .forEach(row=>{
 
-        const isPengurus = pengurusAktif.includes(a["Nama Lengkap"]);
+        const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
 
         const badge = isPengurus
         ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
@@ -209,57 +267,37 @@ function renderData(anggotaData, pengurusData){
 
         html+=`
         <tr>
-            <td><img src="${a.Foto||""}" class="foto-kecil"></td>
-            <td>${a["Nama Lengkap"]||"-"} ${badge}</td>
-            <td>${a["No Anggota"]||"-"}</td>
+            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+            <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
+            <td>${row["No Anggota"]||"-"}</td>
             <td><span class="status-aktif">Aktif</span></td>
         </tr>`;
     });
 
-    table.innerHTML = html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+    document.getElementById("listAnggota").innerHTML =
+    html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
 }
 
 /* ================================
-   LONG POLLING PUSH SYSTEM
+   SMART REFRESH
 ================================ */
-async function waitForUpdate(){
-
-    try{
-        const res = await fetch(WEB_APP_URL + "?action=version&v=" + currentVersion);
-        const result = await res.json();
-
-        if(result.version && result.version !== currentVersion){
-            currentVersion = result.version;
-            loadAllData();
-        }
-
-    }catch{}
-
-    waitForUpdate(); // loop tanpa interval
-}
-
-/* ================================
-   LOAD ALL DATA + CACHE
-================================ */
-async function loadAllData(){
-
-    try{
-        const res = await fetch(WEB_APP_URL + "?action=getAll");
-        const result = await res.json();
-
-        if(!result) return;
-
-        localStorage.setItem("skh_cache", JSON.stringify(result));
-        renderData(result.anggota, result.pengurus);
-
-    }catch{
-        const cache = localStorage.getItem("skh_cache");
-        if(cache){
-            const parsed = JSON.parse(cache);
-            renderData(parsed.anggota, parsed.pengurus);
-        }
+document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible"){
+        localStorage.removeItem("anggotaCache");
+        localStorage.removeItem("pengurusCache");
+        localStorage.removeItem("strukturCache");
+        loadStruktur();
+        loadAnggota();
     }
-}
+});
+
+window.addEventListener("focus",()=>{
+    localStorage.removeItem("anggotaCache");
+    localStorage.removeItem("pengurusCache");
+    localStorage.removeItem("strukturCache");
+    loadStruktur();
+    loadAnggota();
+});
 
 /* ================================
    FORM CONTROL
@@ -274,8 +312,8 @@ function tutupForm(){
 /* ================================
    INIT
 ================================ */
-loadAllData();
-waitForUpdate();
+loadStruktur();
+loadAnggota();
 
 </script>
 
