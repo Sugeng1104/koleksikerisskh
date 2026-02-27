@@ -8,112 +8,33 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
-body{
-    margin:0;
-    font-family:Georgia,serif;
-    background:#000;
-    color:white;
-    padding:40px;
-}
-.container{ max-width:1100px; margin:auto; }
-
-h1{
-    color:gold;
-    text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
-}
-
-.card{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-h2{ color:gold; margin-bottom:15px; }
-
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
-th, td{ border:1px solid #444; padding:10px; }
-
-th{ background:#222; color:gold; }
-
-.foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid gold;
-}
-
-.status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.btn{
-    padding:10px 20px;
-    border-radius:8px;
-    margin-right:10px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-}
-
-.btn-blue{ background:#007bff; color:white; }
-.btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
-
-.button-group{ margin-top:15px; }
-
-#modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
-}
-
-.modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
-}
-
-.modal-content input,
-.modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-}
-
-.loading{
-    text-align:center;
-    color:gold;
-}
+body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
+.container{max-width:1100px;margin:auto;}
+h1{color:gold;text-align:center;margin-bottom:40px;text-shadow:0 0 10px rgba(212,175,55,0.6);}
+.card{background:#111;padding:30px;border-radius:15px;margin-bottom:25px;box-shadow:0 0 20px rgba(212,175,55,0.3);}
+h2{color:gold;margin-bottom:15px;}
+.pengurus-list{font-size:18px;line-height:1.8;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #444;padding:10px;}
+th{background:#222;color:gold;}
+.foto-kecil{width:55px;height:55px;object-fit:cover;border-radius:8px;border:2px solid gold;}
+.status-aktif{background:#00aa00;padding:5px 10px;border-radius:6px;font-weight:bold;}
+.btn{padding:10px 20px;border-radius:8px;margin-right:10px;font-weight:bold;border:none;cursor:pointer;}
+.btn-blue{background:#007bff;color:white;}
+.btn-green{background:#28a745;color:white;}
+.btn-gold{background:gold;color:black;}
+.button-group{margin-top:15px;}
+.loading{text-align:center;color:gold;}
 </style>
 </head>
-
 <body>
 
 <div class="container">
-
 <h1>Komunitas Keris SKH</h1>
 
 <div class="card">
 <h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
+<div class="pengurus-list" id="strukturPengurus">Memuat struktur...</div>
 </div>
 
 <div class="card">
@@ -134,160 +55,104 @@ Memuat struktur...
 </table>
 
 <div class="button-group">
-<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-<a href="verifikasi.html">
-<button class="btn btn-green">Verifikasi QR</button>
-</a>
-<a href="index.html">
-<button class="btn btn-gold">Kembali</button>
-</a>
+<a href="index.html"><button class="btn btn-gold">Kembali</button></a>
 </div>
 
-</div>
-</div>
-
-<div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:gold;">Pendaftaran Anggota</h3>
-<input type="text" id="nama" placeholder="Nama Lengkap">
-<input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
-<input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
-<button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
 </div>
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-let lastHash = "";
+const WEB_APP_URL = "YOUR_WEB_APP_URL";
+let cacheHash = "";
 
 /* ================================
-   LOAD STRUKTUR (LIVE)
+   RENDER DATA
 ================================ */
-async function loadStruktur(){
+function renderData(anggotaData, pengurusData){
 
     const container = document.getElementById("strukturPengurus");
+    const tbody = document.getElementById("listAnggota");
 
-    try{
-        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
-        const data = await res.json();
+    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
 
-        if(!data || data.length===0){
-            container.innerHTML="Belum ditentukan.";
-            return;
+    const pengurusAktif = (pengurusData||[])
+        .filter(p=>p.Status==="Aktif");
+
+    pengurusAktif.forEach(p=>{
+        if(p.Jabatan==="Ketua") ketua=p.Nama;
+        if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
+        if(p.Jabatan==="Bendahara") bendahara=p.Nama;
+        if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
+    });
+
+    container.innerHTML=`
+    Ketua : <strong>${ketua}</strong><br>
+    Sekretaris : ${sekretaris}<br>
+    Bendahara : ${bendahara}<br>
+    Kurator Pusaka : ${kurator}
+    `;
+
+    const namaPengurus = pengurusAktif.map(p=>p.Nama);
+
+    let html="";
+
+    (anggotaData||[])
+    .filter(a=>a.Status==="Aktif")
+    .reverse()
+    .forEach(a=>{
+
+        const isPengurus = namaPengurus.includes(a["Nama Lengkap"]);
+
+        const badge = isPengurus
+        ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
+        : "";
+
+        html+=`
+        <tr>
+            <td><img src="${a.Foto||""}" class="foto-kecil"></td>
+            <td>${a["Nama Lengkap"]||"-"}${badge}</td>
+            <td>${a["No Anggota"]||"-"}</td>
+            <td><span class="status-aktif">Aktif</span></td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+}
+
+/* ================================
+   REALTIME STREAM LOOP
+================================ */
+async function startRealtime(){
+
+    while(true){
+
+        try{
+
+            const res = await fetch(WEB_APP_URL + "?action=stream");
+            const result = await res.json();
+
+            const anggota = result.anggota || [];
+            const pengurus = result.pengurus || [];
+
+            const newHash = btoa(JSON.stringify(result));
+
+            if(newHash !== cacheHash){
+                renderData(anggota, pengurus);
+                cacheHash = newHash;
+            }
+
+        }catch(e){
+            console.log("Reconnect...");
         }
 
-        let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-        data.forEach(p=>{
-            if(p.Status!=="Aktif") return;
-
-            if(p.Jabatan==="Ketua") ketua=p.Nama;
-            if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
-            if(p.Jabatan==="Bendahara") bendahara=p.Nama;
-            if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
-        });
-
-        container.innerHTML=`
-        Ketua : <strong>${ketua}</strong><br>
-        Sekretaris : ${sekretaris}<br>
-        Bendahara : ${bendahara}<br>
-        Kurator Pusaka : ${kurator}
-        `;
-
-    }catch{
-        container.innerHTML="Gagal memuat struktur.";
+        await new Promise(r=>setTimeout(r,2000)); 
+        // bukan polling interval, ini reconnect delay
     }
 }
 
-/* ================================
-   LOAD ANGGOTA + AUTO REMOVE BADGE
-================================ */
-async function loadAnggota(){
-
-    try{
-        const [anggotaRes, pengurusRes] = await Promise.all([
-            fetch(WEB_APP_URL),
-            fetch(WEB_APP_URL + "?action=getPengurus")
-        ]);
-
-        const anggotaData = await anggotaRes.json();
-        const pengurusData = await pengurusRes.json();
-
-        const namaPengurusAktif = (pengurusData || [])
-            .filter(p=>p.Status==="Aktif")
-            .map(p=>p.Nama);
-
-        let html="";
-
-        (anggotaData || [])
-        .filter(row=>row.Status==="Aktif")
-        .reverse()
-        .forEach(row=>{
-
-            const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
-
-            const badge = isPengurus
-            ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
-            : "";
-
-            html+=`
-            <tr>
-                <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-                <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
-                <td>${row["No Anggota"]||"-"}</td>
-                <td><span class="status-aktif">Aktif</span></td>
-            </tr>`;
-        });
-
-        const newHash = btoa(html);
-
-        if(newHash !== lastHash){
-            document.getElementById("listAnggota").innerHTML =
-            html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
-            lastHash = newHash;
-        }
-
-    }catch{
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-    }
-}
-
-/* ================================
-   SMART REALTIME (NO INTERVAL)
-================================ */
-document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible"){
-        loadStruktur();
-        loadAnggota();
-    }
-});
-
-window.addEventListener("focus",()=>{
-    loadStruktur();
-    loadAnggota();
-});
-
-/* ================================
-   FORM CONTROL
-================================ */
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
-}
-
-/* ================================
-   INIT
-================================ */
-loadStruktur();
-loadAnggota();
+/* INIT */
+startRealtime();
 
 </script>
 
