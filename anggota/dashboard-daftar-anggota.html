@@ -167,7 +167,16 @@ const CACHE_DURATION = 60000; // 60 detik
 ================================================== */
 const usernameLogin = localStorage.getItem("username");
 const roleLogin = localStorage.getItem("role");
-const levelLogin = parseInt(localStorage.getItem("level"));
+let levelLogin = parseInt(localStorage.getItem("level"));
+
+// Fallback jika sistem lama (belum pakai level)
+if(!levelLogin){
+    const roleLogin = localStorage.getItem("role");
+
+    if(roleLogin === "Super Admin") levelLogin = 3;
+    else if(roleLogin === "Admin") levelLogin = 2;
+    else levelLogin = 1;
+}
 
 document.getElementById("userInfo").innerHTML =
 `Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
