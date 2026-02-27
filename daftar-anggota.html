@@ -70,6 +70,7 @@ th{ background:#222; color:gold; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
 
+/* 🔵 Tombol Masuk Biru Metalik */
 .login-top{
 position:fixed;
 top:20px;
@@ -91,6 +92,30 @@ box-shadow:0 0 25px rgba(59,130,246,1);
 
 .button-group{ margin-top:15px; }
 
+#modalDaftar{
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.9);
+justify-content:center;
+align-items:center;
+}
+
+.modal-content{
+background:#0f172a;
+padding:30px;
+border-radius:15px;
+width:400px;
+}
+
+.modal-content input,
+.modal-content textarea{
+width:100%;
+padding:10px;
+margin:8px 0;
+}
+
 .loading{
 text-align:center;
 color:gold;
@@ -100,6 +125,7 @@ color:gold;
 
 <body>
 
+<!-- 🔵 TOMBOL MASUK -->
 <a href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html"
 class="login-top">Masuk</a>
 
@@ -132,7 +158,7 @@ Memuat struktur...
 </table>
 
 <div class="button-group">
-<button class="btn btn-blue" onclick="location.href='daftar-anggota.html'">Daftar</button>
+<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
 <a href="verifikasi.html">
 <button class="btn btn-green">Verifikasi QR</button>
 </a>
@@ -148,62 +174,34 @@ Memuat struktur...
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-const CACHE_KEY="skh_public_cache_v3";
+let cacheKey="anggota_cache_v2";
 
 /* ================================
-   HASH UTILITY (SUPER CEPAT)
+   SMART CACHE SYSTEM
 ================================ */
-function makeHash(obj){
-return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+function hashData(data){
+return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+}
+
+function saveCache(data){
+localStorage.setItem(cacheKey,JSON.stringify(data));
+}
+
+function getCache(){
+return JSON.parse(localStorage.getItem(cacheKey)||"null");
 }
 
 /* ================================
-   LOAD DATA SEKALI (FAST MODE)
+   LOAD STRUKTUR
 ================================ */
-async function loadData(){
-
+async function loadStruktur(){
 try{
-
-const res=await fetch(WEB_APP_URL+"?action=publicData");
+const res=await fetch(WEB_APP_URL+"?action=getPengurus");
 const data=await res.json();
-
-/*
-Apps Script harus return:
-{
-  anggota:[...],
-  pengurus:[...]
-}
-*/
-
-const anggota=(data.anggota||[]).filter(a=>a.Status==="Aktif");
-const pengurusAktif=(data.pengurus||[])
-.filter(p=>p.Status==="Aktif")
-.map(p=>p.Nama);
-
-const hash=makeHash({anggota,pengurusAktif});
-const cache=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");
-
-if(cache && cache.hash===hash) return;
-
-renderStruktur(data.pengurus||[]);
-renderAnggota(anggota,pengurusAktif);
-
-localStorage.setItem(CACHE_KEY,JSON.stringify({hash}));
-
-}catch{
-document.getElementById("listAnggota").innerHTML=
-"<tr><td colspan='4'>Gagal memuat data</td></tr>";
-}
-}
-
-/* ================================
-   RENDER STRUKTUR
-================================ */
-function renderStruktur(data){
 
 let ketua="-",sekretaris="-",bendahara="-",kurator="-";
 
-data.forEach(p=>{
+(data||[]).forEach(p=>{
 if(p.Status!=="Aktif") return;
 if(p.Jabatan==="Ketua") ketua=p.Nama;
 if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
@@ -217,18 +215,42 @@ Sekretaris : ${sekretaris}<br>
 Bendahara : ${bendahara}<br>
 Kurator Pusaka : ${kurator}
 `;
+}catch{}
 }
 
 /* ================================
-   RENDER ANGGOTA
+   LOAD ANGGOTA SUPER RINGAN
 ================================ */
-function renderAnggota(anggota,pengurusAktif){
+async function loadAnggota(){
+
+try{
+const [aRes,pRes]=await Promise.all([
+fetch(WEB_APP_URL),
+fetch(WEB_APP_URL+"?action=getPengurus")
+]);
+
+const anggota=await aRes.json();
+const pengurus=await pRes.json();
+
+const namaPengurusAktif=(pengurus||[])
+.filter(p=>p.Status==="Aktif")
+.map(p=>p.Nama);
+
+const anggotaAktif=(anggota||[])
+.filter(r=>r.Status==="Aktif");
+
+const newHash=hashData({anggotaAktif,namaPengurusAktif});
+const oldCache=getCache();
+
+if(oldCache && oldCache.hash===newHash) return;
 
 let html="";
 
-anggota.reverse().forEach(row=>{
+anggotaAktif.reverse().forEach(row=>{
 
-const badge=pengurusAktif.includes(row["Nama Lengkap"])
+const isPengurus=namaPengurusAktif.includes(row["Nama Lengkap"]);
+
+const badge=isPengurus
 ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
 : "";
 
@@ -243,18 +265,34 @@ html+=`
 
 document.getElementById("listAnggota").innerHTML=
 html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+
+saveCache({hash:newHash});
+
+}catch{
+document.getElementById("listAnggota").innerHTML=
+"<tr><td colspan='4'>Gagal memuat data</td></tr>";
+}
 }
 
 /* ================================
-   REALTIME TANPA INTERVAL
+   REALTIME TRIGGER (NO INTERVAL)
 ================================ */
 document.addEventListener("visibilitychange",()=>{
-if(document.visibilityState==="visible") loadData();
+if(document.visibilityState==="visible"){
+loadStruktur();
+loadAnggota();
+}
 });
-window.addEventListener("focus",loadData);
+window.addEventListener("focus",()=>{
+loadStruktur();
+loadAnggota();
+});
 
-/* INIT */
-loadData();
+/* ================================
+   INIT
+================================ */
+loadStruktur();
+loadAnggota();
 
 </script>
 
