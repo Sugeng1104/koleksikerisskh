@@ -146,16 +146,15 @@ const CACHE_TIME_KEY = "cacheTime";
 const CACHE_DURATION = 60000; // 60 detik
 
 /* ==================================================
-   PROTEKSI LOGIN (FIX BUG)
+   PROTEKSI LOGIN (COMPATIBLE VERSION)
 ================================================== */
 (function(){
 
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
     const role = localStorage.getItem("role");
-    const level = localStorage.getItem("level");
 
-    if(isLoggedIn !== "true" || !username || !role || !level){
+    if(isLoggedIn !== "true" || !username || !role){
         localStorage.clear();
         window.location.href = "anggota-login.html";
         return;
