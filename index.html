@@ -14,7 +14,7 @@
 <style>
 body{margin:0;font-family:Georgia,serif;background:#000;color:#eee}
 
-/* ADMIN BUTTON */
+/* ADMIN BUTTON TOP RIGHT */
 .admin-top{
 position:fixed;
 top:20px;
@@ -63,31 +63,60 @@ h3{color:gold}
 .gallery img{width:100%;border-radius:8px;transition:0.4s;border:1px solid #333}
 .gallery img:hover{transform:scale(1.05);box-shadow:0 0 20px #00ff88}
 
-/* STRUKTUR PENGURUS */
-.pengurus-box{
-background:#111;
-padding:30px;
-border-radius:10px;
-margin-top:40px;
-border:1px solid #333;
-}
-.pengurus-list{
-margin-top:20px;
-}
-.pengurus-item{
-padding:10px;
-border-bottom:1px solid #333;
-}
-.pengurus-item strong{
-color:gold;
+footer{text-align:center;padding:30px;background:#111;color:#777}
+
+/* LOGIN POPUP */
+#loginModal{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.85);
+justify-content:center;
+align-items:center;
+z-index:999;
 }
 
-footer{text-align:center;padding:30px;background:#111;color:#777}
+.login-box{
+background:#111;
+padding:30px;
+border-radius:12px;
+width:300px;
+text-align:center;
+box-shadow:0 0 25px gold;
+animation:fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:scale(0.9)}
+to{opacity:1;transform:scale(1)}
+}
+
+.login-box h3{color:gold;margin-bottom:15px}
+.login-box input{
+width:100%;
+padding:8px;
+margin:8px 0;
+border-radius:6px;
+border:none;
+}
+.login-box button{
+width:100%;
+padding:10px;
+background:gold;
+border:none;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
+}
+.login-box button:hover{background:#ffd700}
+#errorLogin{color:red;margin-top:10px;font-size:14px}
 </style>
 </head>
 
 <body>
 
+<!-- TOMBOL ADMIN POJOK KANAN ATAS -->
 <a href="admin.html" class="admin-top">ADMIN</a>
 
 <div class="hero">
@@ -107,25 +136,17 @@ footer{text-align:center;padding:30px;background:#111;color:#777}
 
         <div class="buttons">
             <a href="admin-sertifikat.html" class="btn">Masuk Arsip Sertifikat</a><br><br>
-            <a href="daftar-anggota.html" class="btn">Daftar Anggota SKH</a>
+            <a href="daftar-anggota.html" class="btn">Daftar Anggota SKH</a><br><br>
+            <a href="#" onclick="bukaLogin(); return false;" class="btn">Tambah Koleksi (Admin)</a>
         </div>
     </div>
 </div>
 
 <section>
-
 <h3>Tentang SKH</h3>
 <p>
 Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusantara.
 </p>
-
-<!-- STRUKTUR PENGURUS LIVE -->
-<div class="pengurus-box">
-    <h3>Struktur Pengurus SKH</h3>
-    <div id="pengurusList" class="pengurus-list">
-        Memuat struktur pengurus...
-    </div>
-</div>
 
 <h3>
     <a href="https://sugeng1104.github.io/koleksikerisskh/galeri.html" style="color: yellow; text-decoration: none;">
@@ -133,50 +154,57 @@ Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusan
     </a>
 </h3>
 
+
 <div class="gallery">
     <img src="galeri1.jpg">
     <img src="galeri2.jpg">
     <img src="galeri3.jpg">
 </div>
-
 </section>
 
 <footer>
 © 2026 Komunitas Keris SKH – Sejiwa Keris Harum
 </footer>
 
+<!-- LOGIN MODAL -->
+<div id="loginModal">
+  <div class="login-box">
+    <h3>Login Admin SKH</h3>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="cekLogin()">Masuk</button>
+    <button onclick="tutupLogin()" style="background:#333;color:white;margin-top:8px">Batal</button>
+    <div id="errorLogin"></div>
+  </div>
+</div>
+
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+document.addEventListener("DOMContentLoaded", function(){
 
-async function loadPengurus(){
-    try{
-        const res = await fetch(WEB_APP_URL+"?action=getPengurus");
-        const data = await res.json();
+window.bukaLogin = function(){
+    document.getElementById("loginModal").style.display="flex";
+}
 
-        const container=document.getElementById("pengurusList");
-        container.innerHTML="";
+window.tutupLogin = function(){
+    document.getElementById("loginModal").style.display="none";
+}
 
-        if(!data.length){
-            container.innerHTML="Belum ada pengurus.";
-            return;
-        }
+window.cekLogin = function(){
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
 
-        data.forEach(p=>{
-            container.innerHTML+=`
-            <div class="pengurus-item">
-                <strong>${p.jabatan}</strong><br>
-                ${p.nama}
-            </div>
-            `;
-        });
-
-    }catch(e){
-        document.getElementById("pengurusList").innerHTML=
-        "Gagal memuat struktur pengurus.";
+    if(user === "Sugeng11" && pass === "300507Sg#"){
+        localStorage.setItem("adminLogin","true");
+        localStorage.setItem("lastActivity", Date.now().toString());
+        window.location.href = "admin-panel.html";
+    } else {
+        document.getElementById("errorLogin").innerText="Username atau Password salah!";
     }
 }
 
-loadPengurus();
+sessionStorage.clear();
+
+});
 </script>
 
 </body>
