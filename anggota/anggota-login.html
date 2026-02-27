@@ -127,10 +127,15 @@ function setSession(username, role){
   localStorage.setItem("isLoggedIn","true");
   localStorage.setItem("username",username);
   localStorage.setItem("role",role);
-  window.location.href="admin.html";
+
+  // Redirect ke dashboard anggota
+  window.location.href="dashboard-daftar-anggota.html";
 }
 
 </script>
 
+
 </body>
 </html>
+
+
