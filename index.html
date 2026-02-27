@@ -65,6 +65,24 @@ h3{color:gold}
 
 footer{text-align:center;padding:30px;background:#111;color:#777}
 
+/* STRUKTUR PENGURUS */
+.pengurus-section{
+text-align:center;
+margin-top:30px;
+}
+.pengurus-section h3{
+color:gold;
+margin-bottom:20px;
+}
+.pengurus-list{
+list-style:none;
+padding:0;
+}
+.pengurus-list li{
+margin:8px 0;
+font-size:18px;
+}
+
 /* LOGIN POPUP */
 #loginModal{
 display:none;
@@ -116,7 +134,6 @@ margin-top:10px;
 
 <body>
 
-<!-- TOMBOL ADMIN POJOK KANAN ATAS -->
 <a href="admin.html" class="admin-top">ADMIN</a>
 
 <div class="hero">
@@ -142,6 +159,14 @@ margin-top:10px;
     </div>
 </div>
 
+<!-- STRUKTUR PENGURUS (LIVE) -->
+<div class="pengurus-section">
+    <h3>Struktur Pengurus</h3>
+    <ul class="pengurus-list" id="pengurusList">
+        <li>Memuat data...</li>
+    </ul>
+</div>
+
 <section>
 <h3>Tentang SKH</h3>
 <p>
@@ -153,7 +178,6 @@ Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusan
         Galeri Keris
     </a>
 </h3>
-
 
 <div class="gallery">
     <img src="galeri1.jpg">
@@ -179,7 +203,29 @@ Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusan
 </div>
 
 <script>
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+async function loadPengurus(){
+    try{
+        const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+        const data=await res.json();
+        const list=document.getElementById("pengurusList");
+        list.innerHTML="";
+        if(!data.length){
+            list.innerHTML="<li>Belum ada pengurus</li>";
+            return;
+        }
+        data.forEach(p=>{
+            list.innerHTML+=`<li><strong>${p.jabatan}</strong> : ${p.nama}</li>`;
+        });
+    }catch{
+        document.getElementById("pengurusList").innerHTML="<li>Gagal memuat data</li>";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function(){
+
+loadPengurus();
 
 window.bukaLogin = function(){
     document.getElementById("loginModal").style.display="flex";
