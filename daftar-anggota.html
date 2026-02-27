@@ -70,7 +70,7 @@ th{ background:#222; color:gold; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
 
-/* Tombol Masuk */
+/* 🔵 Tombol Masuk Biru Metalik */
 .login-top{
 position:fixed;
 top:20px;
@@ -90,6 +90,32 @@ transform:scale(1.05);
 box-shadow:0 0 25px rgba(59,130,246,1);
 }
 
+.button-group{ margin-top:15px; }
+
+#modalDaftar{
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.9);
+justify-content:center;
+align-items:center;
+}
+
+.modal-content{
+background:#0f172a;
+padding:30px;
+border-radius:15px;
+width:400px;
+}
+
+.modal-content input,
+.modal-content textarea{
+width:100%;
+padding:10px;
+margin:8px 0;
+}
+
 .loading{
 text-align:center;
 color:gold;
@@ -99,6 +125,7 @@ color:gold;
 
 <body>
 
+<!-- 🔵 TOMBOL MASUK -->
 <a href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html"
 class="login-top">Masuk</a>
 
@@ -131,6 +158,10 @@ Memuat struktur...
 </table>
 
 <div class="button-group">
+<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
+<a href="verifikasi.html">
+<button class="btn btn-green">Verifikasi QR</button>
+</a>
 <a href="index.html">
 <button class="btn btn-gold">Kembali</button>
 </a>
@@ -143,48 +174,35 @@ Memuat struktur...
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-let cacheVersion="skh_v3";
+let cacheKey="anggota_cache_v2";
 
 /* ================================
-   HASH FUNCTION
+   SMART CACHE SYSTEM
 ================================ */
-function makeHash(data){
+function hashData(data){
 return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
 }
 
+function saveCache(data){
+localStorage.setItem(cacheKey,JSON.stringify(data));
+}
+
+function getCache(){
+return JSON.parse(localStorage.getItem(cacheKey)||"null");
+}
+
 /* ================================
-   LOAD DATA (STABIL & CEPAT)
+   LOAD STRUKTUR
 ================================ */
-async function loadData(){
-
+async function loadStruktur(){
 try{
+const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+const data=await res.json();
 
-const [anggotaRes,pengurusRes]=await Promise.all([
-fetch(WEB_APP_URL),
-fetch(WEB_APP_URL+"?action=getPengurus")
-]);
-
-const anggota=await anggotaRes.json();
-const pengurus=await pengurusRes.json();
-
-/* ===== FILTER AKTIF ===== */
-const anggotaAktif=(anggota||[])
-.filter(a=>a.Status==="Aktif");
-
-const pengurusAktif=(pengurus||[])
-.filter(p=>p.Status==="Aktif");
-
-/* ===== BUAT HASH ===== */
-const newHash=makeHash({anggotaAktif,pengurusAktif});
-const oldHash=localStorage.getItem(cacheVersion);
-
-if(oldHash===newHash) return;
-localStorage.setItem(cacheVersion,newHash);
-
-/* ===== STRUKTUR ===== */
 let ketua="-",sekretaris="-",bendahara="-",kurator="-";
 
-pengurusAktif.forEach(p=>{
+(data||[]).forEach(p=>{
+if(p.Status!=="Aktif") return;
 if(p.Jabatan==="Ketua") ketua=p.Nama;
 if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
 if(p.Jabatan==="Bendahara") bendahara=p.Nama;
@@ -197,29 +215,58 @@ Sekretaris : ${sekretaris}<br>
 Bendahara : ${bendahara}<br>
 Kurator Pusaka : ${kurator}
 `;
+}catch{}
+}
 
-/* ===== TABEL ===== */
-const namaPengurus=pengurusAktif.map(p=>p.Nama);
+/* ================================
+   LOAD ANGGOTA SUPER RINGAN
+================================ */
+async function loadAnggota(){
+
+try{
+const [aRes,pRes]=await Promise.all([
+fetch(WEB_APP_URL),
+fetch(WEB_APP_URL+"?action=getPengurus")
+]);
+
+const anggota=await aRes.json();
+const pengurus=await pRes.json();
+
+const namaPengurusAktif=(pengurus||[])
+.filter(p=>p.Status==="Aktif")
+.map(p=>p.Nama);
+
+const anggotaAktif=(anggota||[])
+.filter(r=>r.Status==="Aktif");
+
+const newHash=hashData({anggotaAktif,namaPengurusAktif});
+const oldCache=getCache();
+
+if(oldCache && oldCache.hash===newHash) return;
 
 let html="";
 
-anggotaAktif.reverse().forEach(a=>{
+anggotaAktif.reverse().forEach(row=>{
 
-const badge=namaPengurus.includes(a["Nama Lengkap"])
+const isPengurus=namaPengurusAktif.includes(row["Nama Lengkap"]);
+
+const badge=isPengurus
 ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
 : "";
 
 html+=`
 <tr>
-<td><img src="${a.Foto||""}" class="foto-kecil"></td>
-<td>${a["Nama Lengkap"]||"-"} ${badge}</td>
-<td>${a["No Anggota"]||"-"}</td>
+<td><img src="${row.Foto||""}" class="foto-kecil"></td>
+<td>${row["Nama Lengkap"]||"-"} ${badge}</td>
+<td>${row["No Anggota"]||"-"}</td>
 <td><span class="status-aktif">Aktif</span></td>
 </tr>`;
 });
 
 document.getElementById("listAnggota").innerHTML=
 html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+
+saveCache({hash:newHash});
 
 }catch{
 document.getElementById("listAnggota").innerHTML=
@@ -228,15 +275,24 @@ document.getElementById("listAnggota").innerHTML=
 }
 
 /* ================================
-   REALTIME RINGAN
+   REALTIME TRIGGER (NO INTERVAL)
 ================================ */
 document.addEventListener("visibilitychange",()=>{
-if(document.visibilityState==="visible") loadData();
+if(document.visibilityState==="visible"){
+loadStruktur();
+loadAnggota();
+}
 });
-window.addEventListener("focus",loadData);
+window.addEventListener("focus",()=>{
+loadStruktur();
+loadAnggota();
+});
 
-/* INIT */
-loadData();
+/* ================================
+   INIT
+================================ */
+loadStruktur();
+loadAnggota();
 
 </script>
 
