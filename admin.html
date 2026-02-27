@@ -179,14 +179,16 @@ if(localStorage.getItem("role")==="Super Admin"){
 }
 
 function logout(){
-  localStorage.clear();
+  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("username");
+  localStorage.removeItem("role");
   window.location.href="https://sugeng1104.github.io/koleksikerisskh/index.html";
 }
 
 let allData=[];
 let currentPage=1;
 const rowsPerPage=10;
-let pengurus=JSON.parse(localStorage.getItem("pengurus"))||[];
+let pengurus=[];
 
 function showLoading(){
   document.getElementById("tabelAnggota").innerHTML=
@@ -195,16 +197,17 @@ function showLoading(){
 
 async function loadAnggota(){
   showLoading();
-  try{
-    const res=await fetch(WEB_APP_URL);
-    allData=await res.json()||[];
-    updateStatistik();
-    isiDropdownPengurus();
-    renderTabel();
-  }catch{
-    document.getElementById("tabelAnggota").innerHTML=
-    "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-  }
+  const res=await fetch(WEB_APP_URL);
+  allData=await res.json()||[];
+  updateStatistik();
+  isiDropdownPengurus();
+  renderTabel();
+}
+
+async function loadPengurus(){
+  const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+  pengurus=await res.json()||[];
+  tampilPengurus();
 }
 
 function updateStatistik(){
@@ -217,14 +220,9 @@ function updateStatistik(){
 
 function isiDropdownPengurus(){
   const select=document.getElementById("namaPengurus");
-  select.innerHTML="";
-  const aktif=allData.filter(a=>a.Status==="Aktif" && a["Nama Lengkap"]);
-  if(!aktif.length){
-    select.innerHTML="<option value=''>Tidak ada anggota aktif</option>";
-    return;
-  }
   select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
-  aktif.forEach(a=>{
+  allData.filter(a=>a.Status==="Aktif")
+  .forEach(a=>{
     const opt=document.createElement("option");
     opt.value=a["Nama Lengkap"];
     opt.textContent=a["Nama Lengkap"];
@@ -239,36 +237,43 @@ function tampilPengurus(){
     list.innerHTML="<li>Belum ada pengurus</li>";
     return;
   }
-  pengurus.forEach((p,i)=>{
-    list.innerHTML+=`<li>${p.nama} - ${p.jabatan}
-    <button class="hapus" onclick="hapusPengurus(${i})">Hapus</button></li>`;
+  pengurus.forEach(p=>{
+    list.innerHTML+=`
+      <li>${p.nama} - ${p.jabatan}
+      <button class="hapus" onclick="hapusPengurus('${p.nama}')">Hapus</button>
+      </li>`;
   });
 }
 
-function tambahPengurus(){
+async function tambahPengurus(){
   const nama=document.getElementById("namaPengurus").value;
   const jabatan=document.getElementById("jabatan").value;
   if(!nama) return alert("Pilih anggota aktif!");
-  if(pengurus.some(p=>p.nama===nama))
-    return alert("Sudah menjadi pengurus!");
-  pengurus.push({nama,jabatan});
-  localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  tampilPengurus();
+
+  const fd=new URLSearchParams();
+  fd.append("action","addPengurus");
+  fd.append("nama",nama);
+  fd.append("jabatan",jabatan);
+
+  const res=await fetch(WEB_APP_URL,{method:"POST",body:fd});
+  const result=await res.json();
+
+  if(result.status==="success"){
+    loadPengurus();
+  }else{
+    alert("Gagal menambahkan pengurus");
+  }
 }
 
-function hapusPengurus(i){
-  pengurus.splice(i,1);
-  localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  tampilPengurus();
-}
+async function hapusPengurus(nama){
+  if(!confirm("Hapus pengurus ini?")) return;
 
-function autoRemoveNonaktif(){
-  const aktifNames=allData
-    .filter(a=>a.Status==="Aktif")
-    .map(a=>a["Nama Lengkap"]);
-  pengurus=pengurus.filter(p=>aktifNames.includes(p.nama));
-  localStorage.setItem("pengurus",JSON.stringify(pengurus));
-  tampilPengurus();
+  const fd=new URLSearchParams();
+  fd.append("action","deletePengurus");
+  fd.append("nama",nama);
+
+  await fetch(WEB_APP_URL,{method:"POST",body:fd});
+  loadPengurus();
 }
 
 function getFilteredData(){
@@ -289,6 +294,7 @@ function renderTabel(){
   const data=getFilteredData();
   const start=(currentPage-1)*rowsPerPage;
   const pageData=data.slice(start,start+rowsPerPage);
+
   let html="";
   pageData.forEach(row=>{
     const status=row.Status||"Nonaktif";
@@ -306,8 +312,10 @@ function renderTabel(){
       </td>
     </tr>`;
   });
+
   document.getElementById("tabelAnggota").innerHTML=
     pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
+
   renderPagination(data.length);
 }
 
@@ -331,37 +339,48 @@ async function ubahStatus(no,status){
   fd.append("action","updateStatus");
   fd.append("no",no);
   fd.append("status",status);
+
   await fetch(WEB_APP_URL,{method:"POST",body:fd});
+
   const item=allData.find(a=>a["No Anggota"]===no);
   if(item) item.Status=status;
+
   updateStatistik();
   isiDropdownPengurus();
-  autoRemoveNonaktif();
+  loadPengurus();
   renderTabel();
+
   alert("Status berhasil diperbarui");
 }
 
 async function hapusAnggota(no){
   if(!confirm("Yakin ingin menghapus anggota ini?")) return;
+
   const fd=new URLSearchParams();
   fd.append("action","delete");
   fd.append("no",no);
+
   await fetch(WEB_APP_URL,{method:"POST",body:fd});
+
   allData=allData.filter(a=>a["No Anggota"]!==no);
+
   updateStatistik();
   isiDropdownPengurus();
-  autoRemoveNonaktif();
+  loadPengurus();
   renderTabel();
 }
 
 function exportExcel(){
   const data=getFilteredData();
   if(!data.length) return alert("Tidak ada data");
+
   const headers=Object.keys(data[0]);
   let csv=headers.join(",")+"\n";
+
   data.forEach(row=>{
     csv+=headers.map(h=>`"${row[h]||""}"`).join(",")+"\n";
   });
+
   const blob=new Blob([csv],{type:"text/csv"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -369,8 +388,8 @@ function exportExcel(){
   a.click();
 }
 
-tampilPengurus();
 loadAnggota();
+loadPengurus();
 </script>
 
 </body>
