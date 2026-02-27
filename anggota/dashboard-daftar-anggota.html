@@ -47,12 +47,8 @@ h1{
 
 h2{ color:gold; margin-bottom:15px; }
 
-.pengurus-list{ font-size:18px; line-height:1.8; }
-
 table{ width:100%; border-collapse:collapse; margin-top:15px; }
-
 th, td{ border:1px solid #444; padding:10px; text-align:center; }
-
 th{ background:#222; color:gold; }
 
 .foto-kecil{
@@ -69,7 +65,6 @@ th{ background:#222; color:gold; }
     border-radius:6px;
     font-weight:bold;
 }
-
 .status-nonaktif{
     background:#aa0000;
     padding:5px 10px;
@@ -85,14 +80,10 @@ th{ background:#222; color:gold; }
     border:none;
     cursor:pointer;
 }
-
 .btn-blue{ background:#007bff; color:white; }
 .btn-red{ background:#dc3545; color:white; }
 
-.loading{
-    text-align:center;
-    color:gold;
-}
+.loading{ text-align:center; color:gold; }
 </style>
 </head>
 
@@ -106,13 +97,6 @@ th{ background:#222; color:gold; }
 </div>
 
 <h1>Komunitas Keris SKH</h1>
-
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<div class="pengurus-list" id="strukturPengurus">
-Memuat struktur...
-</div>
-</div>
 
 <div class="card">
 <h2>Daftar Anggota</h2>
@@ -137,17 +121,13 @@ Memuat struktur...
 
 <script>
 
-/* ==============================
-   KONFIGURASI
-============================== */
+/* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 const CACHE_KEY = "cacheAnggota";
 const CACHE_TIME_KEY = "cacheTime";
 const CACHE_DURATION = 60000;
 
-/* ==============================
-   PROTEKSI LOGIN (SAFE)
-============================== */
+/* ================= LOGIN PROTECTION ================= */
 (function(){
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
@@ -160,14 +140,11 @@ const CACHE_DURATION = 60000;
     }
 })();
 
-/* ==============================
-   INFO LOGIN + LEVEL FALLBACK
-============================== */
+/* ================= USER INFO ================= */
 const usernameLogin = localStorage.getItem("username");
 const roleLogin = localStorage.getItem("role");
 
 let levelLogin = parseInt(localStorage.getItem("level"));
-
 if(!levelLogin){
     if(roleLogin === "Super Admin") levelLogin = 3;
     else if(roleLogin === "Admin") levelLogin = 2;
@@ -177,50 +154,13 @@ if(!levelLogin){
 document.getElementById("userInfo").innerHTML =
 `Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
 
-/* ==============================
-   LOGOUT
-============================== */
+/* ================= LOGOUT ================= */
 function logout(){
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
-    localStorage.removeItem("level");
-    window.location.href="anggota-login.html";
+    localStorage.clear();
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
-/* ==============================
-   STRUKTUR PENGURUS
-============================== */
-function loadStruktur(){
-
-    const container = document.getElementById("strukturPengurus");
-    const data = JSON.parse(localStorage.getItem("pengurus") || "[]");
-
-    if(data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-    data.forEach(p=>{
-        if(p.jabatan==="Ketua") ketua=p.nama;
-        if(p.jabatan==="Sekertaris" || p.jabatan==="Sekretaris") sekretaris=p.nama;
-        if(p.jabatan==="Bendahara") bendahara=p.nama;
-        if(p.jabatan==="Kurator Pusaka") kurator=p.nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
-}
-
-/* ==============================
-   RENDER ANGGOTA
-============================== */
+/* ================= RENDER DATA ================= */
 function renderAnggota(data){
 
     let html="";
@@ -242,25 +182,11 @@ function renderAnggota(data){
         let aksiButton="";
 
         if(levelLogin >= 2){
-
             aksiButton = `
             <button class="btn btn-blue"
             onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
             Cetak Kartu
             </button>`;
-
-        }else if(levelLogin === 1){
-
-            const usernameData = nama.replace(/\s+/g,"").toLowerCase();
-
-            if(usernameLogin.toLowerCase() === usernameData){
-
-                aksiButton = `
-                <button class="btn btn-blue"
-                onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
-                Cetak Kartu
-                </button>`;
-            }
         }
 
         html+=`
@@ -276,11 +202,8 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ==============================
-   FETCH + CACHE
-============================== */
+/* ================= FETCH ================= */
 async function fetchData(force=false){
-
     const now = Date.now();
     const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
 
@@ -299,35 +222,19 @@ async function fetchData(force=false){
             renderAnggota(data);
         }
     }catch(e){
-        console.log("Server sleep / gagal fetch.");
+        console.log("Fetch gagal");
     }
 }
 
 function loadAnggotaFast(){
     const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
-    if(cache.length>0){
-        renderAnggota(cache);
-    }
+    if(cache.length>0) renderAnggota(cache);
     fetchData(true);
 }
 
-/* ==============================
-   WARM SERVER
-============================== */
-setTimeout(()=>{
-    fetch(WEB_APP_URL + "?warm=" + Date.now());
-},2000);
+setInterval(()=>{ fetchData(true); },30000);
 
-/* ==============================
-   AUTO REFRESH
-============================== */
-setInterval(()=>{
-    fetchData(true);
-},30000);
-
-/* ==============================
-   GENERATE KARTU
-============================== */
+/* ================= PREMIUM CARD DESIGN ================= */
 function generateCard(nama,gelar,nomor,foto){
 
     const canvas=document.createElement("canvas");
@@ -335,48 +242,76 @@ function generateCard(nama,gelar,nomor,foto){
     canvas.height=638;
     const ctx=canvas.getContext("2d");
 
-    ctx.fillStyle="#111";
+    // Gold Gradient Background
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop(0,"#D4AF37");
+    gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B");
+    ctx.fillStyle=gradient;
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    ctx.fillStyle="gold";
-    ctx.font="bold 48px Georgia";
+    // Ornamental Border
+    ctx.strokeStyle="#5a3d00";
+    ctx.lineWidth=20;
+    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+
+    ctx.strokeStyle="#fff3b0";
+    ctx.lineWidth=4;
+    ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
+
+    // Title
+    ctx.fillStyle="#3b2a00";
+    ctx.font="bold 52px Georgia";
     ctx.textAlign="center";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,90);
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
 
-    const img=new Image();
-    img.src=foto;
+    ctx.font="bold 36px Georgia";
+    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
 
-    img.onload=function(){
-
-        ctx.drawImage(img,80,200,200,250);
+    function drawContent(){
 
         ctx.textAlign="left";
-        ctx.fillStyle="white";
-        ctx.font="bold 40px Georgia";
-        ctx.fillText(nama,320,260);
+        ctx.fillStyle="#3b2a00";
+        ctx.font="bold 42px Georgia";
+        ctx.fillText(nama,350,300);
 
         ctx.font="30px Georgia";
-        ctx.fillText(gelar||"",320,320);
-        ctx.fillText("No: "+nomor,320,380);
+        ctx.fillText(gelar || "",350,350);
+        ctx.fillText("No Anggota : "+nomor,350,400);
 
-        QRCode.toCanvas(nomor,{width:200},function(err,qrCanvas){
-
-            ctx.drawImage(qrCanvas,canvas.width/2-100,420);
-
-            ctx.font="22px Georgia";
-            ctx.textAlign="center";
-            ctx.fillText("Tanda Tangan Digital",canvas.width/2,600);
+        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+            if(!err){
+                ctx.drawImage(qrCanvas,canvas.width-300,400);
+            }
 
             const link=document.createElement("a");
             link.download="Kartu_"+nomor+".png";
             link.href=canvas.toDataURL("image/png");
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         });
-    };
+    }
+
+    if(foto){
+        const img=new Image();
+        img.crossOrigin="anonymous";
+        img.src=foto;
+
+        img.onload=function(){
+            ctx.drawImage(img,100,250,200,260);
+            drawContent();
+        };
+
+        img.onerror=function(){
+            drawContent();
+        };
+    }else{
+        drawContent();
+    }
 }
 
 /* INIT */
-loadStruktur();
 loadAnggotaFast();
 
 </script>
