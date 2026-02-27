@@ -70,40 +70,64 @@ th{ background:#222; color:gold; }
 .btn-green{ background:#28a745; color:white; }
 .btn-gold{ background:gold; color:black; }
 
+/* 🔵 Tombol Masuk Biru Metalik */
+.login-top{
+position:fixed;
+top:20px;
+right:30px;
+background:linear-gradient(45deg,#1e3c72,#2a5298,#3b82f6);
+color:white;
+padding:10px 22px;
+border-radius:8px;
+font-weight:bold;
+text-decoration:none;
+box-shadow:0 0 15px rgba(59,130,246,0.7);
+transition:0.3s;
+z-index:1000;
+}
+.login-top:hover{
+transform:scale(1.05);
+box-shadow:0 0 25px rgba(59,130,246,1);
+}
+
 .button-group{ margin-top:15px; }
 
 #modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.9);
+justify-content:center;
+align-items:center;
 }
 
 .modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
+background:#0f172a;
+padding:30px;
+border-radius:15px;
+width:400px;
 }
 
 .modal-content input,
 .modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
+width:100%;
+padding:10px;
+margin:8px 0;
 }
 
 .loading{
-    text-align:center;
-    color:gold;
+text-align:center;
+color:gold;
 }
 </style>
 </head>
 
 <body>
+
+<!-- 🔵 TOMBOL MASUK -->
+<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html"
+class="login-top">Masuk</a>
 
 <div class="container">
 
@@ -135,15 +159,9 @@ Memuat struktur...
 
 <div class="button-group">
 <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-
 <a href="verifikasi.html">
 <button class="btn btn-green">Verifikasi QR</button>
 </a>
-
-<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/dashboard-daftar-anggota.html">
-<button class="btn btn-green">Masuk</button>
-</a>
-
 <a href="index.html">
 <button class="btn btn-gold">Kembali</button>
 </a>
@@ -152,162 +170,123 @@ Memuat struktur...
 </div>
 </div>
 
-<div id="modalDaftar">
-<div class="modal-content">
-<h3 style="color:gold;">Pendaftaran Anggota</h3>
-<input type="text" id="nama" placeholder="Nama Lengkap">
-<input type="text" id="gelar" placeholder="Gelar">
-<textarea id="alamat" placeholder="Alamat"></textarea>
-<input type="text" id="nohp" placeholder="No HP">
-<input type="file" id="foto" accept="image/*">
-<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
-<button class="btn btn-green" onclick="tutupForm()">Batal</button>
-</div>
-</div>
-
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+let cacheKey="anggota_cache_v2";
 
 /* ================================
-   CACHE PINTAR
+   SMART CACHE SYSTEM
 ================================ */
-function getCache(key){
-    const data = localStorage.getItem(key);
-    if(!data) return null;
-    const parsed = JSON.parse(data);
-    if(Date.now() > parsed.expiry){
-        localStorage.removeItem(key);
-        return null;
-    }
-    return parsed.value;
+function hashData(data){
+return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
 }
 
-function setCache(key,value,ttl=15000){
-    localStorage.setItem(key,JSON.stringify({
-        value:value,
-        expiry:Date.now()+ttl
-    }));
+function saveCache(data){
+localStorage.setItem(cacheKey,JSON.stringify(data));
+}
+
+function getCache(){
+return JSON.parse(localStorage.getItem(cacheKey)||"null");
 }
 
 /* ================================
    LOAD STRUKTUR
 ================================ */
 async function loadStruktur(){
+try{
+const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+const data=await res.json();
 
-    const container = document.getElementById("strukturPengurus");
+let ketua="-",sekretaris="-",bendahara="-",kurator="-";
 
-    let data = getCache("strukturCache");
+(data||[]).forEach(p=>{
+if(p.Status!=="Aktif") return;
+if(p.Jabatan==="Ketua") ketua=p.Nama;
+if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
+if(p.Jabatan==="Bendahara") bendahara=p.Nama;
+if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
+});
 
-    if(!data){
-        const res = await fetch(WEB_APP_URL + "?action=getPengurus");
-        data = await res.json();
-        setCache("strukturCache",data);
-    }
-
-    if(!data || data.length===0){
-        container.innerHTML="Belum ditentukan.";
-        return;
-    }
-
-    let ketua="-", sekretaris="-", bendahara="-", kurator="-";
-
-    data.forEach(p=>{
-        if(p.Status!=="Aktif") return;
-        if(p.Jabatan==="Ketua") ketua=p.Nama;
-        if(p.Jabatan==="Sekretaris") sekretaris=p.Nama;
-        if(p.Jabatan==="Bendahara") bendahara=p.Nama;
-        if(p.Jabatan==="Kurator Pusaka") kurator=p.Nama;
-    });
-
-    container.innerHTML=`
-    Ketua : <strong>${ketua}</strong><br>
-    Sekretaris : ${sekretaris}<br>
-    Bendahara : ${bendahara}<br>
-    Kurator Pusaka : ${kurator}
-    `;
+document.getElementById("strukturPengurus").innerHTML=`
+Ketua : <strong>${ketua}</strong><br>
+Sekretaris : ${sekretaris}<br>
+Bendahara : ${bendahara}<br>
+Kurator Pusaka : ${kurator}
+`;
+}catch{}
 }
 
 /* ================================
-   LOAD ANGGOTA + BADGE AUTO REMOVE
+   LOAD ANGGOTA SUPER RINGAN
 ================================ */
 async function loadAnggota(){
 
-    let anggotaData = getCache("anggotaCache");
-    let pengurusData = getCache("pengurusCache");
+try{
+const [aRes,pRes]=await Promise.all([
+fetch(WEB_APP_URL),
+fetch(WEB_APP_URL+"?action=getPengurus")
+]);
 
-    if(!anggotaData){
-        const res = await fetch(WEB_APP_URL);
-        anggotaData = await res.json();
-        setCache("anggotaCache",anggotaData);
-    }
+const anggota=await aRes.json();
+const pengurus=await pRes.json();
 
-    if(!pengurusData){
-        const res2 = await fetch(WEB_APP_URL + "?action=getPengurus");
-        pengurusData = await res2.json();
-        setCache("pengurusCache",pengurusData);
-    }
+const namaPengurusAktif=(pengurus||[])
+.filter(p=>p.Status==="Aktif")
+.map(p=>p.Nama);
 
-    const namaPengurusAktif = (pengurusData || [])
-        .filter(p=>p.Status==="Aktif")
-        .map(p=>p.Nama);
+const anggotaAktif=(anggota||[])
+.filter(r=>r.Status==="Aktif");
 
-    let html="";
+const newHash=hashData({anggotaAktif,namaPengurusAktif});
+const oldCache=getCache();
 
-    (anggotaData || [])
-    .filter(row=>row.Status==="Aktif")
-    .reverse()
-    .forEach(row=>{
+if(oldCache && oldCache.hash===newHash) return;
 
-        const isPengurus = namaPengurusAktif.includes(row["Nama Lengkap"]);
+let html="";
 
-        const badge = isPengurus
-        ? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
-        : "";
+anggotaAktif.reverse().forEach(row=>{
 
-        html+=`
-        <tr>
-            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-            <td>${row["Nama Lengkap"]||"-"} ${badge}</td>
-            <td>${row["No Anggota"]||"-"}</td>
-            <td><span class="status-aktif">Aktif</span></td>
-        </tr>`;
-    });
+const isPengurus=namaPengurusAktif.includes(row["Nama Lengkap"]);
 
-    document.getElementById("listAnggota").innerHTML =
-    html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+const badge=isPengurus
+? ` <span style="background:gold;color:black;padding:3px 8px;border-radius:6px;font-size:12px;margin-left:6px;">Pengurus</span>`
+: "";
+
+html+=`
+<tr>
+<td><img src="${row.Foto||""}" class="foto-kecil"></td>
+<td>${row["Nama Lengkap"]||"-"} ${badge}</td>
+<td>${row["No Anggota"]||"-"}</td>
+<td><span class="status-aktif">Aktif</span></td>
+</tr>`;
+});
+
+document.getElementById("listAnggota").innerHTML=
+html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+
+saveCache({hash:newHash});
+
+}catch{
+document.getElementById("listAnggota").innerHTML=
+"<tr><td colspan='4'>Gagal memuat data</td></tr>";
+}
 }
 
 /* ================================
-   SMART REFRESH
+   REALTIME TRIGGER (NO INTERVAL)
 ================================ */
 document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible"){
-        localStorage.removeItem("anggotaCache");
-        localStorage.removeItem("pengurusCache");
-        localStorage.removeItem("strukturCache");
-        loadStruktur();
-        loadAnggota();
-    }
+if(document.visibilityState==="visible"){
+loadStruktur();
+loadAnggota();
+}
 });
-
 window.addEventListener("focus",()=>{
-    localStorage.removeItem("anggotaCache");
-    localStorage.removeItem("pengurusCache");
-    localStorage.removeItem("strukturCache");
-    loadStruktur();
-    loadAnggota();
+loadStruktur();
+loadAnggota();
 });
-
-/* ================================
-   FORM CONTROL
-================================ */
-function bukaForm(){
-    document.getElementById("modalDaftar").style.display="flex";
-}
-function tutupForm(){
-    document.getElementById("modalDaftar").style.display="none";
-}
 
 /* ================================
    INIT
