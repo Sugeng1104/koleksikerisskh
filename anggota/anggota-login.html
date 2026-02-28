@@ -64,9 +64,7 @@
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ==============================
-   MASTER ACCOUNT
-============================== */
+/* MASTER ACCOUNT */
 const masterAccounts = [
   { role:"Super Admin", username:"Sugeng11", password:"123@Sugeng" },
   { role:"Admin", username:"Admin", password:"admin1" }
@@ -76,24 +74,22 @@ async function login(){
 
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-  const selectedRole = document.getElementById("role").value.trim();
 
-  if(!username || !password || !selectedRole){
-    return alert("Lengkapi semua data!");
+  if(!username || !password){
+    return alert("Lengkapi Username dan Password!");
   }
 
-  /* ===== CEK MASTER ACCOUNT ===== */
+  /* CEK MASTER ACCOUNT */
   const master = masterAccounts.find(acc =>
-    acc.role === selectedRole &&
     acc.username === username &&
     acc.password === password
   );
 
   if(master){
-    return setSession(username, selectedRole);
+    return setSession(master.username, master.role);
   }
 
-  /* ===== CEK KE SPREADSHEET USERS ===== */
+  /* CEK SPREADSHEET USERS */
   const formData = new URLSearchParams();
   formData.append("action","login");
   formData.append("username",username);
@@ -110,15 +106,11 @@ async function login(){
 
     if(result.status === "success"){
 
-      // Cocokkan role dengan yang ada di spreadsheet
-      if(result.role.trim().toLowerCase() !== selectedRole.toLowerCase()){
-        return alert("Role tidak sesuai dengan akun di database.");
-      }
-
       if(result.statusUser && result.statusUser !== "Aktif"){
         return alert("Akun belum aktif.");
       }
 
+      // Role langsung ambil dari spreadsheet
       setSession(result.username, result.role);
 
     }else{
