@@ -6,27 +6,26 @@
 <title>Komunitas Keris SKH</title>
 
 <style>
-/* === TIDAK ADA PERUBAHAN TAMPILAN === */
 body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
-.login-top{position:fixed;top:20px;right:30px;background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);color:white;padding:10px 22px;border-radius:8px;font-weight:bold;text-decoration:none;box-shadow:0 0 15px rgba(0,120,255,0.6);z-index: 10;}
-.container{ max-width:1100px; margin:auto; }
-h1{ color:gold; text-align:center; margin-bottom:40px; }
+.login-top{position:fixed;top:20px;right:30px;background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);color:white;padding:10px 22px;border-radius:8px;font-weight:bold;text-decoration:none;box-shadow:0 0 15px rgba(0,120,255,0.6);z-index:10;}
+.container{max-width:1100px;margin:auto;}
+h1{color:gold;text-align:center;margin-bottom:40px;}
 .card{background:#111;padding:30px;border-radius:15px;margin-bottom:25px;}
-h2{ color:gold; }
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-th, td{ border:1px solid #444; padding:10px; vertical-align: middle; }
-th{ background:#222; color:gold; }
+h2{color:gold;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #444;padding:10px;vertical-align:middle;}
+th{background:#222;color:gold;}
 .foto-kecil{width:55px;height:55px;object-fit:cover;border-radius:8px;border:2px solid gold;}
 .status-aktif{background:#00aa00;padding:5px 10px;border-radius:6px;font-weight:bold;}
 .btn{padding:10px 20px;border-radius:8px;margin-right:10px;font-weight:bold;border:none;cursor:pointer;}
-.btn-blue{ background:#007bff; color:white; }
-.btn-green{ background:#28a745; color:white; }
-.btn-gold{ background:gold; color:black; }
+.btn-blue{background:#007bff;color:white;}
+.btn-green{background:#28a745;color:white;}
+.btn-gold{background:gold;color:black;}
 #modalDaftar{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;}
-.modal-content{background:#0f172a;padding:30px;border-radius:15px;width:400px;max-width: 90vw;}
+.modal-content{background:#0f172a;padding:30px;border-radius:15px;width:400px;max-width:90vw;}
 .modal-content input,.modal-content textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #334155;background:#0b1222;color:#e5e7eb;}
 .loading{text-align:center;color:gold;}
-.hint{ font-size:12px; color:#89b4fa; margin-top:6px; }
+.hint{font-size:12px;color:#89b4fa;margin-top:6px;}
 </style>
 </head>
 
@@ -35,6 +34,7 @@ th{ background:#222; color:gold; }
 <a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">Masuk</a>
 
 <div class="container">
+
 <h1>Komunitas Keris SKH</h1>
 
 <div class="card">
@@ -44,6 +44,7 @@ th{ background:#222; color:gold; }
 
 <div class="card">
 <h2>Daftar Anggota</h2>
+
 <table>
 <thead>
 <tr>
@@ -63,12 +64,14 @@ th{ background:#222; color:gold; }
 <a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
 <a href="index.html"><button class="btn btn-gold">Kembali</button></a>
 </div>
+
 </div>
 </div>
 
 <div id="modalDaftar">
 <div class="modal-content">
 <h3 style="color:gold;">Pendaftaran Anggota</h3>
+
 <input type="text" id="nama" placeholder="Nama Lengkap">
 <input type="text" id="gelar" placeholder="Gelar">
 <textarea id="alamat" placeholder="Alamat"></textarea>
@@ -76,15 +79,17 @@ th{ background:#222; color:gold; }
 <div class="hint">Contoh: 081234567890</div>
 <input type="file" id="foto" accept="image/*">
 <div class="hint">Format .jpg/.png &lt; 3MB</div>
+
 <div style="margin-top:12px;">
 <button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
 <button class="btn btn-green" onclick="tutupForm()">Batal</button>
 </div>
+
 </div>
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
 function bukaForm(){document.getElementById("modalDaftar").style.display="flex";}
 function tutupForm(){document.getElementById("modalDaftar").style.display="none";}
@@ -96,7 +101,9 @@ const d=await r.json();
 let html="";
 (d||[]).forEach(p=>{html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";});
 document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
-}catch{document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";}
+}catch{
+document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
+}
 }
 
 async function loadAnggota(){
@@ -112,19 +119,21 @@ html+=`<tr>
 <td><span class="status-aktif">Aktif</span></td>
 </tr>`;
 });
-document.getElementById("listAnggota").innerHTML=html||"<tr><td colspan='4'>Belum ada anggota</td></tr>";
+document.getElementById("listAnggota").innerHTML=html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
 }catch{
-document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat</td></tr>";
+document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat data</td></tr>";
 }
 }
 
 let submitting=false;
+
 async function kirim(){
 if(submitting)return;
 submitting=true;
 
 const btn=document.getElementById("btnKirim");
-btn.disabled=true;btn.innerText="Mengirim...";
+btn.disabled=true;
+btn.innerText="Mengirim...";
 
 const nama=document.getElementById("nama").value.trim();
 const gelar=document.getElementById("gelar").value.trim();
@@ -132,46 +141,41 @@ const alamat=document.getElementById("alamat").value.trim();
 const nohp=document.getElementById("nohp").value.trim();
 const file=document.getElementById("foto").files[0];
 
-if(!nama||!nohp||!file){alert("Nama, No HP, dan Foto wajib diisi");return resetBtn();}
+if(!nama||!nohp||!file){
+alert("Nama, No HP, dan Foto wajib diisi");
+return resetBtn();
+}
 
 const reader=new FileReader();
+
 reader.onload=async(e)=>{
 try{
+
 const body=new URLSearchParams({
 action:"addAnggota",
 nama,gelar,alamat,nohp,foto:e.target.result
 });
 
-let res;
-try{
-const r=await fetch(WEB_APP_URL,{method:"POST",body});
-res=await r.json();
-}catch{
-await fetch(WEB_APP_URL,{method:"POST",mode:"no-cors",body});
-alert("Data terkirim. Silakan cek spreadsheet.");
-return resetBtn();
-}
+/* === ANTI CORB === */
+await fetch(WEB_APP_URL,{
+method:"POST",
+mode:"no-cors",
+body
+});
 
-if(res.status==="duplicate"){alert("Nama sudah terdaftar");return resetBtn();}
-if(res.status!=="success"){alert(res.message||"Gagal menyimpan");return resetBtn();}
-
-alert(
-"Pendaftaran Berhasil ✅\n\n"+
-"No Anggota: "+res.noAnggota+"\n\n"+
-"Username: "+res.user.username+"\n"+
-"Password: "+res.user.password
-);
-
-if(res.wa){window.open(res.wa,"_blank");}
+alert("Pendaftaran berhasil ✅\nSilakan cek WhatsApp dan Spreadsheet.");
 
 tutupForm();
 loadAnggota();
 
 }catch(err){
-alert("Terjadi kesalahan");
+console.error(err);
+alert("Gagal mengirim data.");
 }
+
 resetBtn();
 };
+
 reader.readAsDataURL(file);
 }
 
