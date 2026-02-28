@@ -94,24 +94,37 @@ const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6
 function bukaForm(){document.getElementById("modalDaftar").style.display="flex";}
 function tutupForm(){document.getElementById("modalDaftar").style.display="none";}
 
+/* ===== LOAD STRUKTUR ===== */
 async function loadStruktur(){
 try{
-const r=await fetch(WEB_APP_URL+"?action=getPengurus");
+const r=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now(),{
+method:"GET",
+mode:"cors"
+});
 const d=await r.json();
 let html="";
-(d||[]).forEach(p=>{html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";});
+(d||[]).forEach(p=>{
+html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";
+});
 document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
 }catch{
 document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
 }
 }
 
+/* ===== LOAD ANGGOTA ===== */
 async function loadAnggota(){
 try{
-const r=await fetch(WEB_APP_URL);
+const r=await fetch(WEB_APP_URL+"?t="+Date.now(),{
+method:"GET",
+mode:"cors"
+});
 const d=await r.json();
 let html="";
-(d||[]).filter(r=>r.Status==="Aktif").reverse().forEach(r=>{
+(d||[])
+.filter(r=>r.Status==="Aktif")
+.reverse()
+.forEach(r=>{
 html+=`<tr>
 <td>${r.Foto?`<img src="${r.Foto}" class="foto-kecil">`:""}</td>
 <td>${r["Nama Lengkap"]||"-"}</td>
@@ -119,14 +132,17 @@ html+=`<tr>
 <td><span class="status-aktif">Aktif</span></td>
 </tr>`;
 });
-document.getElementById("listAnggota").innerHTML=html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+document.getElementById("listAnggota").innerHTML=
+html||"<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
 }catch{
-document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat data</td></tr>";
+document.getElementById("listAnggota").innerHTML=
+"<tr><td colspan='4'>Gagal memuat data</td></tr>";
 }
 }
 
 let submitting=false;
 
+/* ===== KIRIM DATA ===== */
 async function kirim(){
 if(submitting)return;
 submitting=true;
@@ -156,7 +172,7 @@ action:"addAnggota",
 nama,gelar,alamat,nohp,foto:e.target.result
 });
 
-/* === ANTI CORB === */
+/* ===== ANTI CORB STABIL ===== */
 await fetch(WEB_APP_URL,{
 method:"POST",
 mode:"no-cors",
@@ -166,7 +182,7 @@ body
 alert("Pendaftaran berhasil ✅\nSilakan cek WhatsApp dan Spreadsheet.");
 
 tutupForm();
-loadAnggota();
+setTimeout(loadAnggota,1500);
 
 }catch(err){
 console.error(err);
@@ -186,6 +202,7 @@ btn.disabled=false;
 btn.innerText="Kirim";
 }
 
+/* INIT */
 loadStruktur();
 loadAnggota();
 </script>
