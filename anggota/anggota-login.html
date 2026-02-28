@@ -33,6 +33,11 @@
       border:none;
       cursor:pointer;
       font-weight:bold;
+      margin-top:5px;
+    }
+    .btn-cancel{
+      background:#444;
+      color:white;
     }
   </style>
 </head>
@@ -41,23 +46,28 @@
 <div class="login-box">
   <h2>Login Panel</h2>
 
+  <input type="text" id="username" placeholder="Username" autocomplete="username">
+  <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+
+  <!-- ROLE DIPINDAH KE BAWAH PASSWORD -->
   <select id="role">
     <option value="">-- Pilih Role --</option>
     <option value="Super Admin">Super Admin</option>
     <option value="Admin">Admin</option>
-    <option value="Anggota">Anggota</option> <!-- TAMBAHAN -->
+    <option value="Anggota">Anggota</option>
   </select>
 
-  <input type="text" id="username" placeholder="Username" autocomplete="username">
-  <input type="password" id="password" placeholder="Password" autocomplete="current-password">
-
   <button onclick="login()">Login</button>
+  <button class="btn-cancel" onclick="batal()">Batal</button>
 </div>
 
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
+/* ==============================
+   MASTER ACCOUNT
+============================== */
 const masterAccounts = [
   { role:"Super Admin", username:"Sugeng11", password:"123@Sugeng" },
   { role:"Admin", username:"Admin", password:"admin1" }
@@ -65,11 +75,11 @@ const masterAccounts = [
 
 async function login(){
 
-  const role = document.getElementById("role").value.trim();
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
+  const role = document.getElementById("role").value.trim();
 
-  if(!role || !username || !password){
+  if(!username || !password || !role){
     return alert("Lengkapi semua data!");
   }
 
@@ -84,23 +94,40 @@ async function login(){
     return setSession(username, role);
   }
 
-  /* ===== CEK SPREADSHEET ===== */
+  /* ===== CEK KE SPREADSHEET USERS ===== */
   const formData = new URLSearchParams();
   formData.append("action","login");
   formData.append("username",username);
   formData.append("password",password);
 
-  const res = await fetch(WEB_APP_URL,{
-    method:"POST",
-    body:formData
-  });
+  try{
 
-  const result = await res.json();
+    const res = await fetch(WEB_APP_URL,{
+      method:"POST",
+      body:formData
+    });
 
-  if(result.status === "success" && result.role === role){
-    setSession(result.username, result.role);
-  }else{
-    alert("Login gagal! Username / Password / Role salah.");
+    const result = await res.json();
+
+    if(result.status === "success"){
+      
+      // Pastikan role cocok dengan spreadsheet
+      if(result.role !== role){
+        return alert("Role tidak sesuai dengan akun.");
+      }
+
+      if(result.statusUser && result.statusUser !== "Aktif"){
+        return alert("Akun belum aktif.");
+      }
+
+      setSession(result.username, result.role);
+
+    }else{
+      alert("Login gagal! Username / Password salah.");
+    }
+
+  }catch(err){
+    alert("Gagal terhubung ke server.");
   }
 }
 
@@ -109,6 +136,10 @@ function setSession(username, role){
   localStorage.setItem("username",username);
   localStorage.setItem("role",role);
   window.location.href="dashboard-daftar-anggota.html";
+}
+
+function batal(){
+  window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
 </script>
