@@ -6,402 +6,184 @@
 <title>Komunitas Keris SKH</title>
 
 <style>
-  body{
-    margin:0;
-    font-family:Georgia,serif;
-    background:#000;
-    color:white;
-    padding:40px;
-  }
-  .login-top{
-    position:fixed;
-    top:20px;
-    right:30px;
-    background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);
-    color:white;
-    padding:10px 22px;
-    border-radius:8px;
-    font-weight:bold;
-    text-decoration:none;
-    box-shadow:0 0 15px rgba(0,120,255,0.6);
-    z-index: 10;
-  }
-  .container{ max-width:1100px; margin:auto; }
-  h1{ color:gold; text-align:center; margin-bottom:40px; }
-  .card{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-  }
-  h2{ color:gold; }
-  table{ width:100%; border-collapse:collapse; margin-top:15px; }
-  th, td{ border:1px solid #444; padding:10px; vertical-align: middle; }
-  th{ background:#222; color:gold; }
-  .foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid gold;
-  }
-  .status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-  }
-  .btn{
-    padding:10px 20px;
-    border-radius:8px;
-    margin-right:10px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-  }
-  .btn-blue{ background:#007bff; color:white; }
-  .btn-green{ background:#28a745; color:white; }
-  .btn-gold{ background:gold; color:black; }
-
-  #modalDaftar{
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.9);
-    justify-content:center;
-    align-items:center;
-  }
-  .modal-content{
-    background:#0f172a;
-    padding:30px;
-    border-radius:15px;
-    width:400px;
-    max-width: 90vw;
-  }
-  .modal-content input,
-  .modal-content textarea{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    border-radius:8px;
-    border:1px solid #334155;
-    background:#0b1222;
-    color:#e5e7eb;
-  }
-  .loading{
-    text-align:center;
-    color:gold;
-  }
-  .hint{ font-size:12px; color:#89b4fa; margin-top:6px; }
+/* === TIDAK ADA PERUBAHAN TAMPILAN === */
+body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
+.login-top{position:fixed;top:20px;right:30px;background:linear-gradient(145deg,#1e3c72,#2a5298,#3b6edc);color:white;padding:10px 22px;border-radius:8px;font-weight:bold;text-decoration:none;box-shadow:0 0 15px rgba(0,120,255,0.6);z-index: 10;}
+.container{ max-width:1100px; margin:auto; }
+h1{ color:gold; text-align:center; margin-bottom:40px; }
+.card{background:#111;padding:30px;border-radius:15px;margin-bottom:25px;}
+h2{ color:gold; }
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+th, td{ border:1px solid #444; padding:10px; vertical-align: middle; }
+th{ background:#222; color:gold; }
+.foto-kecil{width:55px;height:55px;object-fit:cover;border-radius:8px;border:2px solid gold;}
+.status-aktif{background:#00aa00;padding:5px 10px;border-radius:6px;font-weight:bold;}
+.btn{padding:10px 20px;border-radius:8px;margin-right:10px;font-weight:bold;border:none;cursor:pointer;}
+.btn-blue{ background:#007bff; color:white; }
+.btn-green{ background:#28a745; color:white; }
+.btn-gold{ background:gold; color:black; }
+#modalDaftar{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;}
+.modal-content{background:#0f172a;padding:30px;border-radius:15px;width:400px;max-width: 90vw;}
+.modal-content input,.modal-content textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #334155;background:#0b1222;color:#e5e7eb;}
+.loading{text-align:center;color:gold;}
+.hint{ font-size:12px; color:#89b4fa; margin-top:6px; }
 </style>
 </head>
 
 <body>
 
-<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">
-  Masuk
-</a>
+<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">Masuk</a>
 
 <div class="container">
+<h1>Komunitas Keris SKH</h1>
 
-  <h1>Komunitas Keris SKH</h1>
-
-  <div class="card">
-    <h2>Struktur Pengurus</h2>
-    <div id="strukturPengurus">Memuat struktur...</div>
-  </div>
-
-  <div class="card">
-    <h2>Daftar Anggota</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Foto</th>
-          <th>Nama</th>
-          <th>No Anggota</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="listAnggota">
-        <tr><td colspan="4" class="loading">Memuat data...</td></tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top:20px;">
-      <button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
-      <a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
-      <a href="index.html"><button class="btn btn-gold">Kembali</button></a>
-    </div>
-  </div>
-
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<div id="strukturPengurus">Memuat struktur...</div>
 </div>
 
-<!-- MODAL -->
+<div class="card">
+<h2>Daftar Anggota</h2>
+<table>
+<thead>
+<tr>
+<th>Foto</th>
+<th>Nama</th>
+<th>No Anggota</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="listAnggota">
+<tr><td colspan="4" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+
+<div style="margin-top:20px;">
+<button class="btn btn-blue" onclick="bukaForm()">Daftar</button>
+<a href="verifikasi.html"><button class="btn btn-green">Verifikasi QR</button></a>
+<a href="index.html"><button class="btn btn-gold">Kembali</button></a>
+</div>
+</div>
+</div>
+
 <div id="modalDaftar">
-  <div class="modal-content">
-    <h3 style="color:gold;">Pendaftaran Anggota</h3>
-
-    <input type="text" id="nama" placeholder="Nama Lengkap" autocomplete="name">
-    <input type="text" id="gelar" placeholder="Gelar">
-    <textarea id="alamat" placeholder="Alamat"></textarea>
-    <input type="text" id="nohp" placeholder="No HP (08xxxx)" inputmode="numeric" pattern="[0-9]*">
-    <div class="hint">Contoh: 081234567890 (akan diformat otomatis ke 62xxxxxxxxxx)</div>
-    <input type="file" id="foto" accept="image/*">
-    <div class="hint">Format foto .jpg/.jpeg/.png disarankan &lt; 3 MB</div>
-
-    <div style="margin-top:12px;">
-      <button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
-      <button class="btn btn-green" onclick="tutupForm()">Batal</button>
-    </div>
-  </div>
+<div class="modal-content">
+<h3 style="color:gold;">Pendaftaran Anggota</h3>
+<input type="text" id="nama" placeholder="Nama Lengkap">
+<input type="text" id="gelar" placeholder="Gelar">
+<textarea id="alamat" placeholder="Alamat"></textarea>
+<input type="text" id="nohp" placeholder="No HP (08xxxx)">
+<div class="hint">Contoh: 081234567890</div>
+<input type="file" id="foto" accept="image/*">
+<div class="hint">Format .jpg/.png &lt; 3MB</div>
+<div style="margin-top:12px;">
+<button class="btn btn-blue" id="btnKirim" onclick="kirim()">Kirim</button>
+<button class="btn btn-green" onclick="tutupForm()">Batal</button>
+</div>
+</div>
 </div>
 
 <script>
-  /* ================== KONFIG ================== */
-  // URL Apps Script pendaftaran (Sheet1) - dari Bapak
-  const WEB_APP_URL   = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-  // URL Apps Script Users (addUser). Jika sama proyek, biarkan sama.
-  const USERS_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-  // Batas foto (optional safety)
-  const MAX_PHOTO_BYTES = 3 * 1024 * 1024; // 3MB
+function bukaForm(){document.getElementById("modalDaftar").style.display="flex";}
+function tutupForm(){document.getElementById("modalDaftar").style.display="none";}
 
-  /* ================== UTIL ================== */
-  function normalize62(phone){
-    const d = String(phone || '').replace(/\D/g,'');
-    if (d.startsWith('62')) return d;
-    if (d.startsWith('0'))  return '62' + d.slice(1);
-    return d || '';
-  }
-  function randPassword(len = 10){
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-    let out=''; for(let i=0;i<len;i++) out+=chars.charAt(Math.floor(Math.random()*chars.length));
-    return out;
-  }
-  function baseFromName(nama){
-    return (String(nama||'').toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,12)) || 'user';
-  }
-  function makeUsername(nama){
-    return baseFromName(nama) + String(Math.floor(Math.random()*10000)).padStart(4,'0');
-  }
-  function downloadCredentialsTxt(username, password, nama){
-    const lines = [
-      "Akun Anggota Komunitas Keris SKH",
-      "Nama     : " + (nama || "-"),
-      "Username : " + (username || "-"),
-      "Password : " + (password || "-"),
-      "",
-      "Simpan file ini baik-baik."
-    ].join("\n");
-    const blob = new Blob([lines], {type:"text/plain"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "akun-anggota.txt";
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
+async function loadStruktur(){
+try{
+const r=await fetch(WEB_APP_URL+"?action=getPengurus");
+const d=await r.json();
+let html="";
+(d||[]).forEach(p=>{html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";});
+document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
+}catch{document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";}
+}
 
-  /* ================== LOAD STRUKTUR ================== */
-  async function loadStruktur(){
-    try{
-      const res = await fetch(WEB_APP_URL + "?action=getPengurus");
-      const data = await res.json();
+async function loadAnggota(){
+try{
+const r=await fetch(WEB_APP_URL);
+const d=await r.json();
+let html="";
+(d||[]).filter(r=>r.Status==="Aktif").reverse().forEach(r=>{
+html+=`<tr>
+<td>${r.Foto?`<img src="${r.Foto}" class="foto-kecil">`:""}</td>
+<td>${r["Nama Lengkap"]||"-"}</td>
+<td>${r["No Anggota"]||"-"}</td>
+<td><span class="status-aktif">Aktif</span></td>
+</tr>`;
+});
+document.getElementById("listAnggota").innerHTML=html||"<tr><td colspan='4'>Belum ada anggota</td></tr>";
+}catch{
+document.getElementById("listAnggota").innerHTML="<tr><td colspan='4'>Gagal memuat</td></tr>";
+}
+}
 
-      let html = "";
-      (data || []).forEach(p => {
-        html += p.Jabatan + " : <strong>" + p.Nama + "</strong><br>";
-      });
+let submitting=false;
+async function kirim(){
+if(submitting)return;
+submitting=true;
 
-      document.getElementById("strukturPengurus").innerHTML = html || "Belum ada pengurus";
-    }catch{
-      document.getElementById("strukturPengurus").innerHTML = "Gagal memuat struktur.";
-    }
-  }
+const btn=document.getElementById("btnKirim");
+btn.disabled=true;btn.innerText="Mengirim...";
 
-  /* ================== LOAD ANGGOTA ================== */
-  async function loadAnggota(){
-    try{
-      const res = await fetch(WEB_APP_URL);
-      const data = await res.json();
+const nama=document.getElementById("nama").value.trim();
+const gelar=document.getElementById("gelar").value.trim();
+const alamat=document.getElementById("alamat").value.trim();
+const nohp=document.getElementById("nohp").value.trim();
+const file=document.getElementById("foto").files[0];
 
-      let html = "";
-      (data || [])
-        .filter(r => r.Status === "Aktif")
-        .reverse()
-        .forEach(r => {
-          const fotoSrc = r.Foto || "";
-          const fotoTag = fotoSrc ? `<img src="${fotoSrc}" class="foto-kecil" alt="Foto">` : "";
-          html += `
-            <tr>
-              <td>${fotoTag}</td>
-              <td>${r["Nama Lengkap"] || "-"}</td>
-              <td>${r["No Anggota"] || "-"}</td>
-              <td><span class="status-aktif">Aktif</span></td>
-            </tr>`;
-        });
+if(!nama||!nohp||!file){alert("Nama, No HP, dan Foto wajib diisi");return resetBtn();}
 
-      document.getElementById("listAnggota").innerHTML =
-        html || "<tr><td colspan='4'>Belum ada anggota aktif</td></tr>";
+const reader=new FileReader();
+reader.onload=async(e)=>{
+try{
+const body=new URLSearchParams({
+action:"addAnggota",
+nama,gelar,alamat,nohp,foto:e.target.result
+});
 
-    }catch{
-      document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='4'>Gagal memuat data</td></tr>";
-    }
-  }
+let res;
+try{
+const r=await fetch(WEB_APP_URL,{method:"POST",body});
+res=await r.json();
+}catch{
+await fetch(WEB_APP_URL,{method:"POST",mode:"no-cors",body});
+alert("Data terkirim. Silakan cek spreadsheet.");
+return resetBtn();
+}
 
-  /* ================== MODAL ================== */
-  function bukaForm(){ document.getElementById("modalDaftar").style.display="flex"; }
-  function tutupForm(){ document.getElementById("modalDaftar").style.display="none"; }
+if(res.status==="duplicate"){alert("Nama sudah terdaftar");return resetBtn();}
+if(res.status!=="success"){alert(res.message||"Gagal menyimpan");return resetBtn();}
 
-  /* ================== KIRIM ================== */
-  let submitting = false;
+alert(
+"Pendaftaran Berhasil ✅\n\n"+
+"No Anggota: "+res.noAnggota+"\n\n"+
+"Username: "+res.user.username+"\n"+
+"Password: "+res.user.password
+);
 
-  async function kirim(){
-    if (submitting) return;
-    submitting = true;
+if(res.wa){window.open(res.wa,"_blank");}
 
-    const btn = document.getElementById("btnKirim");
-    btn.disabled = true; btn.innerText = "Mengirim...";
+tutupForm();
+loadAnggota();
 
-    const nama   = document.getElementById("nama").value.trim();
-    const gelar  = document.getElementById("gelar").value.trim();
-    const alamat = document.getElementById("alamat").value.trim();
-    const nohp   = document.getElementById("nohp").value.trim();
-    const file   = document.getElementById("foto").files[0];
+}catch(err){
+alert("Terjadi kesalahan");
+}
+resetBtn();
+};
+reader.readAsDataURL(file);
+}
 
-    // Validasi dasar
-    if (!nama || !file || !nohp){
-      alert("Nama, No HP, dan Foto wajib diisi");
-      return resetBtn();
-    }
-    if (!/^(0|\+?62)\d{8,15}$/.test(nohp.replace(/\s/g,''))){
-      alert("Format No HP tidak valid. Contoh: 081234567890");
-      return resetBtn();
-    }
-    if (file && file.size > MAX_PHOTO_BYTES){
-      alert("Ukuran foto terlalu besar. Maksimal 3MB.");
-      return resetBtn();
-    }
+function resetBtn(){
+submitting=false;
+const btn=document.getElementById("btnKirim");
+btn.disabled=false;
+btn.innerText="Kirim";
+}
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target.result;
-
-      try{
-        /* ---------- STEP 1: kirim ke Sheet1 ---------- */
-        const body1 = new URLSearchParams({
-          action: "addAnggota",
-          nama, gelar, alamat, nohp, foto: dataUrl
-        });
-
-        let result1 = null;
-        try {
-          const r1 = await fetch(WEB_APP_URL, { method:"POST", body: body1 });
-          // Apps Script idealnya merespons JSON
-          result1 = await r1.json();
-        } catch (err) {
-          // Fallback CORS: pakai no-cors (tidak bisa baca respons), asumsikan sukses
-          await fetch(WEB_APP_URL, { method:"POST", mode:"no-cors", body: body1 });
-          result1 = { status:"success" };
-        }
-
-        if (result1.status === "duplicate"){
-          alert("Nama sudah terdaftar ❌");
-          return resetBtn();
-        }
-        if (result1.status !== "success"){
-          alert(result1.message || "Terjadi kesalahan saat menyimpan ke Sheet1.");
-          return resetBtn();
-        }
-
-        /* ---------- STEP 2: buat akun Users + kirim WA ---------- */
-        const username = makeUsername(nama);
-        const password = randPassword(10);
-
-        // Kirim ke endpoint Users
-        const body2 = new URLSearchParams({
-          action: "addUser",
-          nama,
-          nohp,             // agar server bisa susun WA (jika diaktifkan)
-          role: "User",
-          status: "Aktif",
-          username,         // override username/password agar sama dengan yang ditampilkan
-          password
-        });
-
-        let result2 = null;
-        try{
-          let r2 = await fetch(USERS_APP_URL, { method:"POST", body: body2 });
-          result2 = await r2.json();
-
-          // Jika username bentrok, generate ulang & coba sekali lagi
-          if (result2.status === "duplicate" && result2.field === "username"){
-            const u2 = makeUsername(nama);
-            body2.set("username", u2);
-            r2 = await fetch(USERS_APP_URL, { method:"POST", body: body2 });
-            result2 = await r2.json();
-          }
-        }catch(err){
-          // Fallback no-cors → tetap kirim, tapi kita pakai kredensial lokal
-          await fetch(USERS_APP_URL, { method:"POST", mode:"no-cors", body: body2 });
-          result2 = { status:"success", user:{ username, password }, wa:"" };
-        }
-
-        if (result2.status !== "success"){
-          alert(result2.message || "Akun Users tidak dapat dibuat.");
-          return resetBtn();
-        }
-
-        // Kredensial final (prioritas dari server jika tersedia)
-        const u = (result2.user && result2.user.username) ? result2.user.username : username;
-        const p = (result2.user && result2.user.password) ? result2.user.password : password;
-
-        // Tampilkan di layar
-        alert(
-          "Pendaftaran Berhasil ✅\n\n" +
-          "Akun Anggota:\n" +
-          "Username: " + u + "\n" +
-          "Password: " + p + "\n\n" +
-          "(Simpan baik-baik. Password hanya ditampilkan sekali.)"
-        );
-
-        // Unduh kredensial .txt
-        downloadCredentialsTxt(u, p, nama);
-
-        // Buka WhatsApp (client-side) berisi kredensial
-        const waMsg =
-          "Selamat " + nama + ", pendaftaran Anda BERHASIL.\n" +
-          "Akun Anda:\n" +
-          "• Username: " + u + "\n" +
-          "• Password: " + p + "\n\n" +
-          "Silakan login. Demi keamanan, segera ganti password setelah login pertama.";
-        const waLink = "https://wa.me/" + normalize62(nohp) + "?text=" + encodeURIComponent(waMsg);
-        window.open(waLink, "_blank");
-
-        // Jika server juga mengembalikan wa link, boleh dibuka (opsional)
-        if (result2.wa) {
-          try { window.open(resulttch(err){
-        console.error(err);
-        alert("Gagal mengirim data. Periksa koneksi atau hubungi admin.");
-      }finally{
-        resetBtn();
-      }
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  function resetBtn(){
-    submitting = false;
-    const btn = document.getElementById("btnKirim");
-    btn.disabled = false;
-    btn.innerText = "Kirim";
-  }
-
-  /* ================== INIT ================== */
-  loadStruktur();
-  loadAnggota();
+loadStruktur();
+loadAnggota();
 </script>
 
 </body>
