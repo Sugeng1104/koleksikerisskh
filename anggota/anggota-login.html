@@ -49,12 +49,11 @@
   <input type="text" id="username" placeholder="Username" autocomplete="username">
   <input type="password" id="password" placeholder="Password" autocomplete="current-password">
 
-  <!-- ROLE DIPINDAH KE BAWAH PASSWORD -->
   <select id="role">
     <option value="">-- Pilih Role --</option>
     <option value="Super Admin">Super Admin</option>
     <option value="Admin">Admin</option>
-    <option value="Anggota">Anggota</option>
+    <option value="User">User</option>
   </select>
 
   <button onclick="login()">Login</button>
@@ -77,21 +76,21 @@ async function login(){
 
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-  const role = document.getElementById("role").value.trim();
+  const selectedRole = document.getElementById("role").value.trim();
 
-  if(!username || !password || !role){
+  if(!username || !password || !selectedRole){
     return alert("Lengkapi semua data!");
   }
 
   /* ===== CEK MASTER ACCOUNT ===== */
   const master = masterAccounts.find(acc =>
-    acc.role === role &&
+    acc.role === selectedRole &&
     acc.username === username &&
     acc.password === password
   );
 
   if(master){
-    return setSession(username, role);
+    return setSession(username, selectedRole);
   }
 
   /* ===== CEK KE SPREADSHEET USERS ===== */
@@ -110,10 +109,10 @@ async function login(){
     const result = await res.json();
 
     if(result.status === "success"){
-      
-      // Pastikan role cocok dengan spreadsheet
-      if(result.role !== role){
-        return alert("Role tidak sesuai dengan akun.");
+
+      // Cocokkan role dengan yang ada di spreadsheet
+      if(result.role.trim().toLowerCase() !== selectedRole.toLowerCase()){
+        return alert("Role tidak sesuai dengan akun di database.");
       }
 
       if(result.statusUser && result.statusUser !== "Aktif"){
