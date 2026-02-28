@@ -45,11 +45,11 @@
     <option value="">-- Pilih Role --</option>
     <option value="Super Admin">Super Admin</option>
     <option value="Admin">Admin</option>
-    <option value="User">User</option>
+    <option value="Anggota">Anggota</option> <!-- TAMBAHAN -->
   </select>
 
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
+  <input type="text" id="username" placeholder="Username" autocomplete="username">
+  <input type="password" id="password" placeholder="Password" autocomplete="current-password">
 
   <button onclick="login()">Login</button>
 </div>
@@ -58,26 +58,14 @@
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ==============================
-   AKUN TETAP (MASTER ACCOUNT)
-============================== */
-
 const masterAccounts = [
-  {
-    role:"Super Admin",
-    username:"Sugeng11",
-    password:"123@Sugeng"
-  },
-  {
-    role:"Admin",
-    username:"Admin",
-    password:"admin1"
-  }
+  { role:"Super Admin", username:"Sugeng11", password:"123@Sugeng" },
+  { role:"Admin", username:"Admin", password:"admin1" }
 ];
 
 async function login(){
 
-  const role = document.getElementById("role").value;
+  const role = document.getElementById("role").value.trim();
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
@@ -85,10 +73,7 @@ async function login(){
     return alert("Lengkapi semua data!");
   }
 
-  /* ==============================
-     CEK MASTER ACCOUNT DULU
-  ============================== */
-
+  /* ===== CEK MASTER ACCOUNT ===== */
   const master = masterAccounts.find(acc =>
     acc.role === role &&
     acc.username === username &&
@@ -96,14 +81,10 @@ async function login(){
   );
 
   if(master){
-    setSession(username, role);
-    return;
+    return setSession(username, role);
   }
 
-  /* ==============================
-     CEK KE SERVER (SPREADSHEET)
-  ============================== */
-
+  /* ===== CEK SPREADSHEET ===== */
   const formData = new URLSearchParams();
   formData.append("action","login");
   formData.append("username",username);
@@ -127,15 +108,10 @@ function setSession(username, role){
   localStorage.setItem("isLoggedIn","true");
   localStorage.setItem("username",username);
   localStorage.setItem("role",role);
-
-  // Redirect ke dashboard anggota
   window.location.href="dashboard-daftar-anggota.html";
 }
 
 </script>
 
-
 </body>
 </html>
-
-
