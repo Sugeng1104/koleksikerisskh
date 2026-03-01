@@ -172,7 +172,7 @@ function renderAnggota(data){
     let html="";
 
     const roleLogin = localStorage.getItem("role");
-    const usernameLogin = (localStorage.getItem("username") || "").trim().toLowerCase();
+    const noLogin = (localStorage.getItem("noAnggota") || "").trim();
 
     data.slice().reverse().forEach(row=>{
 
@@ -185,9 +185,8 @@ function renderAnggota(data){
 
         // ===== FILTER =====
         if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
-            // tampilkan hanya jika username sama dengan Nama Lengkap
-            if(nama.trim().toLowerCase() !== usernameLogin){
-                return;
+            if(nomor.trim() !== noLogin){
+                return; // skip jika bukan miliknya
             }
         }
 
