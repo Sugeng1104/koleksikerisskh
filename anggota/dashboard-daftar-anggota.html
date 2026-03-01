@@ -84,6 +84,71 @@ th{ background:#222; color:gold; }
 .btn-red{ background:#dc3545; color:white; }
 
 .loading{ text-align:center; color:gold; }
+
+/* ================= GANTI SANDI ================= */
+.btn-ganti{
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    background:linear-gradient(45deg,#D4AF37,#FFD700);
+    color:black;
+    font-weight:bold;
+    padding:12px 18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:0 0 15px rgba(212,175,55,0.7);
+}
+
+.popup{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.popup-content{
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    width:350px;
+    box-shadow:0 0 20px gold;
+    text-align:center;
+}
+
+.popup-content input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    background:#222;
+    border:1px solid gold;
+    color:white;
+    border-radius:6px;
+}
+
+.success-check{
+    font-size:50px;
+    color:#00ff00;
+    display:none;
+    animation:pop 0.5s ease;
+}
+.error-cross{
+    font-size:50px;
+    color:red;
+    display:none;
+    animation:pop 0.5s ease;
+}
+
+@keyframes pop{
+    0%{transform:scale(0);}
+    100%{transform:scale(1);}
+}
 </style>
 </head>
 
@@ -128,11 +193,32 @@ th{ background:#222; color:gold; }
 
 </div>
 
+<!-- TOMBOL GANTI SANDI -->
+<button class="btn-ganti" onclick="openPopup()">Ganti Sandi</button>
+
+<!-- POPUP -->
+<div class="popup" id="popupGanti">
+  <div class="popup-content">
+    <h3 style="color:gold;">Ganti Sandi</h3>
+
+    <input type="text" id="gpUsername" placeholder="Username">
+    <input type="password" id="gpLama" placeholder="Sandi Lama">
+    <input type="password" id="gpBaru" placeholder="Sandi Baru">
+    <input type="password" id="gpKonfirmasi" placeholder="Konfirmasi Sandi Baru">
+
+    <button class="btn btn-blue" onclick="gantiPassword()">Ganti</button>
+    <button class="btn btn-red" onclick="closePopup()">Batal</button>
+
+    <div class="success-check" id="successCheck">✔</div>
+    <div class="error-cross" id="errorCross">✖</div>
+  </div>
+</div>
+
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ================= LOGIN PROTECTION ================= */
+/* LOGIN PROTECTION */
 (function(){
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     if(isLoggedIn !== "true"){
@@ -140,17 +226,16 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTf
     }
 })();
 
-/* ================= USER INFO ================= */
+/* USER INFO */
 document.getElementById("userInfo").innerHTML =
 `Login sebagai: <strong>${localStorage.getItem("username")}</strong> (${localStorage.getItem("role")})`;
 
-/* ================= LOGOUT ================= */
 function logout(){
     localStorage.clear();
     window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
-/* ================= RENDER ================= */
+/* RENDER */
 function renderAnggota(data){
 
     let html="";
@@ -165,14 +250,11 @@ function renderAnggota(data){
         const status = row["Status"] || "Nonaktif";
         const statusClass = status==="Aktif"?"status-aktif":"status-nonaktif";
 
-        /* ===== FILTER USER ===== */
         if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
-
             if(!noLogin){
                 html="<tr><td colspan='5'>No Anggota tidak ditemukan saat login</td></tr>";
                 return;
             }
-
             if(nomor !== noLogin){
                 return;
             }
@@ -200,7 +282,6 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ================= FETCH ================= */
 async function fetchData(){
     try{
         const res = await fetch(WEB_APP_URL + "?action=getanggota&t=" + Date.now());
@@ -212,47 +293,62 @@ async function fetchData(){
     }
 }
 
-/* ================= CARD ================= */
-function generateCard(nama,nomor,foto){
+/* ================= GANTI PASSWORD ================= */
+function openPopup(){
+  document.getElementById("gpUsername").value = localStorage.getItem("username");
+  document.getElementById("popupGanti").style.display="flex";
+}
 
-    const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
-    const ctx=canvas.getContext("2d");
+function closePopup(){
+  document.getElementById("popupGanti").style.display="none";
+  document.getElementById("successCheck").style.display="none";
+  document.getElementById("errorCross").style.display="none";
+}
 
-    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-    gradient.addColorStop(0,"#D4AF37");
-    gradient.addColorStop(0.5,"#FFD700");
-    gradient.addColorStop(1,"#B8860B");
-    ctx.fillStyle=gradient;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+async function gantiPassword(){
 
-    ctx.strokeStyle="#5a3d00";
-    ctx.lineWidth=20;
-    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+  const username = document.getElementById("gpUsername").value.trim();
+  const lama = document.getElementById("gpLama").value.trim();
+  const baru = document.getElementById("gpBaru").value.trim();
+  const konfirmasi = document.getElementById("gpKonfirmasi").value.trim();
 
-    ctx.fillStyle="#3b2a00";
-    ctx.font="bold 52px Georgia";
-    ctx.textAlign="center";
-    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+  if(!username || !lama || !baru || !konfirmasi){
+    showError(); return;
+  }
 
-    ctx.font="30px Georgia";
-    ctx.textAlign="left";
-    ctx.fillText(nama,350,300);
-    ctx.fillText("No Anggota : "+nomor,350,350);
+  if(baru !== konfirmasi){
+    showError(); return;
+  }
 
-    QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
-        if(!err){
-            ctx.drawImage(qrCanvas,canvas.width-300,400);
-        }
+  const formData = new URLSearchParams();
+  formData.append("action","gantipassword");
+  formData.append("username",username);
+  formData.append("sandiLama",lama);
+  formData.append("sandiBaru",baru);
 
-        const link=document.createElement("a");
-        link.download="Kartu_"+nomor+".png";
-        link.href=canvas.toDataURL("image/png");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
+  try{
+    const res = await fetch(WEB_APP_URL,{method:"POST",body:formData});
+    const result = await res.json();
+
+    if(result.status === "success"){
+      showSuccess();
+    }else{
+      showError();
+    }
+
+  }catch(e){
+    showError();
+  }
+}
+
+function showSuccess(){
+  document.getElementById("errorCross").style.display="none";
+  document.getElementById("successCheck").style.display="block";
+}
+
+function showError(){
+  document.getElementById("successCheck").style.display="none";
+  document.getElementById("errorCross").style.display="block";
 }
 
 fetchData();
