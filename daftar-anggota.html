@@ -97,11 +97,11 @@ function tutupForm(){document.getElementById("modalDaftar").style.display="none"
 /* LOAD STRUKTUR */
 async function loadStruktur(){
 try{
-const r=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now());
+const r=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
 const d=await r.json();
 let html="";
 (d||[]).forEach(p=>{
-html+=p.Jabatan+" : <strong>"+p.Nama+"</strong><br>";
+html+=p.Jabatan+" : <strong>"+(p["Nama Lengkap"]||p.Nama||"-")+"</strong><br>";
 });
 document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
 }catch{
@@ -112,7 +112,7 @@ document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
 /* LOAD ANGGOTA */
 async function loadAnggota(){
 try{
-const r=await fetch(WEB_APP_URL+"?t="+Date.now());
+const r=await fetch(WEB_APP_URL+"?action=getanggota&t="+Date.now());
 const d=await r.json();
 let html="";
 (d||[])
@@ -134,78 +134,10 @@ document.getElementById("listAnggota").innerHTML=
 }
 }
 
-let submitting=false;
-
-/* KIRIM DATA */
-async function kirim(){
-if(submitting)return;
-submitting=true;
-
-const btn=document.getElementById("btnKirim");
-btn.disabled=true;
-btn.innerText="Mengirim...";
-
-const nama=document.getElementById("nama").value.trim();
-const gelar=document.getElementById("gelar").value.trim();
-const alamat=document.getElementById("alamat").value.trim();
-const nohp=document.getElementById("nohp").value.trim();
-const file=document.getElementById("foto").files[0];
-
-if(!nama||!nohp||!file){
-alert("Nama, No HP, dan Foto wajib diisi");
-return resetBtn();
-}
-
-const reader=new FileReader();
-
-reader.onload=async(e)=>{
-try{
-
-const body=new URLSearchParams({
-action:"addAnggota",
-nama,gelar,alamat,nohp,foto:e.target.result
-});
-
-const response=await fetch(WEB_APP_URL,{
-method:"POST",
-body
-});
-
-const result=await response.json();
-
-if(result.status==="success"){
-alert("Pendaftaran berhasil ✅\n\nUsername: "+result.username+
-"\nPassword: "+result.password+
-"\n\nSilakan simpan data login.");
-tutupForm();
-setTimeout(loadAnggota,1500);
-}else{
-alert(result.message);
-}
-
-}catch(err){
-console.error(err);
-alert("Gagal mengirim data.");
-}
-
-resetBtn();
-};
-
-reader.readAsDataURL(file);
-}
-
-function resetBtn(){
-submitting=false;
-const btn=document.getElementById("btnKirim");
-btn.disabled=false;
-btn.innerText="Kirim";
-}
-
+/* LOAD */
 loadStruktur();
 loadAnggota();
 </script>
 
 </body>
 </html>
-
-
