@@ -110,7 +110,6 @@ th{ background:#222; color:gold; }
 
 <div class="card">
 <h2>Daftar Anggota</h2>
-
 <table>
 <thead>
 <tr>
@@ -125,8 +124,8 @@ th{ background:#222; color:gold; }
 <tr><td colspan="5" class="loading">Memuat data...</td></tr>
 </tbody>
 </table>
-
 </div>
+
 </div>
 
 <script>
@@ -136,12 +135,8 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTf
 /* ================= LOGIN PROTECTION ================= */
 (function(){
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const username = localStorage.getItem("username");
-    const role = localStorage.getItem("role");
-
-    if(isLoggedIn !== "true" || !username || !role){
-        localStorage.clear();
-        window.location.href = "anggota-login.html";
+    if(isLoggedIn !== "true"){
+        window.location.href="anggota-login.html";
     }
 })();
 
@@ -152,7 +147,7 @@ document.getElementById("userInfo").innerHTML =
 /* ================= LOGOUT ================= */
 function logout(){
     localStorage.clear();
-    window.location.href="daftar-anggota.html";
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
 /* ================= RENDER ================= */
@@ -162,7 +157,7 @@ function renderAnggota(data){
     const roleLogin = localStorage.getItem("role");
     const noLogin = (localStorage.getItem("noAnggota") || "").trim();
 
-    data.slice().reverse().forEach(row=>{
+    data.reverse().forEach(row=>{
 
         const nama = row["Nama Lengkap"] || row["Nama"] || "-";
         const nomor = (row["No Anggota"] || "").trim();
@@ -172,16 +167,16 @@ function renderAnggota(data){
 
         /* ===== FILTER USER ===== */
         if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
-            if(!noLogin || nomor !== noLogin){
+
+            if(!noLogin){
+                html="<tr><td colspan='5'>No Anggota tidak ditemukan saat login</td></tr>";
+                return;
+            }
+
+            if(nomor !== noLogin){
                 return;
             }
         }
-
-        let aksiButton = `
-        <button class="btn btn-blue"
-        onclick="generateCard('${nama}','${nomor}','${foto}')">
-        Cetak Kartu
-        </button>`;
 
         html+=`
         <tr>
@@ -189,7 +184,12 @@ function renderAnggota(data){
             <td>${nama}</td>
             <td>${nomor}</td>
             <td><span class="${statusClass}">${status}</span></td>
-            <td>${aksiButton}</td>
+            <td>
+                <button class="btn btn-blue"
+                onclick="generateCard('${nama}','${nomor}','${foto}')">
+                Cetak Kartu
+                </button>
+            </td>
         </tr>`;
     });
 
@@ -204,8 +204,8 @@ function renderAnggota(data){
 async function fetchData(){
     try{
         const res = await fetch(WEB_APP_URL + "?action=getanggota&t=" + Date.now());
-        const result = await res.json();
-        renderAnggota(result);
+        const data = await res.json();
+        renderAnggota(data);
     }catch(e){
         document.getElementById("listAnggota").innerHTML =
         "<tr><td colspan='5'>❌ Gagal mengambil data</td></tr>";
@@ -236,49 +236,26 @@ function generateCard(nama,nomor,foto){
     ctx.textAlign="center";
     ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
 
-    ctx.font="bold 36px Georgia";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
+    ctx.font="30px Georgia";
+    ctx.textAlign="left";
+    ctx.fillText(nama,350,300);
+    ctx.fillText("No Anggota : "+nomor,350,350);
 
-    function drawContent(){
+    QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+        if(!err){
+            ctx.drawImage(qrCanvas,canvas.width-300,400);
+        }
 
-        ctx.textAlign="left";
-        ctx.fillStyle="#3b2a00";
-        ctx.font="bold 42px Georgia";
-        ctx.fillText(nama,350,300);
-
-        ctx.font="30px Georgia";
-        ctx.fillText("No Anggota : "+nomor,350,360);
-
-        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
-            if(!err){
-                ctx.drawImage(qrCanvas,canvas.width-300,400);
-            }
-
-            const link=document.createElement("a");
-            link.download="Kartu_"+nomor+".png";
-            link.href=canvas.toDataURL("image/png");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    }
-
-    if(foto){
-        const img=new Image();
-        img.crossOrigin="anonymous";
-        img.src=foto;
-        img.onload=function(){
-            ctx.drawImage(img,100,250,200,260);
-            drawContent();
-        };
-        img.onerror=function(){ drawContent(); };
-    }else{
-        drawContent();
-    }
+        const link=document.createElement("a");
+        link.download="Kartu_"+nomor+".png";
+        link.href=canvas.toDataURL("image/png");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
 }
 
 fetchData();
-setInterval(fetchData,30000);
 
 </script>
 </body>
