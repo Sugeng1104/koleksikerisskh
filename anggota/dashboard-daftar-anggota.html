@@ -97,19 +97,6 @@ th{ background:#222; color:gold; }
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- ================= STRUKTUR PENGURUS ================= -->
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<table>
-<tr><th>Jabatan</th><th>Nama</th></tr>
-<tr><td>Ketua</td><td>Ketua SKH</td></tr>
-<tr><td>Sekretaris</td><td>Sekretaris SKH</td></tr>
-<tr><td>Bendahara</td><td>Bendahara SKH</td></tr>
-<tr><td>Kurator</td><td>Kurator SKH</td></tr>
-</table>
-</div>
-
-<!-- ================= DAFTAR ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -135,11 +122,8 @@ th{ background:#222; color:gold; }
 
 /* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-const CACHE_KEY = "cacheAnggota";
-const CACHE_TIME_KEY = "cacheTime";
-const CACHE_DURATION = 60000;
 
-/* ================= LOGIN PROTECTION ================= */
+/* ================= LOGIN CHECK ================= */
 (function(){
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
@@ -148,17 +132,12 @@ const CACHE_DURATION = 60000;
     if(isLoggedIn !== "true" || !username || !role){
         localStorage.clear();
         window.location.href = "anggota-login.html";
-        return;
     }
 })();
 
 /* ================= USER INFO ================= */
-const usernameLogin = localStorage.getItem("username");
-const roleLogin = localStorage.getItem("role");
-const namaLogin = localStorage.getItem("namaLengkap");
-
 document.getElementById("userInfo").innerHTML =
-`Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
+`Login sebagai: <strong>${localStorage.getItem("username")}</strong> (${localStorage.getItem("role")})`;
 
 /* ================= LOGOUT ================= */
 function logout(){
@@ -170,146 +149,12 @@ function logout(){
 function renderAnggota(data){
 
     let html="";
-
     const roleLogin = localStorage.getItem("role");
     const noLogin = (localStorage.getItem("noAnggota") || "").trim();
 
     data.slice().reverse().forEach(row=>{
 
-        const nama = row["Nama Lengkap"] || "-";
-        const gelar = row["Gelar"] || "";
-        const nomor = row["No Anggota"] || "-";
-        const foto = row["Foto"] || "";
-        const status = row.Status || "Nonaktif";
-        const statusClass = status==="Aktif"?"status-aktif":"status-nonaktif";
+        const values = Object.values(row);
 
-        // ===== FILTER =====
-        if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
-            if(nomor.trim() !== noLogin){
-                return; // skip jika bukan miliknya
-            }
-        }
-
-        const safeNama = nama.replace(/'/g,"\\'");
-        const safeGelar = gelar.replace(/'/g,"\\'");
-        const safeNomor = nomor.replace(/'/g,"\\'");
-        const safeFoto = foto.replace(/'/g,"\\'");
-
-        let aksiButton = `
-        <button class="btn btn-blue"
-        onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
-        Cetak Kartu
-        </button>`;
-
-        html+=`
-        <tr>
-            <td><img src="${foto}" class="foto-kecil"></td>
-            <td>${nama}</td>
-            <td>${nomor}</td>
-            <td><span class="${statusClass}">${status}</span></td>
-            <td>${aksiButton}</td>
-        </tr>`;
-    });
-
-    if(html===""){
-        html="<tr><td colspan='5'>Data anggota tidak ditemukan</td></tr>";
-    }
-
-    document.getElementById("listAnggota").innerHTML=html;
-}
-
-/* ================= FETCH ================= */
-async function fetchData(){
-    try{
-        const res = await fetch(WEB_APP_URL + "?t=" + Date.now());
-        const result = await res.json();
-        const data = result.data || result;
-
-        if(data && data.length>0){
-            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-            localStorage.setItem(CACHE_TIME_KEY, Date.now());
-            renderAnggota(data);
-        }
-    }catch(e){
-        document.getElementById("listAnggota").innerHTML =
-        "<tr><td colspan='5'>❌ Gagal mengambil data</td></tr>";
-    }
-}
-
-/* ================= CARD GENERATOR ================= */
-function generateCard(nama,gelar,nomor,foto){
-
-    const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
-    const ctx=canvas.getContext("2d");
-
-    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-    gradient.addColorStop(0,"#D4AF37");
-    gradient.addColorStop(0.5,"#FFD700");
-    gradient.addColorStop(1,"#B8860B");
-    ctx.fillStyle=gradient;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    ctx.strokeStyle="#5a3d00";
-    ctx.lineWidth=20;
-    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
-
-    ctx.fillStyle="#3b2a00";
-    ctx.font="bold 52px Georgia";
-    ctx.textAlign="center";
-    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
-
-    ctx.font="bold 36px Georgia";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
-
-    function drawContent(){
-
-        ctx.textAlign="left";
-        ctx.fillStyle="#3b2a00";
-        ctx.font="bold 42px Georgia";
-        ctx.fillText(nama,350,300);
-
-        ctx.font="30px Georgia";
-        ctx.fillText(gelar || "",350,350);
-        ctx.fillText("No Anggota : "+nomor,350,400);
-
-        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
-            if(!err){
-                ctx.drawImage(qrCanvas,canvas.width-300,400);
-            }
-
-            const link=document.createElement("a");
-            link.download="Kartu_"+nomor+".png";
-            link.href=canvas.toDataURL("image/png");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    }
-
-    if(foto){
-        const img=new Image();
-        img.crossOrigin="anonymous";
-        img.src=foto;
-        img.onload=function(){
-            ctx.drawImage(img,100,250,200,260);
-            drawContent();
-        };
-        img.onerror=function(){ drawContent(); };
-    }else{
-        drawContent();
-    }
-}
-
-/* INIT */
-fetchData();
-setInterval(fetchData,30000);
-
-function keluar(){
-  window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
-}
-
-</script>
-</body>
-</html>
+        const nomor = (row["No Anggota"] || values[0] || "").toString().trim();
+        const nama = row["
