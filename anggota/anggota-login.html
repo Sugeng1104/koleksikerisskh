@@ -11,12 +11,19 @@
       align-items:center;
       height:100vh;
       font-family:Arial;
+      margin:0;
     }
     .login-box{
       background:#111;
       padding:30px;
       border-radius:10px;
       width:330px;
+      box-sizing:border-box;
+      position:relative;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:20px;
     }
     input, select{
       width:100%;
@@ -25,30 +32,84 @@
       background:#222;
       border:1px solid #00ffcc;
       color:white;
+      border-radius:5px;
+      box-sizing:border-box;
     }
-    button{
-      width:100%;
+    .button-group{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .btn-reset{
+      flex:1;
       padding:10px;
-      background:#00ffcc;
+      background:#cc0000;
       border:none;
       cursor:pointer;
       font-weight:bold;
-      margin-top:5px;
+      color:white;
+      border-radius:5px;
+    }
+    .btn-login{
+      flex:1;
+      padding:10px;
+      background:#0066ff;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+      color:white;
+      border-radius:5px;
     }
     .btn-cancel{
+      width:100%;
+      padding:10px;
       background:#444;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+      margin-top:10px;
       color:white;
+      border-radius:5px;
+    }
+
+    /* Loading Overlay */
+    .loading{
+      display:none;
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.8);
+      justify-content:center;
+      align-items:center;
+      border-radius:10px;
+      z-index:10;
+    }
+    .spinner{
+      border:4px solid #222;
+      border-top:4px solid #00ffcc;
+      border-radius:50%;
+      width:40px;
+      height:40px;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{
+      100%{ transform:rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
 <div class="login-box">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+
   <h2>Login Panel</h2>
 
-  <input type="text" id="username" placeholder="Username" autocomplete="username">
-  <input type="password" id="password" placeholder="Password" autocomplete="current-password">
-
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
   <select id="role">
     <option value="">-- Pilih Role --</option>
     <option value="Super Admin">Super Admin</option>
@@ -56,18 +117,30 @@
     <option value="User">User</option>
   </select>
 
-  <button onclick="login()">Login</button>
+  <!-- Tambahan untuk reset -->
+  <input type="text" id="nohp" placeholder="No HP (Untuk Reset Sandi)">
+
+  <div class="button-group">
+    <button class="btn-reset" onclick="resetSandi()">Reset Sandi</button>
+    <button class="btn-login" onclick="login()">Login</button>
+  </div>
+
   <button class="btn-cancel" onclick="batal()">Batal</button>
 </div>
 
 <script>
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const ADMIN_WA = "6281234567890"; // GANTI DENGAN NOMOR ADMIN
 
 const masterAccounts = [
   { role:"Super Admin", username:"Sugeng11", password:"123@Sugeng" },
   { role:"Admin", username:"Admin", password:"admin1" }
 ];
+
+function showLoading(state){
+  document.getElementById("loading").style.display = state ? "flex" : "none";
+}
 
 async function login(){
 
@@ -80,7 +153,8 @@ async function login(){
     return;
   }
 
-  /* ================= MASTER ADMIN ================= */
+  showLoading(true);
+
   const master = masterAccounts.find(acc =>
     acc.username === username &&
     acc.password === password &&
@@ -97,8 +171,6 @@ async function login(){
     return;
   }
 
-  /* ================= USER DARI SPREADSHEET ================= */
-
   const formData = new URLSearchParams();
   formData.append("action","login");
   formData.append("username",username);
@@ -106,22 +178,20 @@ async function login(){
 
   try{
 
-    const res = await fetch(WEB_APP_URL,{
-      method:"POST",
-      body:formData
-    });
-
+    const res = await fetch(WEB_APP_URL,{ method:"POST", body:formData });
     const result = await res.json();
+
+    showLoading(false);
 
     if(result.status === "success"){
 
       if(result.statusUser !== "Aktif"){
-        alert("Akun Anda Nonaktif. Hubungi Admin.");
+        alert("Akun Anda Nonaktif.");
         return;
       }
 
       if(result.role !== selectedRole){
-        alert("Role tidak sesuai dengan akun Anda!");
+        alert("Role tidak sesuai!");
         return;
       }
 
@@ -133,11 +203,40 @@ async function login(){
       });
 
     }else{
-      alert("Login gagal! Username / Password salah.");
+      alert("Login gagal!");
     }
 
   }catch(err){
+    showLoading(false);
     alert("Gagal terhubung ke server.");
+  }
+}
+
+async function resetSandi(){
+
+  const username = document.getElementById("username").value.trim();
+  const nohp = document.getElementById("nohp").value.trim();
+
+  if(!username || !nohp){
+    alert("Isi Username dan No HP untuk reset!");
+    return;
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("action","resetSandi");
+  formData.append("username",username);
+  formData.append("nohp",nohp);
+
+  try{
+    await fetch(WEB_APP_URL,{ method:"POST", body:formData });
+
+    const pesan = `Halo Admin SKH,%0ASaya meminta reset sandi.%0AUsername: ${username}%0ANo HP: ${nohp}`;
+    window.open(`https://wa.me/${ADMIN_WA}?text=${pesan}`,"_blank");
+
+    alert("Permintaan reset dikirim ke Admin.");
+
+  }catch(err){
+    alert("Gagal kirim reset.");
   }
 }
 
