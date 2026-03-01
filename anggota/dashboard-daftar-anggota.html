@@ -172,7 +172,7 @@ function renderAnggota(data){
     let html="";
 
     const roleLogin = localStorage.getItem("role");
-    const namaLogin = (localStorage.getItem("namaLengkap") || "").trim().toLowerCase();
+    const usernameLogin = (localStorage.getItem("username") || "").trim().toLowerCase();
 
     data.slice().reverse().forEach(row=>{
 
@@ -183,12 +183,11 @@ function renderAnggota(data){
         const status = row.Status || "Nonaktif";
         const statusClass = status==="Aktif"?"status-aktif":"status-nonaktif";
 
-        const namaData = nama.trim().toLowerCase();
-
         // ===== FILTER =====
         if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
-            if(namaData !== namaLogin){
-                return; // skip jika bukan miliknya
+            // tampilkan hanya jika username sama dengan Nama Lengkap
+            if(nama.trim().toLowerCase() !== usernameLogin){
+                return;
             }
         }
 
@@ -197,7 +196,6 @@ function renderAnggota(data){
         const safeNomor = nomor.replace(/'/g,"\\'");
         const safeFoto = foto.replace(/'/g,"\\'");
 
-        // ===== TOMBOL SELALU ADA =====
         let aksiButton = `
         <button class="btn btn-blue"
         onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
