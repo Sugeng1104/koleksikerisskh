@@ -85,7 +85,6 @@ th{ background:#222; color:gold; }
 
 .loading{ text-align:center; color:gold; }
 
-/* ================= GANTI SANDI ================= */
 .btn-ganti{
     background:linear-gradient(45deg,#D4AF37,#FFD700);
     color:black;
@@ -98,7 +97,6 @@ th{ background:#222; color:gold; }
     margin-top:15px;
 }
 
-/* popup */
 .popup{
     display:none;
     position:fixed;
@@ -135,18 +133,11 @@ th{ background:#222; color:gold; }
     font-size:50px;
     color:#00ff00;
     display:none;
-    animation:pop 0.5s ease;
 }
 .error-cross{
     font-size:50px;
     color:red;
     display:none;
-    animation:pop 0.5s ease;
-}
-
-@keyframes pop{
-    0%{transform:scale(0);}
-    100%{transform:scale(1);}
 }
 </style>
 </head>
@@ -190,11 +181,8 @@ th{ background:#222; color:gold; }
 </tbody>
 </table>
 
-<!-- tombol sekarang rata kiri sejajar kolom Foto -->
 <button class="btn-ganti" onclick="openPopup()">Ganti Sandi</button>
-
 </div>
-
 </div>
 
 <!-- POPUP -->
@@ -221,8 +209,7 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTf
 
 /* LOGIN PROTECTION */
 (function(){
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if(isLoggedIn !== "true"){
+    if(localStorage.getItem("isLoggedIn") !== "true"){
         window.location.href="anggota-login.html";
     }
 })();
@@ -232,7 +219,43 @@ document.getElementById("userInfo").innerHTML =
 
 function logout(){
     localStorage.clear();
-    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
+    window.location.href="daftar-anggota.html";
+}
+
+/* ================= LOAD DATA STABIL ================= */
+
+async function fetchData(){
+    try{
+        const res = await fetch(WEB_APP_URL + "?action=getUsers");
+        const result = await res.json();
+
+        const tbody = document.getElementById("listAnggota");
+        tbody.innerHTML = "";
+
+        if(!result.success || !result.data || result.data.length === 0){
+            tbody.innerHTML = `<tr><td colspan="5">Data tidak ditemukan</td></tr>`;
+            return;
+        }
+
+        result.data.forEach(user=>{
+            tbody.innerHTML += `
+            <tr>
+                <td><img src="${user.foto || 'https://via.placeholder.com/55'}" class="foto-kecil"></td>
+                <td>${user.nama}</td>
+                <td>${user.noanggota || '-'}</td>
+                <td>
+                    <span class="${user.status==='Aktif'?'status-aktif':'status-nonaktif'}">
+                        ${user.status}
+                    </span>
+                </td>
+                <td>-</td>
+            </tr>`;
+        });
+
+    }catch(error){
+        document.getElementById("listAnggota").innerHTML =
+        `<tr><td colspan="5">Gagal koneksi ke server</td></tr>`;
+    }
 }
 
 /* ================= GANTI PASSWORD ================= */
@@ -250,13 +273,14 @@ function closePopup(){
 
 async function gantiPassword(){
 
-  const username = document.getElementById("gpUsername").value.trim();
-  const lama = document.getElementById("gpLama").value.trim();
-  const baru = document.getElementById("gpBaru").value.trim();
-  const konfirmasi = document.getElementById("gpKonfirmasi").value.trim();
+  const username = gpUsername.value.trim();
+  const lama = gpLama.value.trim();
+  const baru = gpBaru.value.trim();
+  const konfirmasi = gpKonfirmasi.value.trim();
 
-  if(!username || !lama || !baru || !konfirmasi){ showError(); return; }
-  if(baru !== konfirmasi){ showError(); return; }
+  if(!username || !lama || !baru || !konfirmasi || baru!==konfirmasi){
+      showError(); return;
+  }
 
   const formData = new URLSearchParams();
   formData.append("action","gantipassword");
@@ -269,33 +293,28 @@ async function gantiPassword(){
     const result = await res.json();
 
     if(result.status === "success"){
-      showSuccess();
-
-      // AUTO CLOSE setelah 1.2 detik
-      setTimeout(()=>{
-        closePopup();
-      },1200);
-
+        showSuccess();
+        setTimeout(closePopup,1200);
     }else{
-      showError();
+        showError();
     }
-
-  }catch(e){
-    showError();
+  }catch{
+      showError();
   }
 }
 
 function showSuccess(){
-  document.getElementById("errorCross").style.display="none";
-  document.getElementById("successCheck").style.display="block";
+  errorCross.style.display="none";
+  successCheck.style.display="block";
 }
 
 function showError(){
-  document.getElementById("successCheck").style.display="none";
-  document.getElementById("errorCross").style.display="block";
+  successCheck.style.display="none";
+  errorCross.style.display="block";
 }
 
 fetchData();
+
 </script>
 </body>
 </html>
