@@ -1,3 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard Admin</title>
+<style>
+body{
+  margin:0;
+  background:linear-gradient(to right,black,#001f1f);
+  color:#00ffcc;
+  font-family:Arial;
+}
+.sidebar{
+  width:220px;
+  height:100vh;
+  background:black;
+  position:fixed;
+  padding:20px;
+}
+.sidebar button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  background:#00ffcc;
+  border:none;
+  cursor:pointer;
+}
+.content{
+  margin-left:240px;
+  padding:30px;
+}
+.flex-row{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
+.card{
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+  flex:1;
+}
+input,select{
+  padding:8px;
+  margin-right:5px;
+}
+button.tambah{
+  background:#00cc66;
+  color:white;
+  border:none;
+  padding:8px 12px;
+}
+button.hapus{
+  background:red;
+  color:white;
+  border:none;
+  padding:6px 10px;
+}
+table{
+  width:100%;
+  margin-top:15px;
+  border-collapse:collapse;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #333;
+}
+.stat-box{
+  font-size:18px;
+  margin-bottom:10px;
+}
+.pagination{
+  margin-top:15px;
+}
+.pagination button{
+  padding:6px 10px;
+  margin-right:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>ADMIN</h2>
+  <p id="userInfo"></p>
+  <p id="roleInfo"></p>
+
+  <button onclick="window.location.href='index.html'">Halaman Depan</button>
+
+  <button id="menuKelola" style="display:none;"
+          onclick="window.location.href='kelola-akun.html'">
+    Kelola Akun
+  </button>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<div class="content">
+  <h1>Dashboard Admin</h1>
+
+  <div class="flex-row">
+
+    <div class="card">
+      <h2>Struktur Pengurus</h2>
+
+      <select id="namaPengurus">
+        <option value="">Memuat anggota aktif...</option>
+      </select>
+
+      <select id="jabatan">
+       <option>Ketua</option>
+       <option>Sekretaris</option>
+       <option>Bendahara</option>
+       <option>Kurator Pusaka</option>
+      </select>
+
+      <button class="tambah" onclick="tambahPengurus()">Tambah</button>
+
+      <ul id="listPengurus"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Statistik Anggota</h2>
+      <div class="stat-box">Total Anggota: <strong id="totalAnggota">0</strong></div>
+      <div class="stat-box">Aktif: <strong id="totalAktif">0</strong></div>
+      <div class="stat-box">Nonaktif: <strong id="totalNonaktif">0</strong></div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h2>Daftar Anggota</h2>
+
+    <div style="margin-bottom:10px;">
+      <input type="text" id="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
+      <select id="filterStatus" onchange="renderTabel()">
+        <option value="">Semua Status</option>
+        <option value="Aktif">Aktif</option>
+        <option value="Nonaktif">Nonaktif</option>
+      </select>
+
+      <button onclick="exportExcel()">Export Excel</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>No Anggota</th>
+          <th>Nama</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tabelAnggota">
+        <tr><td colspan="4">Memuat...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+</div>
+
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
@@ -27,37 +190,26 @@ function showLoading(){
   "<tr><td colspan='4'>Memuat data...</td></tr>";
 }
 
-/* ================= LOAD ANGGOTA STABIL ================= */
 async function loadAnggota(){
   showLoading();
   try{
     const res=await fetch(WEB_APP_URL+"?action=getUsers");
     const result=await res.json();
-
-    if(Array.isArray(result)){
-      allData=result;
-    }else if(result.data){
-      allData=result.data;
-    }else{
-      allData=[];
-    }
-
+    allData = Array.isArray(result) ? result : (result.data || []);
     updateStatistik();
     isiDropdownPengurus();
     renderTabel();
-
   }catch(err){
     document.getElementById("tabelAnggota").innerHTML=
     "<tr><td colspan='4'>Gagal memuat data</td></tr>";
   }
 }
 
-/* ================= LOAD PENGURUS STABIL ================= */
 async function loadPengurus(){
   try{
     const res=await fetch(WEB_APP_URL+"?action=getPengurus");
     const result=await res.json();
-    pengurus=Array.isArray(result)?result:result.data||[];
+    pengurus = Array.isArray(result) ? result : (result.data || []);
     tampilPengurus();
   }catch(err){
     pengurus=[];
@@ -76,8 +228,7 @@ function updateStatistik(){
 function isiDropdownPengurus(){
   const select=document.getElementById("namaPengurus");
   select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
-  allData
-  .filter(a=>(a.Status||"")==="Aktif")
+  allData.filter(a=>(a.Status||"")==="Aktif")
   .forEach(a=>{
     const opt=document.createElement("option");
     opt.value=a["Nama Lengkap"];
@@ -101,33 +252,26 @@ function tampilPengurus(){
   });
 }
 
-/* ================= FILTER ================= */
-function getFilteredData(){
+function renderTabel(){
   const search=document.getElementById("searchInput").value.toLowerCase();
   const filter=document.getElementById("filterStatus").value;
 
-  return allData.filter(row=>{
+  const data=allData.filter(row=>{
     const nama=(row["Nama Lengkap"]||"").toLowerCase();
     const no=(row["No Anggota"]||"").toLowerCase();
     const status=row.Status||"Nonaktif";
-
     return(
       (nama.includes(search)||no.includes(search)) &&
       (!filter||status===filter)
     );
   });
-}
 
-/* ================= RENDER ================= */
-function renderTabel(){
-  const data=getFilteredData();
   const start=(currentPage-1)*rowsPerPage;
   const pageData=data.slice(start,start+rowsPerPage);
 
   let html="";
   pageData.forEach(row=>{
     const status=row.Status||"Nonaktif";
-
     html+=`<tr>
       <td>${row["No Anggota"]||"-"}</td>
       <td>${row["Nama Lengkap"]||"-"}</td>
@@ -146,57 +290,40 @@ function renderTabel(){
   document.getElementById("tabelAnggota").innerHTML=
     pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
 
-  renderPagination(data.length);
-}
-
-function renderPagination(total){
-  const totalPages=Math.ceil(total/rowsPerPage);
+  const totalPages=Math.ceil(data.length/rowsPerPage);
   const div=document.getElementById("pagination");
   div.innerHTML="";
-  if(totalPages<=1) return;
-
-  div.innerHTML=`
-    <button onclick="prevPage()">Prev</button>
-    Halaman ${currentPage} dari ${totalPages}
-    <button onclick="nextPage(${totalPages})">Next</button>
-  `;
+  if(totalPages>1){
+    div.innerHTML=`
+      <button onclick="if(currentPage>1){currentPage--;renderTabel();}">Prev</button>
+      Halaman ${currentPage} dari ${totalPages}
+      <button onclick="if(currentPage<${totalPages}){currentPage++;renderTabel();}">Next</button>
+    `;
+  }
 }
 
-function prevPage(){ if(currentPage>1){currentPage--;renderTabel();}}
-function nextPage(tp){ if(currentPage<tp){currentPage++;renderTabel();}}
-
-/* ================= UPDATE STATUS ================= */
 async function ubahStatus(no,status){
   const fd=new URLSearchParams();
   fd.append("action","updateStatus");
   fd.append("no",no);
   fd.append("status",status);
-
   await fetch(WEB_APP_URL,{method:"POST",body:fd});
-
   const item=allData.find(a=>a["No Anggota"]===no);
   if(item) item.Status=status;
-
   updateStatistik();
   isiDropdownPengurus();
   loadPengurus();
   renderTabel();
-
   alert("Status berhasil diperbarui");
 }
 
-/* ================= HAPUS ================= */
 async function hapusAnggota(no){
   if(!confirm("Yakin ingin menghapus anggota ini?")) return;
-
   const fd=new URLSearchParams();
   fd.append("action","delete");
   fd.append("no",no);
-
   await fetch(WEB_APP_URL,{method:"POST",body:fd});
-
   allData=allData.filter(a=>a["No Anggota"]!==no);
-
   updateStatistik();
   isiDropdownPengurus();
   loadPengurus();
@@ -204,16 +331,13 @@ async function hapusAnggota(no){
 }
 
 function exportExcel(){
-  const data=getFilteredData();
+  const data=allData;
   if(!data.length) return alert("Tidak ada data");
-
   const headers=Object.keys(data[0]);
   let csv=headers.join(",")+"\n";
-
   data.forEach(row=>{
     csv+=headers.map(h=>`"${row[h]||""}"`).join(",")+"\n";
   });
-
   const blob=new Blob([csv],{type:"text/csv"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -224,3 +348,6 @@ function exportExcel(){
 loadAnggota();
 loadPengurus();
 </script>
+
+</body>
+</html>
