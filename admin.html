@@ -1,5 +1,33 @@
 <!DOCTYPE html>
 <html>
+<style>
+.toast-container{
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:9999;
+}
+.toast{
+  min-width:260px;
+  margin-bottom:10px;
+  padding:14px 18px;
+  border-radius:10px;
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  opacity:0;
+  transform:translateX(100%);
+  transition:all .4s ease;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(0);
+}
+.toast.success{background:linear-gradient(135deg,#28a745,#218838);}
+.toast.error{background:linear-gradient(135deg,#dc3545,#c82333);}
+.toast.warning{background:linear-gradient(135deg,#ffc107,#e0a800);color:#000;}
+</style>
 <head>
 <title>Dashboard Admin</title>
 <style>
