@@ -134,7 +134,78 @@ document.getElementById("listAnggota").innerHTML=
 }
 }
 
-/* LOAD */
+/* FUNGSI KIRIM DATA */
+async function kirim(){
+
+const btn=document.getElementById("btnKirim");
+btn.disabled=true;
+btn.innerText="Mengirim...";
+
+const nama=document.getElementById("nama").value.trim();
+const gelar=document.getElementById("gelar").value.trim();
+const alamat=document.getElementById("alamat").value.trim();
+const nohp=document.getElementById("nohp").value.trim();
+const fotoInput=document.getElementById("foto");
+
+if(!nama||!nohp){
+alert("Nama dan No HP wajib diisi");
+btn.disabled=false;
+btn.innerText="Kirim";
+return;
+}
+
+let fotoBase64="";
+if(fotoInput.files[0]){
+const file=fotoInput.files[0];
+if(file.size>3*1024*1024){
+alert("Ukuran foto maksimal 3MB");
+btn.disabled=false;
+btn.innerText="Kirim";
+return;
+}
+fotoBase64=await toBase64(file);
+}
+
+const formData=new URLSearchParams();
+formData.append("action","daftaranggota");
+formData.append("nama",nama);
+formData.append("gelar",gelar);
+formData.append("alamat",alamat);
+formData.append("nohp",nohp);
+formData.append("foto",fotoBase64);
+
+try{
+const res=await fetch(WEB_APP_URL,{
+method:"POST",
+body:formData
+});
+const data=await res.json();
+
+if(data.status==="success"){
+alert("Pendaftaran berhasil!\n\nUsername: "+data.username+"\nPassword: "+data.password+"\n\nSimpan baik-baik akun Anda.");
+tutupForm();
+loadAnggota();
+}else{
+alert(data.message||"Gagal mendaftar");
+}
+}catch(e){
+alert("Terjadi kesalahan koneksi.");
+}
+
+btn.disabled=false;
+btn.innerText="Kirim";
+}
+
+function toBase64(file){
+return new Promise((resolve,reject)=>{
+const reader=new FileReader();
+reader.readAsDataURL(file);
+reader.onload=()=>resolve(reader.result);
+reader.onerror=error=>reject(error);
+});
+}
+
+/* LOAD AWAL */
 loadStruktur();
 loadAnggota();
 </script>
