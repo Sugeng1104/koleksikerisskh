@@ -64,11 +64,9 @@
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* MASTER ACCOUNT */
 const masterAccounts = [
   { role:"Super Admin", username:"Sugeng11", password:"123@Sugeng" },
   { role:"Admin", username:"Admin", password:"admin1" }
-  { role:"User", username:"User", password:"user1" }
 ];
 
 async function login(){
@@ -78,10 +76,10 @@ async function login(){
   const selectedRole = document.getElementById("role").value;
 
   if(!username || !password || !selectedRole){
-    return alert("Lengkapi Username, Password dan Role!");
+    alert("Lengkapi Username, Password dan Role!");
+    return;
   }
 
-  /* CEK MASTER ACCOUNT */
   const master = masterAccounts.find(acc =>
     acc.username === username &&
     acc.password === password &&
@@ -89,10 +87,10 @@ async function login(){
   );
 
   if(master){
-    return setSession(master.username, master.role);
+    setSession(master.username, master.role);
+    return;
   }
 
-  /* CEK SPREADSHEET USERS */
   const formData = new URLSearchParams();
   formData.append("action","login");
   formData.append("username",username);
@@ -109,14 +107,14 @@ async function login(){
 
     if(result.status === "success"){
 
-      // 🔐 Cek Status Aktif
       if(result.statusUser !== "Aktif"){
-        return alert("Akun Anda Nonaktif. Hubungi Admin.");
+        alert("Akun Anda Nonaktif. Hubungi Admin.");
+        return;
       }
 
-      // 🔐 Cek Role Sesuai
       if(result.role !== selectedRole){
-        return alert("Role tidak sesuai dengan akun Anda!");
+        alert("Role tidak sesuai dengan akun Anda!");
+        return;
       }
 
       setSession(result.username, result.role);
