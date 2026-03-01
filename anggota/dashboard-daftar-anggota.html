@@ -98,6 +98,17 @@ th{ background:#222; color:gold; }
 <h1>Komunitas Keris SKH</h1>
 
 <div class="card">
+<h2>Struktur Pengurus</h2>
+<table>
+<tr><th>Jabatan</th><th>Nama</th></tr>
+<tr><td>Ketua</td><td>Ketua SKH</td></tr>
+<tr><td>Sekretaris</td><td>Sekretaris SKH</td></tr>
+<tr><td>Bendahara</td><td>Bendahara SKH</td></tr>
+<tr><td>Kurator</td><td>Kurator SKH</td></tr>
+</table>
+</div>
+
+<div class="card">
 <h2>Daftar Anggota</h2>
 
 <table>
@@ -120,10 +131,9 @@ th{ background:#222; color:gold; }
 
 <script>
 
-/* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ================= LOGIN CHECK ================= */
+/* ================= LOGIN PROTECTION ================= */
 (function(){
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
@@ -154,7 +164,122 @@ function renderAnggota(data){
 
     data.slice().reverse().forEach(row=>{
 
-        const values = Object.values(row);
+        const nama = row["Nama Lengkap"] || row["Nama"] || "-";
+        const nomor = (row["No Anggota"] || "").trim();
+        const foto = row["Foto"] || "";
+        const status = row["Status"] || "Nonaktif";
+        const statusClass = status==="Aktif"?"status-aktif":"status-nonaktif";
 
-        const nomor = (row["No Anggota"] || values[0] || "").toString().trim();
-        const nama = row["
+        /* ===== FILTER USER ===== */
+        if(roleLogin !== "Super Admin" && roleLogin !== "Admin"){
+            if(!noLogin || nomor !== noLogin){
+                return;
+            }
+        }
+
+        let aksiButton = `
+        <button class="btn btn-blue"
+        onclick="generateCard('${nama}','${nomor}','${foto}')">
+        Cetak Kartu
+        </button>`;
+
+        html+=`
+        <tr>
+            <td><img src="${foto}" class="foto-kecil"></td>
+            <td>${nama}</td>
+            <td>${nomor}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>${aksiButton}</td>
+        </tr>`;
+    });
+
+    if(html===""){
+        html="<tr><td colspan='5'>Data anggota tidak ditemukan</td></tr>";
+    }
+
+    document.getElementById("listAnggota").innerHTML=html;
+}
+
+/* ================= FETCH ================= */
+async function fetchData(){
+    try{
+        const res = await fetch(WEB_APP_URL + "?action=getanggota&t=" + Date.now());
+        const result = await res.json();
+        renderAnggota(result);
+    }catch(e){
+        document.getElementById("listAnggota").innerHTML =
+        "<tr><td colspan='5'>❌ Gagal mengambil data</td></tr>";
+    }
+}
+
+/* ================= CARD ================= */
+function generateCard(nama,nomor,foto){
+
+    const canvas=document.createElement("canvas");
+    canvas.width=1016;
+    canvas.height=638;
+    const ctx=canvas.getContext("2d");
+
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop(0,"#D4AF37");
+    gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B");
+    ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.strokeStyle="#5a3d00";
+    ctx.lineWidth=20;
+    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+
+    ctx.fillStyle="#3b2a00";
+    ctx.font="bold 52px Georgia";
+    ctx.textAlign="center";
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+
+    ctx.font="bold 36px Georgia";
+    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
+
+    function drawContent(){
+
+        ctx.textAlign="left";
+        ctx.fillStyle="#3b2a00";
+        ctx.font="bold 42px Georgia";
+        ctx.fillText(nama,350,300);
+
+        ctx.font="30px Georgia";
+        ctx.fillText("No Anggota : "+nomor,350,360);
+
+        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+            if(!err){
+                ctx.drawImage(qrCanvas,canvas.width-300,400);
+            }
+
+            const link=document.createElement("a");
+            link.download="Kartu_"+nomor+".png";
+            link.href=canvas.toDataURL("image/png");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+
+    if(foto){
+        const img=new Image();
+        img.crossOrigin="anonymous";
+        img.src=foto;
+        img.onload=function(){
+            ctx.drawImage(img,100,250,200,260);
+            drawContent();
+        };
+        img.onerror=function(){ drawContent(); };
+    }else{
+        drawContent();
+    }
+}
+
+fetchData();
+setInterval(fetchData,30000);
+
+</script>
+</body>
+</html>
