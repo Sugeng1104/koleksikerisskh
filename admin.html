@@ -190,13 +190,12 @@ function showLoading(){
   "<tr><td colspan='4'>Memuat data...</td></tr>";
 }
 
-/* ===== LOAD ANGGOTA (STABIL SAMA SEPERTI HALAMAN LAIN) ===== */
+/* LOAD ANGGOTA */
 async function loadAnggota(){
   showLoading();
   try{
-    const res=await fetch(WEB_APP_URL+"?t="+Date.now());
-    const result=await res.json();
-    allData=Array.isArray(result)?result:[];
+    const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+Date.now());
+    allData=await res.json()||[];
     updateStatistik();
     isiDropdownPengurus();
     renderTabel();
@@ -206,10 +205,10 @@ async function loadAnggota(){
   }
 }
 
-/* ===== LOAD PENGURUS ===== */
+/* LOAD PENGURUS */
 async function loadPengurus(){
   try{
-    const res=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now());
+    const res=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
     pengurus=await res.json()||[];
     tampilPengurus();
   }catch{
@@ -245,9 +244,38 @@ function tampilPengurus(){
     return;
   }
   pengurus.forEach(p=>{
-    list.innerHTML+=`
-      <li>${p.Jabatan} - ${p.Nama}</li>`;
+    list.innerHTML+=`<li>${p.Jabatan} - ${p.Nama}</li>`;
   });
+}
+
+/* ====== TABEL DENGAN DROPDOWN & HAPUS ====== */
+function renderTabel(){
+  const data=getFilteredData();
+  const start=(currentPage-1)*rowsPerPage;
+  const pageData=data.slice(start,start+rowsPerPage);
+
+  let html="";
+  pageData.forEach(row=>{
+    const no=row["No Anggota"]||"";
+    const status=row.Status||"Nonaktif";
+
+    html+=`<tr>
+      <td>${no}</td>
+      <td>${row["Nama Lengkap"]||"-"}</td>
+      <td>
+        <select onchange="ubahStatus('${no}',this.value)">
+          <option value="Aktif" ${status==="Aktif"?"selected":""}>Aktif</option>
+          <option value="Nonaktif" ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
+        </select>
+      </td>
+      <td>
+        <button class="hapus" onclick="hapusAnggota('${no}')">Hapus</button>
+      </td>
+    </tr>`;
+  });
+
+  document.getElementById("tabelAnggota").innerHTML=
+    pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
 }
 
 function getFilteredData(){
@@ -262,26 +290,6 @@ function getFilteredData(){
       (!filter||status===filter)
     );
   });
-}
-
-function renderTabel(){
-  const data=getFilteredData();
-  const start=(currentPage-1)*rowsPerPage;
-  const pageData=data.slice(start,start+rowsPerPage);
-
-  let html="";
-  pageData.forEach(row=>{
-    const status=row.Status||"Nonaktif";
-    html+=`<tr>
-      <td>${row["No Anggota"]||"-"}</td>
-      <td>${row["Nama Lengkap"]||"-"}</td>
-      <td>${status}</td>
-      <td>-</td>
-    </tr>`;
-  });
-
-  document.getElementById("tabelAnggota").innerHTML=
-    pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
 }
 
 loadAnggota();
