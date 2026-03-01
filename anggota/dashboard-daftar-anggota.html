@@ -6,7 +6,6 @@
 <title>Dashboard - Komunitas Keris SKH</title>
 
 <style>
-/* TAMPILAN TIDAK DIUBAH */
 body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
 .container{max-width:1100px;margin:auto;position:relative;}
 h1{color:gold;text-align:center;margin-bottom:40px;text-shadow:0 0 10px rgba(212,175,55,0.6);}
@@ -42,6 +41,15 @@ margin-top:15px;}
 
 <h1>Komunitas Keris SKH</h1>
 
+<!-- ================= STRUKTUR PENGURUS ================= -->
+<div class="card">
+<h2>Struktur Pengurus</h2>
+<table id="tabelPengurus">
+<tr><td colspan="2" class="loading">Memuat data...</td></tr>
+</table>
+</div>
+
+<!-- ================= DAFTAR ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -83,12 +91,39 @@ document.getElementById("userInfo").innerHTML=
 
 function logout(){
 localStorage.clear();
-window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html.html";
+window.location.href="daftar-anggota.html";
 }
 
-/* ================= AMBIL DATA SESUAI APPS SCRIPT ================= */
+/* ================= AMBIL DATA PENGURUS ================= */
+async function fetchPengurus(){
+try{
+const res=await fetch(WEB_APP_URL+"?action=getpengurus");
+const data=await res.json();
 
-async function fetchData(){
+const tabel=document.getElementById("tabelPengurus");
+tabel.innerHTML="<tr><th>Jabatan</th><th>Nama</th></tr>";
+
+if(!Array.isArray(data) || data.length===0){
+tabel.innerHTML="<tr><td colspan='2'>Data pengurus tidak ditemukan</td></tr>";
+return;
+}
+
+data.forEach(row=>{
+tabel.innerHTML+=`
+<tr>
+<td>${row.Jabatan||'-'}</td>
+<td>${row["Nama Lengkap"]||row.Nama||'-'}</td>
+</tr>`;
+});
+
+}catch(err){
+document.getElementById("tabelPengurus").innerHTML=
+"<tr><td colspan='2'>Gagal memuat data</td></tr>";
+}
+}
+
+/* ================= AMBIL DATA ANGGOTA ================= */
+async function fetchAnggota(){
 try{
 
 const res=await fetch(WEB_APP_URL+"?action=getanggota");
@@ -113,9 +148,7 @@ tbody.innerHTML+=`
 <td>${row["No Anggota"]||'-'}</td>
 <td>${row["No HP"]||'-'}</td>
 <td><span class="${statusClass}">${row.Status||'-'}</span></td>
-</tr>
-`;
-
+</tr>`;
 });
 
 }catch(err){
@@ -124,9 +157,10 @@ document.getElementById("listAnggota").innerHTML=
 }
 }
 
-fetchData();
+/* LOAD DATA */
+fetchPengurus();
+fetchAnggota();
 
 </script>
 </body>
 </html>
-
