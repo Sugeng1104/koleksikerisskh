@@ -80,6 +80,7 @@ async function login(){
     return;
   }
 
+  /* ================= MASTER ADMIN ================= */
   const master = masterAccounts.find(acc =>
     acc.username === username &&
     acc.password === password &&
@@ -87,9 +88,16 @@ async function login(){
   );
 
   if(master){
-    setSession(master.username, master.role);
+    setSession({
+      namaLengkap: master.username,
+      username: master.username,
+      role: master.role,
+      noAnggota: "ADMIN"
+    });
     return;
   }
+
+  /* ================= USER DARI SPREADSHEET ================= */
 
   const formData = new URLSearchParams();
   formData.append("action","login");
@@ -117,7 +125,12 @@ async function login(){
         return;
       }
 
-      setSession(result.username, result.role);
+      setSession({
+        namaLengkap: result.namaLengkap || result.username,
+        username: result.username,
+        role: result.role,
+        noAnggota: result.noAnggota
+      });
 
     }else{
       alert("Login gagal! Username / Password salah.");
@@ -128,10 +141,14 @@ async function login(){
   }
 }
 
-function setSession(username, role){
+function setSession(user){
+
   localStorage.setItem("isLoggedIn","true");
-  localStorage.setItem("username",username);
-  localStorage.setItem("role",role);
+  localStorage.setItem("username", user.username);
+  localStorage.setItem("namaLengkap", user.namaLengkap);
+  localStorage.setItem("role", user.role);
+  localStorage.setItem("noAnggota", user.noAnggota);
+
   window.location.href="dashboard-daftar-anggota.html";
 }
 
