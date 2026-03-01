@@ -177,7 +177,7 @@ if(localStorage.getItem("role")==="Super Admin"){
 
 function logout(){
   localStorage.clear();
-  window.location.href="https://sugeng1104.github.io/koleksikerisskh/index.html";
+  window.location.href="index.html";
 }
 
 let allData=[];
@@ -190,39 +190,36 @@ function showLoading(){
   "<tr><td colspan='4'>Memuat data...</td></tr>";
 }
 
+/* ===== LOAD ANGGOTA (STABIL SAMA SEPERTI HALAMAN LAIN) ===== */
 async function loadAnggota(){
   showLoading();
   try{
     const res=await fetch(WEB_APP_URL+"?t="+Date.now());
     const result=await res.json();
-
-    allData = Array.isArray(result) ? result : [];
-
+    allData=Array.isArray(result)?result:[];
     updateStatistik();
     isiDropdownPengurus();
     renderTabel();
-
-  }catch(err){
+  }catch{
     document.getElementById("tabelAnggota").innerHTML=
     "<tr><td colspan='4'>Gagal memuat data</td></tr>";
   }
 }
 
+/* ===== LOAD PENGURUS ===== */
 async function loadPengurus(){
   try{
-    const res=await fetch(WEB_APP_URL+"?action=getPengurus");
-    const result=await res.json();
-    pengurus = Array.isArray(result) ? result : (result.data || []);
+    const res=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now());
+    pengurus=await res.json()||[];
     tampilPengurus();
-  }catch(err){
-    pengurus=[];
-    tampilPengurus();
+  }catch{
+    document.getElementById("listPengurus").innerHTML="<li>Gagal memuat pengurus</li>";
   }
 }
 
 function updateStatistik(){
   const total=allData.length;
-  const aktif=allData.filter(a=>(a.Status||"")==="Aktif").length;
+  const aktif=allData.filter(a=>a.Status==="Aktif").length;
   document.getElementById("totalAnggota").innerText=total;
   document.getElementById("totalAktif").innerText=aktif;
   document.getElementById("totalNonaktif").innerText=total-aktif;
@@ -231,7 +228,7 @@ function updateStatistik(){
 function isiDropdownPengurus(){
   const select=document.getElementById("namaPengurus");
   select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
-  allData.filter(a=>(a.Status||"")==="Aktif")
+  allData.filter(a=>a.Status==="Aktif")
   .forEach(a=>{
     const opt=document.createElement("option");
     opt.value=a["Nama Lengkap"];
@@ -249,17 +246,14 @@ function tampilPengurus(){
   }
   pengurus.forEach(p=>{
     list.innerHTML+=`
-      <li>${p.nama} - ${p.jabatan}
-      <button class="hapus" onclick="hapusPengurus('${p.nama}')">Hapus</button>
-      </li>`;
+      <li>${p.Jabatan} - ${p.Nama}</li>`;
   });
 }
 
-function renderTabel(){
+function getFilteredData(){
   const search=document.getElementById("searchInput").value.toLowerCase();
   const filter=document.getElementById("filterStatus").value;
-
-  const data=allData.filter(row=>{
+  return allData.filter(row=>{
     const nama=(row["Nama Lengkap"]||"").toLowerCase();
     const no=(row["No Anggota"]||"").toLowerCase();
     const status=row.Status||"Nonaktif";
@@ -268,7 +262,10 @@ function renderTabel(){
       (!filter||status===filter)
     );
   });
+}
 
+function renderTabel(){
+  const data=getFilteredData();
   const start=(currentPage-1)*rowsPerPage;
   const pageData=data.slice(start,start+rowsPerPage);
 
@@ -278,74 +275,13 @@ function renderTabel(){
     html+=`<tr>
       <td>${row["No Anggota"]||"-"}</td>
       <td>${row["Nama Lengkap"]||"-"}</td>
-      <td>
-        <select onchange="ubahStatus('${row["No Anggota"]}',this.value)">
-          <option ${status==="Aktif"?"selected":""}>Aktif</option>
-          <option ${status==="Nonaktif"?"selected":""}>Nonaktif</option>
-        </select>
-      </td>
-      <td>
-        <button class="hapus" onclick="hapusAnggota('${row["No Anggota"]}')">Hapus</button>
-      </td>
+      <td>${status}</td>
+      <td>-</td>
     </tr>`;
   });
 
   document.getElementById("tabelAnggota").innerHTML=
     pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
-
-  const totalPages=Math.ceil(data.length/rowsPerPage);
-  const div=document.getElementById("pagination");
-  div.innerHTML="";
-  if(totalPages>1){
-    div.innerHTML=`
-      <button onclick="if(currentPage>1){currentPage--;renderTabel();}">Prev</button>
-      Halaman ${currentPage} dari ${totalPages}
-      <button onclick="if(currentPage<${totalPages}){currentPage++;renderTabel();}">Next</button>
-    `;
-  }
-}
-
-async function ubahStatus(no,status){
-  const fd=new URLSearchParams();
-  fd.append("action","updateStatus");
-  fd.append("no",no);
-  fd.append("status",status);
-  await fetch(WEB_APP_URL,{method:"POST",body:fd});
-  const item=allData.find(a=>a["No Anggota"]===no);
-  if(item) item.Status=status;
-  updateStatistik();
-  isiDropdownPengurus();
-  loadPengurus();
-  renderTabel();
-  alert("Status berhasil diperbarui");
-}
-
-async function hapusAnggota(no){
-  if(!confirm("Yakin ingin menghapus anggota ini?")) return;
-  const fd=new URLSearchParams();
-  fd.append("action","delete");
-  fd.append("no",no);
-  await fetch(WEB_APP_URL,{method:"POST",body:fd});
-  allData=allData.filter(a=>a["No Anggota"]!==no);
-  updateStatistik();
-  isiDropdownPengurus();
-  loadPengurus();
-  renderTabel();
-}
-
-function exportExcel(){
-  const data=allData;
-  if(!data.length) return alert("Tidak ada data");
-  const headers=Object.keys(data[0]);
-  let csv=headers.join(",")+"\n";
-  data.forEach(row=>{
-    csv+=headers.map(h=>`"${row[h]||""}"`).join(",")+"\n";
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="data-anggota.csv";
-  a.click();
 }
 
 loadAnggota();
