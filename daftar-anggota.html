@@ -31,7 +31,7 @@ th{background:#222;color:gold;}
 
 <body>
 
-<a href="https://sugeng1104.github.io/koleksikerisskh/anggota/anggota-login.html" class="login-top">Masuk</a>
+<a href="anggota-login.html" class="login-top">Masuk</a>
 
 <div class="container">
 
@@ -94,13 +94,10 @@ const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6
 function bukaForm(){document.getElementById("modalDaftar").style.display="flex";}
 function tutupForm(){document.getElementById("modalDaftar").style.display="none";}
 
-/* ===== LOAD STRUKTUR ===== */
+/* LOAD STRUKTUR */
 async function loadStruktur(){
 try{
-const r=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now(),{
-method:"GET",
-mode:"cors"
-});
+const r=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now());
 const d=await r.json();
 let html="";
 (d||[]).forEach(p=>{
@@ -112,13 +109,10 @@ document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
 }
 }
 
-/* ===== LOAD ANGGOTA ===== */
+/* LOAD ANGGOTA */
 async function loadAnggota(){
 try{
-const r=await fetch(WEB_APP_URL+"?t="+Date.now(),{
-method:"GET",
-mode:"cors"
-});
+const r=await fetch(WEB_APP_URL+"?t="+Date.now());
 const d=await r.json();
 let html="";
 (d||[])
@@ -142,7 +136,7 @@ document.getElementById("listAnggota").innerHTML=
 
 let submitting=false;
 
-/* ===== KIRIM DATA ===== */
+/* KIRIM DATA */
 async function kirim(){
 if(submitting)return;
 submitting=true;
@@ -172,17 +166,22 @@ action:"addAnggota",
 nama,gelar,alamat,nohp,foto:e.target.result
 });
 
-/* ===== ANTI CORB STABIL ===== */
-await fetch(WEB_APP_URL,{
+const response=await fetch(WEB_APP_URL,{
 method:"POST",
-mode:"no-cors",
 body
 });
 
-alert("Pendaftaran berhasil ✅\nSilakan cek WhatsApp dan Spreadsheet.");
+const result=await response.json();
 
+if(result.status==="success"){
+alert("Pendaftaran berhasil ✅\n\nUsername: "+result.username+
+"\nPassword: "+result.password+
+"\n\nSilakan simpan data login.");
 tutupForm();
 setTimeout(loadAnggota,1500);
+}else{
+alert(result.message);
+}
 
 }catch(err){
 console.error(err);
@@ -202,7 +201,6 @@ btn.disabled=false;
 btn.innerText="Kirim";
 }
 
-/* INIT */
 loadStruktur();
 loadAnggota();
 </script>
