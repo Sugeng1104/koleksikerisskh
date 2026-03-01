@@ -1,298 +1,276 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<title>Dashboard Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
 <style>
 body{
+  font-family:Arial, sans-serif;
+  background:#f4f6f9;
   margin:0;
-  background:linear-gradient(to right,black,#001f1f);
-  color:#00ffcc;
-  font-family:Arial;
-}
-.sidebar{
-  width:220px;
-  height:100vh;
-  background:black;
-  position:fixed;
   padding:20px;
 }
-.sidebar button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  background:#00ffcc;
+h2{
+  margin-bottom:15px;
+}
+button{
+  padding:8px 14px;
   border:none;
+  border-radius:6px;
   cursor:pointer;
 }
-.content{
-  margin-left:240px;
-  padding:30px;
-}
-.flex-row{
-  display:flex;
-  gap:20px;
-  align-items:flex-start;
-}
-.card{
-  background:#111;
-  padding:20px;
-  border-radius:10px;
-  margin-bottom:20px;
-  flex:1;
-}
-input,select{
-  padding:8px;
-  margin-right:5px;
-}
-button.tambah{
-  background:#00cc66;
-  color:white;
-  border:none;
-  padding:8px 12px;
-}
-button.hapus{
-  background:red;
-  color:white;
-  border:none;
-  padding:6px 10px;
+.btn-primary{background:#007bff;color:#fff;}
+.btn-danger{background:#dc3545;color:#fff;}
+.btn-success{background:#28a745;color:#fff;}
+select{
+  padding:6px;
+  border-radius:6px;
 }
 table{
   width:100%;
-  margin-top:15px;
   border-collapse:collapse;
+  background:#fff;
 }
 th,td{
   padding:10px;
-  border-bottom:1px solid #333;
+  border:1px solid #ddd;
+  text-align:center;
 }
-.stat-box{
-  font-size:18px;
+th{
+  background:#343a40;
+  color:#fff;
+}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+}
+
+/* TOAST PREMIUM */
+.toast-container{
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:9999;
+}
+.toast{
+  min-width:260px;
   margin-bottom:10px;
+  padding:14px 18px;
+  border-radius:10px;
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  opacity:0;
+  transform:translateX(100%);
+  transition:all .4s ease;
 }
-.pagination{
-  margin-top:15px;
+.toast.show{
+  opacity:1;
+  transform:translateX(0);
 }
-.pagination button{
-  padding:6px 10px;
-  margin-right:5px;
-}
+.toast.success{background:linear-gradient(135deg,#28a745,#218838);}
+.toast.error{background:linear-gradient(135deg,#dc3545,#c82333);}
+.toast.warning{background:linear-gradient(135deg,#ffc107,#e0a800);color:#000;}
 </style>
 </head>
+
 <body>
 
-<div class="sidebar">
-  <h2>ADMIN</h2>
-  <p id="userInfo"></p>
-  <p id="roleInfo"></p>
+<h2>ADMIN PANEL</h2>
 
-  <button onclick="window.location.href='index.html'">Halaman Depan</button>
-
-  <button id="menuKelola" style="display:none;"
-          onclick="window.location.href='kelola-akun.html'">
-    Kelola Akun
-  </button>
-
-  <button onclick="logout()">Logout</button>
+<div class="card">
+<h3>Daftar Anggota</h3>
+<table id="tabelAnggota">
+<thead>
+<tr>
+<th>No</th>
+<th>Nama</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 </div>
 
-<div class="content">
-  <h1>Dashboard Admin</h1>
+<div class="card">
+<h3>Struktur Pengurus</h3>
 
-  <div class="flex-row">
+<select id="selectAnggota"></select>
+<input type="text" id="jabatanInput" placeholder="Masukkan Jabatan">
+<button class="btn-success" onclick="tambahPengurus()">Tambah</button>
 
-    <div class="card">
-      <h2>Struktur Pengurus</h2>
-
-      <select id="namaPengurus">
-        <option value="">Memuat anggota aktif...</option>
-      </select>
-
-      <select id="jabatan">
-       <option>Ketua</option>
-       <option>Sekretaris</option>
-       <option>Bendahara</option>
-       <option>Kurator Pusaka</option>
-      </select>
-
-      <button class="tambah" onclick="tambahPengurus()">Tambah</button>
-
-      <ul id="listPengurus"></ul>
-    </div>
-
-    <div class="card">
-      <h2>Statistik Anggota</h2>
-      <div class="stat-box">Total Anggota: <strong id="totalAnggota">0</strong></div>
-      <div class="stat-box">Aktif: <strong id="totalAktif">0</strong></div>
-      <div class="stat-box">Nonaktif: <strong id="totalNonaktif">0</strong></div>
-    </div>
-
-  </div>
-
-  <div class="card">
-    <h2>Daftar Anggota</h2>
-
-    <div style="margin-bottom:10px;">
-      <input type="text" id="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
-      <select id="filterStatus" onchange="renderTabel()">
-        <option value="">Semua Status</option>
-        <option value="Aktif">Aktif</option>
-        <option value="Nonaktif">Nonaktif</option>
-      </select>
-
-      <button onclick="exportExcel()">Export Excel</button>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>No Anggota</th>
-          <th>Nama</th>
-          <th>Status</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tabelAnggota">
-        <tr><td colspan="4">Memuat...</td></tr>
-      </tbody>
-    </table>
-
-    <div class="pagination" id="pagination"></div>
-  </div>
-
+<table style="margin-top:15px;">
+<thead>
+<tr>
+<th>Nama</th>
+<th>Jabatan</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="tabelPengurus"></tbody>
+</table>
 </div>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-
-if(localStorage.getItem("isLoggedIn")!=="true"){
-  window.location.href="login.html";
-}
-
-document.getElementById("userInfo").innerText="User: "+localStorage.getItem("username");
-document.getElementById("roleInfo").innerText="Role: "+localStorage.getItem("role");
-
-if(localStorage.getItem("role")==="Super Admin"){
-  document.getElementById("menuKelola").style.display="block";
-}
-
-function logout(){
-  localStorage.clear();
-  window.location.href="index.html";
-}
+const WEB_APP_URL="ISI_URL_APPS_SCRIPT_DISINI";
 
 let allData=[];
-let currentPage=1;
-const rowsPerPage=10;
-let pengurus=[];
+let pengurusData=[];
 
-function showLoading(){
-  document.getElementById("tabelAnggota").innerHTML=
-  "<tr><td colspan='4'>Memuat data...</td></tr>";
+function showToast(message,type="success"){
+  const container=document.getElementById("toastContainer");
+  const toast=document.createElement("div");
+  toast.className="toast "+type;
+  toast.innerText=message;
+  container.appendChild(toast);
+  setTimeout(()=>toast.classList.add("show"),100);
+  setTimeout(()=>{
+    toast.classList.remove("show");
+    setTimeout(()=>toast.remove(),400);
+  },3000);
 }
 
-/* LOAD ANGGOTA */
-async function loadAnggota(){
-  showLoading();
+async function loadData(){
   try{
-    const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+Date.now());
-    allData=await res.json()||[];
-    updateStatistik();
-    isiDropdownPengurus();
+    const res=await fetch(WEB_APP_URL+"?action=getAnggota");
+    allData=await res.json();
     renderTabel();
+    isiDropdownPengurus();
   }catch{
-    document.getElementById("tabelAnggota").innerHTML=
-    "<tr><td colspan='4'>Gagal memuat data</td></tr>";
+    showToast("Gagal memuat data","error");
   }
 }
 
-/* LOAD PENGURUS */
-async function loadPengurus(){
+function renderTabel(){
+  const tbody=document.querySelector("#tabelAnggota tbody");
+  tbody.innerHTML="";
+  allData.forEach((a,i)=>{
+    tbody.innerHTML+=`
+      <tr>
+        <td>${i+1}</td>
+        <td>${a.Nama}</td>
+        <td>
+          <select onchange="ubahStatus('${a["No Anggota"]}',this.value)">
+            <option value="Aktif" ${a.Status==="Aktif"?"selected":""}>Aktif</option>
+            <option value="Tidak Aktif" ${a.Status==="Tidak Aktif"?"selected":""}>Tidak Aktif</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-danger" onclick="hapusAnggota('${a["No Anggota"]}')">Hapus</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function ubahStatus(no,status){
+  const fd=new URLSearchParams();
+  fd.append("action","updateStatus");
+  fd.append("no",no);
+  fd.append("status",status);
+
   try{
-    const res=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
-    pengurus=await res.json()||[];
-    tampilPengurus();
+    const res=await fetch(WEB_APP_URL,{method:"POST",body:fd});
+    const result=await res.json();
+    if(result.status==="success"){
+      const item=allData.find(a=>a["No Anggota"]===no);
+      if(item) item.Status=status;
+      showToast("Status berhasil diperbarui","success");
+    }else{
+      showToast("Gagal mengubah status","error");
+    }
   }catch{
-    document.getElementById("listPengurus").innerHTML="<li>Gagal memuat pengurus</li>";
+    showToast("Terjadi kesalahan koneksi","warning");
   }
 }
 
-function updateStatistik(){
-  const total=allData.length;
-  const aktif=allData.filter(a=>a.Status==="Aktif").length;
-  document.getElementById("totalAnggota").innerText=total;
-  document.getElementById("totalAktif").innerText=aktif;
-  document.getElementById("totalNonaktif").innerText=total-aktif;
+async function hapusAnggota(no){
+  if(!confirm("Yakin ingin menghapus?")) return;
+  const fd=new URLSearchParams();
+  fd.append("action","deleteAnggota");
+  fd.append("no",no);
+  const res=await fetch(WEB_APP_URL,{method:"POST",body:fd});
+  const result=await res.json();
+  if(result.status==="success"){
+    allData=allData.filter(a=>a["No Anggota"]!==no);
+    renderTabel();
+    showToast("Data berhasil dihapus","success");
+  }else{
+    showToast("Gagal menghapus","error");
+  }
 }
 
 function isiDropdownPengurus(){
-  const select=document.getElementById("namaPengurus");
-  select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
-  allData.filter(a=>a.Status==="Aktif")
-  .forEach(a=>{
-    const opt=document.createElement("option");
-    opt.value=a["Nama Lengkap"];
-    opt.textContent=a["Nama Lengkap"];
-    select.appendChild(opt);
+  const select=document.getElementById("selectAnggota");
+  select.innerHTML="";
+  allData.filter(a=>a.Status==="Aktif").forEach(a=>{
+    select.innerHTML+=`<option value="${a.Nama}">${a.Nama}</option>`;
   });
 }
 
-function tampilPengurus(){
-  const list=document.getElementById("listPengurus");
-  list.innerHTML="";
-  if(!pengurus.length){
-    list.innerHTML="<li>Belum ada pengurus</li>";
-    return;
+async function tambahPengurus(){
+  const nama=document.getElementById("selectAnggota").value;
+  const jabatan=document.getElementById("jabatanInput").value;
+  if(!jabatan) return showToast("Isi jabatan dulu","warning");
+
+  const fd=new URLSearchParams();
+  fd.append("action","tambahPengurus");
+  fd.append("nama",nama);
+  fd.append("jabatan",jabatan);
+
+  const res=await fetch(WEB_APP_URL,{method:"POST",body:fd});
+  const result=await res.json();
+  if(result.status==="success"){
+    document.getElementById("jabatanInput").value="";
+    loadPengurus();
+    showToast("Pengurus berhasil ditambahkan","success");
+  }else{
+    showToast("Gagal menambah pengurus","error");
   }
-  pengurus.forEach(p=>{
-    list.innerHTML+=`<li>${p.Jabatan} - ${p.Nama}</li>`;
+}
+
+async function loadPengurus(){
+  const res=await fetch(WEB_APP_URL+"?action=getPengurus");
+  pengurusData=await res.json();
+  const tbody=document.getElementById("tabelPengurus");
+  tbody.innerHTML="";
+  pengurusData.forEach(p=>{
+    tbody.innerHTML+=`
+      <tr>
+        <td>${p.Nama}</td>
+        <td>${p.Jabatan}</td>
+        <td>
+          <button class="btn-danger" onclick="hapusPengurus('${p.id}')">Hapus</button>
+        </td>
+      </tr>
+    `;
   });
 }
 
-/* ====== TABEL DENGAN DROPDOWN & HAPUS ====== */
-function renderTabel(){
-  const data=getFilteredData();
-  const start=(currentPage-1)*rowsPerPage;
-  const pageData=data.slice(start,start+rowsPerPage);
-
-  let html="";
-  pageData.forEach(row=>{
-    const no=row["No Anggota"]||"";
-    const status=row.Status||"Nonaktif";
-
-    html+=`<tr>
-      <td>${no}</td>
-      <td>${row["Nama Lengkap"]||"-"}</td>
-      <td>
-        <select onchange="ubahStatus('${no}',this.value)">
-          <option value="Aktif" ${status==="Aktif"?"selected":""}>Aktif</option>
-          <option value="Nonaktif" ${status==="Nonaktif"?"selected":""}>Tidak Aktif</option>
-        </select>
-      </td>
-      <td>
-        <button class="hapus" onclick="hapusAnggota('${no}')">Hapus</button>
-      </td>
-    </tr>`;
-  });
-
-  document.getElementById("tabelAnggota").innerHTML=
-    pageData.length?html:"<tr><td colspan='4'>Data tidak ditemukan</td></tr>";
+async function hapusPengurus(id){
+  const fd=new URLSearchParams();
+  fd.append("action","hapusPengurus");
+  fd.append("id",id);
+  const res=await fetch(WEB_APP_URL,{method:"POST",body:fd});
+  const result=await res.json();
+  if(result.status==="success"){
+    loadPengurus();
+    showToast("Pengurus berhasil dihapus","success");
+  }else{
+    showToast("Gagal menghapus","error");
+  }
 }
 
-function getFilteredData(){
-  const search=document.getElementById("searchInput").value.toLowerCase();
-  const filter=document.getElementById("filterStatus").value;
-  return allData.filter(row=>{
-    const nama=(row["Nama Lengkap"]||"").toLowerCase();
-    const no=(row["No Anggota"]||"").toLowerCase();
-    const status=row.Status||"Nonaktif";
-    return(
-      (nama.includes(search)||no.includes(search)) &&
-      (!filter||status===filter)
-    );
-  });
-}
-
-loadAnggota();
+loadData();
 loadPengurus();
 </script>
 
