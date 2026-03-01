@@ -193,12 +193,15 @@ function showLoading(){
 async function loadAnggota(){
   showLoading();
   try{
-    const res=await fetch(WEB_APP_URL+"?action=getUsers");
+    const res=await fetch(WEB_APP_URL+"?t="+Date.now());
     const result=await res.json();
-    allData = Array.isArray(result) ? result : (result.data || []);
+
+    allData = Array.isArray(result) ? result : [];
+
     updateStatistik();
     isiDropdownPengurus();
     renderTabel();
+
   }catch(err){
     document.getElementById("tabelAnggota").innerHTML=
     "<tr><td colspan='4'>Gagal memuat data</td></tr>";
