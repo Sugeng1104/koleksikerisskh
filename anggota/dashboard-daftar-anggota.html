@@ -5,140 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - Komunitas Keris SKH</title>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
 <style>
-body{
-    margin:0;
-    font-family:Georgia,serif;
-    background:#000;
-    color:white;
-    padding:40px;
-}
-.container{ max-width:1100px; margin:auto; position:relative; }
-
-h1{
-    color:gold;
-    text-align:center;
-    margin-bottom:40px;
-    text-shadow:0 0 10px rgba(212,175,55,0.6);
-}
-
-.login-top{
-    position:absolute;
-    top:0;
-    right:0;
-    text-align:right;
-}
-
-.user-info{
-    font-size:14px;
-    margin-bottom:8px;
-    color:gold;
-}
-
-.card{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
-
-h2{ color:gold; margin-bottom:15px; }
-
-table{ width:100%; border-collapse:collapse; margin-top:15px; }
-th, td{ border:1px solid #444; padding:10px; text-align:center; }
-th{ background:#222; color:gold; }
-
-.foto-kecil{
-    width:55px;
-    height:55px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid gold;
-}
-
-.status-aktif{
-    background:#00aa00;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-.status-nonaktif{
-    background:#aa0000;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-.btn{
-    padding:8px 14px;
-    border-radius:8px;
-    margin:4px;
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-}
-.btn-blue{ background:#007bff; color:white; }
-.btn-red{ background:#dc3545; color:white; }
-
-.loading{ text-align:center; color:gold; }
-
+/* TAMPILAN TIDAK DIUBAH */
+body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
+.container{max-width:1100px;margin:auto;position:relative;}
+h1{color:gold;text-align:center;margin-bottom:40px;text-shadow:0 0 10px rgba(212,175,55,0.6);}
+.login-top{position:absolute;top:0;right:0;text-align:right;}
+.user-info{font-size:14px;margin-bottom:8px;color:gold;}
+.card{background:#111;padding:30px;border-radius:15px;margin-bottom:25px;box-shadow:0 0 20px rgba(212,175,55,0.3);}
+h2{color:gold;margin-bottom:15px;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #444;padding:10px;text-align:center;}
+th{background:#222;color:gold;}
+.foto-kecil{width:55px;height:55px;object-fit:cover;border-radius:8px;border:2px solid gold;}
+.status-aktif{background:#00aa00;padding:5px 10px;border-radius:6px;font-weight:bold;}
+.status-nonaktif{background:#aa0000;padding:5px 10px;border-radius:6px;font-weight:bold;}
+.btn{padding:8px 14px;border-radius:8px;margin:4px;font-weight:bold;border:none;cursor:pointer;}
+.btn-red{background:#dc3545;color:white;}
+.loading{text-align:center;color:gold;}
 .btn-ganti{
-    background:linear-gradient(45deg,#D4AF37,#FFD700);
-    color:black;
-    font-weight:bold;
-    padding:10px 18px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    box-shadow:0 0 15px rgba(212,175,55,0.6);
-    margin-top:15px;
-}
-
-.popup{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-}
-
-.popup-content{
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    width:350px;
-    box-shadow:0 0 20px gold;
-    text-align:center;
-}
-
-.popup-content input{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    background:#222;
-    border:1px solid gold;
-    color:white;
-    border-radius:6px;
-}
-
-.success-check{
-    font-size:50px;
-    color:#00ff00;
-    display:none;
-}
-.error-cross{
-    font-size:50px;
-    color:red;
-    display:none;
-}
+background:linear-gradient(45deg,#D4AF37,#FFD700);
+color:black;font-weight:bold;padding:10px 18px;border:none;
+border-radius:10px;cursor:pointer;
+box-shadow:0 0 15px rgba(212,175,55,0.6);
+margin-top:15px;}
 </style>
 </head>
 
@@ -146,22 +36,11 @@ th{ background:#222; color:gold; }
 <div class="container">
 
 <div class="login-top">
-    <div class="user-info" id="userInfo"></div>
-    <button class="btn btn-red" onclick="logout()">Keluar</button>
+<div class="user-info" id="userInfo"></div>
+<button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
-
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<table>
-<tr><th>Jabatan</th><th>Nama</th></tr>
-<tr><td>Ketua</td><td>Ketua SKH</td></tr>
-<tr><td>Sekretaris</td><td>Sekretaris SKH</td></tr>
-<tr><td>Bendahara</td><td>Bendahara SKH</td></tr>
-<tr><td>Kurator</td><td>Kurator SKH</td></tr>
-</table>
-</div>
 
 <div class="card">
 <h2>Daftar Anggota</h2>
@@ -170,10 +49,10 @@ th{ background:#222; color:gold; }
 <thead>
 <tr>
 <th>Foto</th>
-<th>Nama</th>
+<th>Nama Lengkap</th>
 <th>No Anggota</th>
+<th>No HP</th>
 <th>Status</th>
-<th>Aksi</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
@@ -181,136 +60,68 @@ th{ background:#222; color:gold; }
 </tbody>
 </table>
 
-<button class="btn-ganti" onclick="openPopup()">Ganti Sandi</button>
+<button class="btn-ganti" onclick="window.location.href='anggota-login.html'">
+Ganti Sandi
+</button>
+
 </div>
-</div>
-
-<!-- POPUP -->
-<div class="popup" id="popupGanti">
-  <div class="popup-content">
-    <h3 style="color:gold;">Ganti Sandi</h3>
-
-    <input type="text" id="gpUsername" placeholder="Username">
-    <input type="password" id="gpLama" placeholder="Sandi Lama">
-    <input type="password" id="gpBaru" placeholder="Sandi Baru">
-    <input type="password" id="gpKonfirmasi" placeholder="Konfirmasi Sandi Baru">
-
-    <button class="btn btn-blue" onclick="gantiPassword()">Ganti</button>
-    <button class="btn btn-red" onclick="closePopup()">Batal</button>
-
-    <div class="success-check" id="successCheck">✔</div>
-    <div class="error-cross" id="errorCross">✖</div>
-  </div>
 </div>
 
 <script>
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* LOGIN PROTECTION */
+/* PROTEKSI LOGIN */
 (function(){
-    if(localStorage.getItem("isLoggedIn") !== "true"){
-        window.location.href="anggota-login.html";
-    }
+if(localStorage.getItem("isLoggedIn")!=="true"){
+window.location.href="anggota-login.html";
+}
 })();
 
-document.getElementById("userInfo").innerHTML =
+document.getElementById("userInfo").innerHTML=
 `Login sebagai: <strong>${localStorage.getItem("username")}</strong> (${localStorage.getItem("role")})`;
 
 function logout(){
-    localStorage.clear();
-    window.location.href="daftar-anggota.html";
+localStorage.clear();
+window.location.href="daftar-anggota.html";
 }
 
-/* ================= LOAD DATA STABIL ================= */
+/* ================= AMBIL DATA SESUAI APPS SCRIPT ================= */
 
 async function fetchData(){
-    try{
-        const res = await fetch(WEB_APP_URL + "?action=getUsers");
-        const result = await res.json();
+try{
 
-        const tbody = document.getElementById("listAnggota");
-        tbody.innerHTML = "";
+const res=await fetch(WEB_APP_URL+"?action=getanggota");
+const data=await res.json();
 
-        if(!result.success || !result.data || result.data.length === 0){
-            tbody.innerHTML = `<tr><td colspan="5">Data tidak ditemukan</td></tr>`;
-            return;
-        }
+const tbody=document.getElementById("listAnggota");
+tbody.innerHTML="";
 
-        result.data.forEach(user=>{
-            tbody.innerHTML += `
-            <tr>
-                <td><img src="${user.foto || 'https://via.placeholder.com/55'}" class="foto-kecil"></td>
-                <td>${user.nama}</td>
-                <td>${user.noanggota || '-'}</td>
-                <td>
-                    <span class="${user.status==='Aktif'?'status-aktif':'status-nonaktif'}">
-                        ${user.status}
-                    </span>
-                </td>
-                <td>-</td>
-            </tr>`;
-        });
-
-    }catch(error){
-        document.getElementById("listAnggota").innerHTML =
-        `<tr><td colspan="5">Gagal koneksi ke server</td></tr>`;
-    }
+if(!Array.isArray(data) || data.length===0){
+tbody.innerHTML=`<tr><td colspan="5">Data tidak ditemukan</td></tr>`;
+return;
 }
 
-/* ================= GANTI PASSWORD ================= */
+data.forEach(row=>{
 
-function openPopup(){
-  document.getElementById("gpUsername").value = localStorage.getItem("username");
-  document.getElementById("popupGanti").style.display="flex";
+const statusClass=row.Status==="Aktif"?"status-aktif":"status-nonaktif";
+
+tbody.innerHTML+=`
+<tr>
+<td><img src="${row.Foto||'https://via.placeholder.com/55'}" class="foto-kecil"></td>
+<td>${row["Nama Lengkap"]||'-'}</td>
+<td>${row["No Anggota"]||'-'}</td>
+<td>${row["No HP"]||'-'}</td>
+<td><span class="${statusClass}">${row.Status||'-'}</span></td>
+</tr>
+`;
+
+});
+
+}catch(err){
+document.getElementById("listAnggota").innerHTML=
+`<tr><td colspan="5">Gagal koneksi ke server</td></tr>`;
 }
-
-function closePopup(){
-  document.getElementById("popupGanti").style.display="none";
-  document.getElementById("successCheck").style.display="none";
-  document.getElementById("errorCross").style.display="none";
-}
-
-async function gantiPassword(){
-
-  const username = gpUsername.value.trim();
-  const lama = gpLama.value.trim();
-  const baru = gpBaru.value.trim();
-  const konfirmasi = gpKonfirmasi.value.trim();
-
-  if(!username || !lama || !baru || !konfirmasi || baru!==konfirmasi){
-      showError(); return;
-  }
-
-  const formData = new URLSearchParams();
-  formData.append("action","gantipassword");
-  formData.append("username",username);
-  formData.append("sandiLama",lama);
-  formData.append("sandiBaru",baru);
-
-  try{
-    const res = await fetch(WEB_APP_URL,{method:"POST",body:formData});
-    const result = await res.json();
-
-    if(result.status === "success"){
-        showSuccess();
-        setTimeout(closePopup,1200);
-    }else{
-        showError();
-    }
-  }catch{
-      showError();
-  }
-}
-
-function showSuccess(){
-  errorCross.style.display="none";
-  successCheck.style.display="block";
-}
-
-function showError(){
-  successCheck.style.display="none";
-  errorCross.style.display="block";
 }
 
 fetchData();
