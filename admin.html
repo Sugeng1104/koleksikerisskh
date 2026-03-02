@@ -103,11 +103,11 @@ th,td{
     <div class="card">
       <h2>Struktur Pengurus</h2>
 
-      <select id="namaPengurus" name="namaPengurus">
+      <select id="namaPengurus" name="namaPengurus" autocomplete="off">
         <option value="">Memuat anggota aktif...</option>
       </select>
 
-      <select id="jabatan" name="jabatan">
+      <select id="jabatan" name="jabatan" autocomplete="off">
        <option>Ketua</option>
        <option>Sekretaris</option>
        <option>Bendahara</option>
@@ -132,8 +132,17 @@ th,td{
     <h2>Daftar Anggota</h2>
 
     <div style="margin-bottom:10px;">
-      <input type="text" id="searchInput" name="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
-      <select id="filterStatus" name="filterStatus" onchange="renderTabel()">
+      <input type="text"
+             id="searchInput"
+             name="searchInput"
+             autocomplete="off"
+             placeholder="Cari Nama / No Anggota..."
+             onkeyup="renderTabel()">
+
+      <select id="filterStatus"
+              name="filterStatus"
+              autocomplete="off"
+              onchange="renderTabel()">
         <option value="">Semua Status</option>
         <option value="Aktif">Aktif</option>
         <option value="Nonaktif">Tidak Aktif</option>
@@ -365,7 +374,7 @@ function renderTabel(){
       <td>${no}</td>
       <td>${row["Nama Lengkap"]||"-"}</td>
       <td>
-        <select onchange="ubahStatus('${no}',this.value)">
+        <select onchange="ubahStatus('${no}',this.value)" autocomplete="off">
           <option value="Aktif" ${status==="Aktif"?"selected":""}>Aktif</option>
           <option value="Nonaktif" ${status==="Nonaktif"?"selected":""}>Tidak Aktif</option>
         </select>
@@ -386,5 +395,3 @@ loadPengurus();
 
 </body>
 </html>
-
-
