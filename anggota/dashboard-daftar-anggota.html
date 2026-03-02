@@ -102,6 +102,7 @@ th{ background:#222; color:gold; }
 
 <div class="login-top">
     <div class="user-info" id="userInfo"></div>
+    <div class="user-role-info" id="userRoleInfo" style="margin-bottom:4px; color:gold; font-weight:bold;"></div>
     <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
@@ -155,6 +156,9 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTf
 const usernameLogin = localStorage.getItem("username");
 const roleLogin = localStorage.getItem("role");
 const namaLogin = localStorage.getItem("namaLengkap");
+
+document.getElementById("userInfo").innerHTML = `Login sebagai: <strong>${usernameLogin}</strong>`;
+document.getElementById("userRoleInfo").innerHTML = `Role: <strong>${roleLogin}</strong>`;
 
 /* ================= LOGOUT ================= */
 function logout(){
