@@ -103,11 +103,11 @@ th,td{
     <div class="card">
       <h2>Struktur Pengurus</h2>
 
-      <select id="namaPengurus">
+      <select id="namaPengurus" name="namaPengurus">
         <option value="">Memuat anggota aktif...</option>
       </select>
 
-      <select id="jabatan">
+      <select id="jabatan" name="jabatan">
        <option>Ketua</option>
        <option>Sekretaris</option>
        <option>Bendahara</option>
@@ -132,8 +132,8 @@ th,td{
     <h2>Daftar Anggota</h2>
 
     <div style="margin-bottom:10px;">
-      <input type="text" id="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
-      <select id="filterStatus" onchange="renderTabel()">
+      <input type="text" id="searchInput" name="searchInput" placeholder="Cari Nama / No Anggota..." onkeyup="renderTabel()">
+      <select id="filterStatus" name="filterStatus" onchange="renderTabel()">
         <option value="">Semua Status</option>
         <option value="Aktif">Aktif</option>
         <option value="Nonaktif">Tidak Aktif</option>
@@ -386,3 +386,5 @@ loadPengurus();
 
 </body>
 </html>
+
+
