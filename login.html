@@ -1,135 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Login Panel SKH</title>
-  <style>
-    body{
-      background:black;
-      color:#00ffcc;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      font-family:Arial;
-    }
-    .login-box{
-      background:#111;
-      padding:30px;
-      border-radius:10px;
-      width:330px;
-    }
-    input, select{
-      width:100%;
-      padding:10px;
-      margin:10px 0;
-      background:#222;
-      border:1px solid #00ffcc;
-      color:white;
-    }
-    button{
-      width:100%;
-      padding:10px;
-      background:#00ffcc;
-      border:none;
-      cursor:pointer;
-      font-weight:bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Komunitas Keris SKH</title>
+<style>
+body {
+    margin:0; font-family:Georgia, serif; background:#000; color:white; display:flex; justify-content:center; align-items:center; height:100vh;
+}
+.login-card {
+    background:#111; padding:40px; border-radius:15px; box-shadow:0 0 20px rgba(212,175,55,0.3); width:350px; text-align:center;
+}
+.login-card h2{ color:gold; margin-bottom:30px; text-shadow:0 0 10px rgba(212,175,55,0.6);}
+.login-card input, .login-card select{
+    width:100%; padding:10px; margin:8px 0; border-radius:8px; border:none; font-size:16px;
+}
+.login-card button{
+    padding:10px 18px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin:5px 4px;
+}
+.btn-login{ background:#007bff; color:white; }
+.btn-cancel{ background:#FFD700; color:#000; }
+.loading{
+    display:none; margin-top:10px; color:gold; font-weight:bold;
+    animation: blink 1s infinite;
+}
+@keyframes blink{
+    0%,50%,100%{ opacity:1; } 25%,75%{ opacity:0; }
+}
+</style>
 </head>
 <body>
 
-<div class="login-box">
-  <h2>Login Panel</h2>
-
-  <select id="role">
-    <option value="">-- Pilih Role --</option>
-    <option value="Super Admin">Super Admin</option>
-    <option value="Admin">Admin</option>
-    <option value="User">User</option>
-  </select>
-
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-
-  <button onclick="login()">Login</button>
+<div class="login-card">
+    <h2>Login Komunitas Keris SKH</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    
+    <select id="role">
+        <option value="User">User</option>
+        <option value="Admin">Admin</option>
+        <option value="Super Admin">Super Admin</option>
+    </select>
+    
+    <div>
+        <button class="btn-login" onclick="login()">Login</button>
+        <button class="btn-cancel" onclick="window.location.href='https://sugeng1104.github.io/koleksikerisskh/index.html'">Batal</button>
+    </div>
+    <div class="loading" id="loading">Memuat...</div>
 </div>
 
 <script>
-
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* ==============================
-   AKUN TETAP (MASTER ACCOUNT)
-============================== */
+function login(){
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.getElementById("role").value;
 
-const masterAccounts = [
-  {
-    role:"Super Admin",
-    username:"Sugeng11",
-    password:"123@Sugeng"
-  },
-  {
-    role:"Admin",
-    username:"Admin",
-    password:"admin1"
-  }
-];
+    if(!username || !password){
+        alert("Username dan Password harus diisi!");
+        return;
+    }
 
-async function login(){
+    const loadingEl = document.getElementById("loading");
+    loadingEl.style.display = "block";
 
-  const role = document.getElementById("role").value;
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(!role || !username || !password){
-    return alert("Lengkapi semua data!");
-  }
-
-  /* ==============================
-     CEK MASTER ACCOUNT DULU
-  ============================== */
-
-  const master = masterAccounts.find(acc =>
-    acc.role === role &&
-    acc.username === username &&
-    acc.password === password
-  );
-
-  if(master){
-    setSession(username, role);
-    return;
-  }
-
-  /* ==============================
-     CEK KE SERVER (SPREADSHEET)
-  ============================== */
-
-  const formData = new URLSearchParams();
-  formData.append("action","login");
-  formData.append("username",username);
-  formData.append("password",password);
-
-  const res = await fetch(WEB_APP_URL,{
-    method:"POST",
-    body:formData
-  });
-
-  const result = await res.json();
-
-  if(result.status === "success" && result.role === role){
-    setSession(result.username, result.role);
-  }else{
-    alert("Login gagal! Username / Password / Role salah.");
-  }
+    fetch(WEB_APP_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(role)}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        loadingEl.style.display="none";
+        if(res.status==="success"){
+            localStorage.setItem("isLoggedIn","true");
+            localStorage.setItem("username",res.username);
+            localStorage.setItem("role",res.role);
+            localStorage.setItem("namaLengkap",res.namaLengkap);
+            localStorage.setItem("noAnggota",res.noAnggota||"");
+            window.location.href="dashboar-daftar-anggota.html";
+        } else {
+            alert("Login gagal! Cek username, password, dan role.");
+        }
+    })
+    .catch(e=>{
+        loadingEl.style.display="none";
+        alert("Terjadi kesalahan: "+e.message);
+    });
 }
-
-function setSession(username, role){
-  localStorage.setItem("isLoggedIn","true");
-  localStorage.setItem("username",username);
-  localStorage.setItem("role",role);
-  window.location.href="admin.html";
-}
-
 </script>
 
 </body>
