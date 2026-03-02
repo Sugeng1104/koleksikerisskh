@@ -3,53 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Komunitas Keris SKH</title>
+<title>Komunitas Keris SKH</title>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
-body{margin:0;font-family:Georgia,serif;background:#000;color:white;padding:40px;}
-.container{max-width:1100px;margin:auto;position:relative;}
-h1{color:gold;text-align:center;margin-bottom:40px;text-shadow:0 0 10px rgba(212,175,55,0.6);}
-.login-top{position:absolute;top:0;right:0;text-align:right;}
-.user-info{font-size:14px;margin-bottom:8px;color:gold;}
-.card{background:#111;padding:30px;border-radius:15px;margin-bottom:25px;box-shadow:0 0 20px rgba(212,175,55,0.3);}
-h2{color:gold;margin-bottom:15px;}
-table{width:100%;border-collapse:collapse;margin-top:15px;}
-th,td{border:1px solid #444;padding:10px;text-align:center;}
-th{background:#222;color:gold;}
-.foto-kecil{width:55px;height:55px;object-fit:cover;border-radius:8px;border:2px solid gold;}
-.status-aktif{background:#00aa00;padding:5px 10px;border-radius:6px;font-weight:bold;}
-.status-nonaktif{background:#aa0000;padding:5px 10px;border-radius:6px;font-weight:bold;}
-.btn{padding:8px 14px;border-radius:8px;margin:4px;font-weight:bold;border:none;cursor:pointer;}
-.btn-red{background:#dc3545;color:white;}
-.loading{text-align:center;color:gold;}
-.btn-ganti{
-background:linear-gradient(45deg,#D4AF37,#FFD700);
-color:black;font-weight:bold;padding:10px 18px;border:none;
-border-radius:10px;cursor:pointer;
-box-shadow:0 0 15px rgba(212,175,55,0.6);
-margin-top:15px;}
+body{
+    margin:0;
+    font-family:Georgia,serif;
+    background:#000;
+    color:white;
+    padding:40px;
+}
+.container{ max-width:1100px; margin:auto; position:relative; }
+
+h1{
+    color:gold;
+    text-align:center;
+    margin-bottom:40px;
+    text-shadow:0 0 10px rgba(212,175,55,0.6);
+}
+
+.login-top{
+    position:absolute;
+    top:0;
+    right:0;
+    text-align:right;
+}
+
+.user-info{
+    font-size:14px;
+    margin-bottom:8px;
+    color:gold;
+}
+
+.card{
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+h2{ color:gold; margin-bottom:15px; }
+
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+th, td{ border:1px solid #444; padding:10px; text-align:center; }
+th{ background:#222; color:gold; }
+
+.foto-kecil{
+    width:55px;
+    height:55px;
+    object-fit:cover;
+    border-radius:8px;
+    border:2px solid gold;
+}
+
+.status-aktif{
+    background:#00aa00;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+.status-nonaktif{
+    background:#aa0000;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.btn{
+    padding:8px 14px;
+    border-radius:8px;
+    margin:4px;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+}
+.btn-blue{ background:#007bff; color:white; }
+.btn-red{ background:#dc3545; color:white; }
+
+.loading{ text-align:center; color:gold; }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <div class="login-top">
-<div class="user-info" id="userInfo"></div>
-<button class="btn btn-red" onclick="logout()">Keluar</button>
+    <div class="user-info" id="userInfo"></div>
+    <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- ================= STRUKTUR PENGURUS ================= -->
-<div class="card">
-<h2>Struktur Pengurus</h2>
-<table id="tabelPengurus">
-<tr><td colspan="2" class="loading">Memuat data...</td></tr>
-</table>
-</div>
-
-<!-- ================= DAFTAR ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 
@@ -57,10 +105,10 @@ margin-top:15px;}
 <thead>
 <tr>
 <th>Foto</th>
-<th>Nama Lengkap</th>
+<th>Nama</th>
 <th>No Anggota</th>
-<th>No HP</th>
 <th>Status</th>
+<th>Aksi</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
@@ -68,99 +116,205 @@ margin-top:15px;}
 </tbody>
 </table>
 
-<button class="btn-ganti" onclick="window.location.href='anggota-login.html'">
-Ganti Sandi
-</button>
-
 </div>
 </div>
 
 <script>
 
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+/* ================= CONFIG ================= */
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const CACHE_KEY = "cacheAnggota";
+const CACHE_TIME_KEY = "cacheTime";
+const CACHE_DURATION = 60000;
 
-/* PROTEKSI LOGIN */
+/* ================= LOGIN PROTECTION ================= */
 (function(){
-if(localStorage.getItem("isLoggedIn")!=="true"){
-window.location.href="anggota-login.html";
-}
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    if(isLoggedIn !== "true" || !username || !role){
+        localStorage.clear();
+        window.location.href = "anggota-login.html";
+        return;
+    }
 })();
 
-document.getElementById("userInfo").innerHTML=
-`Login sebagai: <strong>${localStorage.getItem("username")}</strong> (${localStorage.getItem("role")})`;
+/* ================= USER INFO ================= */
+const usernameLogin = localStorage.getItem("username");
+const roleLogin = localStorage.getItem("role");
 
+let levelLogin = parseInt(localStorage.getItem("level"));
+if(!levelLogin){
+    if(roleLogin === "Super Admin") levelLogin = 3;
+    else if(roleLogin === "Admin") levelLogin = 2;
+    else levelLogin = 1;
+}
+
+document.getElementById("userInfo").innerHTML =
+`Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
+
+/* ================= LOGOUT ================= */
 function logout(){
-localStorage.clear();
-window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
+    localStorage.clear();
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
-/* ================= AMBIL DATA PENGURUS ================= */
-async function fetchPengurus(){
-try{
-const res=await fetch(WEB_APP_URL+"?action=getpengurus");
-const data=await res.json();
+/* ================= RENDER DATA ================= */
+function renderAnggota(data){
 
-const tabel=document.getElementById("tabelPengurus");
-tabel.innerHTML="<tr><th>Jabatan</th><th>Nama</th></tr>";
+    let html="";
 
-if(!Array.isArray(data) || data.length===0){
-tabel.innerHTML="<tr><td colspan='2'>Data pengurus tidak ditemukan</td></tr>";
-return;
+    data.slice().reverse().forEach(row=>{
+
+        const nama=row["Nama Lengkap"]||"-";
+        const gelar=row["Gelar"]||"";
+        const nomor=row["No Anggota"]||"-";
+        const foto=row["Foto"]||"";
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+        const safeNama = nama.replace(/'/g,"\\'");
+        const safeGelar = gelar.replace(/'/g,"\\'");
+        const safeNomor = nomor.replace(/'/g,"\\'");
+        const safeFoto = foto.replace(/'/g,"\\'");
+
+        let aksiButton="";
+
+        if(levelLogin >= 2){
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu
+            </button>`;
+        }
+
+        html+=`
+        <tr>
+            <td><img src="${foto}" class="foto-kecil"></td>
+            <td>${nama}</td>
+            <td>${nomor}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>${aksiButton}</td>
+        </tr>`;
+    });
+
+    document.getElementById("listAnggota").innerHTML=html;
 }
 
-data.forEach(row=>{
-tabel.innerHTML+=`
-<tr>
-<td>${row.Jabatan||'-'}</td>
-<td>${row["Nama Lengkap"]||row.Nama||'-'}</td>
-</tr>`;
-});
+/* ================= FETCH ================= */
+async function fetchData(force=false){
+    const now = Date.now();
+    const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
 
-}catch(err){
-document.getElementById("tabelPengurus").innerHTML=
-"<tr><td colspan='2'>Gagal memuat data</td></tr>";
-}
-}
+    if(!force && lastFetch && (now - lastFetch < CACHE_DURATION)){
+        return;
+    }
 
-/* ================= AMBIL DATA ANGGOTA ================= */
-async function fetchAnggota(){
-try{
+    try{
+        const res = await fetch(WEB_APP_URL + "?t=" + now);
+        const result = await res.json();
+        const data = result.data || result;
 
-const res=await fetch(WEB_APP_URL+"?action=getanggota");
-const data=await res.json();
-
-const tbody=document.getElementById("listAnggota");
-tbody.innerHTML="";
-
-if(!Array.isArray(data) || data.length===0){
-tbody.innerHTML=`<tr><td colspan="5">Data tidak ditemukan</td></tr>`;
-return;
+        if(data && data.length>0){
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            localStorage.setItem(CACHE_TIME_KEY, now);
+            renderAnggota(data);
+        }
+    }catch(e){
+        console.log("Fetch gagal");
+    }
 }
 
-data.forEach(row=>{
-
-const statusClass=row.Status==="Aktif"?"status-aktif":"status-nonaktif";
-
-tbody.innerHTML+=`
-<tr>
-<td><img src="${row.Foto||'https://via.placeholder.com/55'}" class="foto-kecil"></td>
-<td>${row["Nama Lengkap"]||'-'}</td>
-<td>${row["No Anggota"]||'-'}</td>
-<td>${row["No HP"]||'-'}</td>
-<td><span class="${statusClass}">${row.Status||'-'}</span></td>
-</tr>`;
-});
-
-}catch(err){
-document.getElementById("listAnggota").innerHTML=
-`<tr><td colspan="5">Gagal koneksi ke server</td></tr>`;
-}
+function loadAnggotaFast(){
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+    if(cache.length>0) renderAnggota(cache);
+    fetchData(true);
 }
 
-/* LOAD DATA */
-fetchPengurus();
-fetchAnggota();
+setInterval(()=>{ fetchData(true); },30000);
+
+/* ================= PREMIUM CARD DESIGN ================= */
+function generateCard(nama,gelar,nomor,foto){
+
+    const canvas=document.createElement("canvas");
+    canvas.width=1016;
+    canvas.height=638;
+    const ctx=canvas.getContext("2d");
+
+    // Gold Gradient Background
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop(0,"#D4AF37");
+    gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B");
+    ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Ornamental Border
+    ctx.strokeStyle="#5a3d00";
+    ctx.lineWidth=20;
+    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+
+    ctx.strokeStyle="#fff3b0";
+    ctx.lineWidth=4;
+    ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
+
+    // Title
+    ctx.fillStyle="#3b2a00";
+    ctx.font="bold 52px Georgia";
+    ctx.textAlign="center";
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+
+    ctx.font="bold 36px Georgia";
+    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
+
+    function drawContent(){
+
+        ctx.textAlign="left";
+        ctx.fillStyle="#3b2a00";
+        ctx.font="bold 42px Georgia";
+        ctx.fillText(nama,350,300);
+
+        ctx.font="30px Georgia";
+        ctx.fillText(gelar || "",350,350);
+        ctx.fillText("No Anggota : "+nomor,350,400);
+
+        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+            if(!err){
+                ctx.drawImage(qrCanvas,canvas.width-300,400);
+            }
+
+            const link=document.createElement("a");
+            link.download="Kartu_"+nomor+".png";
+            link.href=canvas.toDataURL("image/png");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+
+    if(foto){
+        const img=new Image();
+        img.crossOrigin="anonymous";
+        img.src=foto;
+
+        img.onload=function(){
+            ctx.drawImage(img,100,250,200,260);
+            drawContent();
+        };
+
+        img.onerror=function(){
+            drawContent();
+        };
+    }else{
+        drawContent();
+    }
+}
+
+/* INIT */
+loadAnggotaFast();
 
 </script>
+
 </body>
 </html>
