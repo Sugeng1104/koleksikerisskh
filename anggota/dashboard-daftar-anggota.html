@@ -267,12 +267,37 @@ function generateCard(nama,gelar,nomor,foto){
 }
 
 /* ================= GANTI SANDI ================= */
-function gantiSandi(){
+function bukaModalPassword(){
+    document.getElementById("modalPassword").style.display="flex";
+}
+
+function tutupModalPassword(){
+    document.getElementById("modalPassword").style.display="none";
+    document.getElementById("oldPass").value="";
+    document.getElementById("newPass").value="";
+    document.getElementById("confirmPass").value="";
+}
+
+function submitGantiPassword(){
     const username = localStorage.getItem("username");
-    const sandiLama = prompt("Masukkan sandi lama:");
-    if(!sandiLama) return;
-    const sandiBaru = prompt("Masukkan sandi baru:");
-    if(!sandiBaru) return;
+    const sandiLama = document.getElementById("oldPass").value;
+    const sandiBaru = document.getElementById("newPass").value;
+    const confirmPass = document.getElementById("confirmPass").value;
+
+    if(!sandiLama || !sandiBaru || !confirmPass){
+        alert("Semua field wajib diisi!");
+        return;
+    }
+
+    if(sandiBaru.length < 6){
+        alert("Password minimal 6 karakter!");
+        return;
+    }
+
+    if(sandiBaru !== confirmPass){
+        alert("Konfirmasi password tidak cocok!");
+        return;
+    }
 
     fetch(WEB_APP_URL,{
         method:"POST",
@@ -281,10 +306,14 @@ function gantiSandi(){
     })
     .then(res=>res.json())
     .then(res=>{
-        if(res.status==="success") alert("Password berhasil diganti!");
-        else alert("Gagal mengganti password: "+res.message);
+        if(res.status==="success"){
+            alert("Password berhasil diganti!");
+            tutupModalPassword();
+        }else{
+            alert("Gagal: "+res.message);
+        }
     })
-    .catch(e=>alert("Gagal: "+e.message));
+    .catch(e=>alert("Error: "+e.message));
 }
 
 /* INIT */
