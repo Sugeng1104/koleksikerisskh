@@ -105,14 +105,15 @@ th{ background:#222; color:gold; }
 <thead>
 <tr>
 <th>Foto</th>
-<th>Nama</th>
+<th>Nama Lengkap</th>
 <th>No Anggota</th>
+<th>No HP</th>
 <th>Status</th>
 <th>Aksi</th>
 </tr>
 </thead>
 <tbody id="listAnggota">
-<tr><td colspan="5" class="loading">Memuat data...</td></tr>
+<tr><td colspan="6" class="loading">Memuat data...</td></tr>
 </tbody>
 </table>
 
@@ -120,7 +121,6 @@ th{ background:#222; color:gold; }
 </div>
 
 <script>
-
 /* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 const CACHE_KEY = "cacheAnggota";
@@ -162,14 +162,12 @@ function logout(){
 
 /* ================= RENDER DATA ================= */
 function renderAnggota(data){
-
     let html="";
-
     data.slice().reverse().forEach(row=>{
-
         const nama=row["Nama Lengkap"]||"-";
         const gelar=row["Gelar"]||"";
         const nomor=row["No Anggota"]||"-";
+        const nohp=row["No HP"]||"-";
         const foto=row["Foto"]||"";
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
@@ -180,12 +178,10 @@ function renderAnggota(data){
         const safeFoto = foto.replace(/'/g,"\\'");
 
         let aksiButton="";
-
         if(levelLogin >= 2){
-            aksiButton = `
-            <button class="btn btn-blue"
-            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
-            Cetak Kartu
+            aksiButton = `<button class="btn btn-blue"
+                onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+                Cetak Kartu
             </button>`;
         }
 
@@ -194,6 +190,7 @@ function renderAnggota(data){
             <td><img src="${foto}" class="foto-kecil"></td>
             <td>${nama}</td>
             <td>${nomor}</td>
+            <td>${nohp}</td>
             <td><span class="${statusClass}">${status}</span></td>
             <td>${aksiButton}</td>
         </tr>`;
@@ -202,7 +199,7 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ================= FETCH ================= */
+/* ================= FETCH DATA ================= */
 async function fetchData(force=false){
     const now = Date.now();
     const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
@@ -212,10 +209,8 @@ async function fetchData(force=false){
     }
 
     try{
-        const res = await fetch(WEB_APP_URL + "?t=" + now);
-        const result = await res.json();
-        const data = result.data || result;
-
+        const res = await fetch(`${WEB_APP_URL}?action=getanggota&username=${usernameLogin}&role=${roleLogin}&t=${now}`);
+        const data = await res.json();
         if(data && data.length>0){
             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
             localStorage.setItem(CACHE_TIME_KEY, now);
@@ -236,13 +231,11 @@ setInterval(()=>{ fetchData(true); },30000);
 
 /* ================= PREMIUM CARD DESIGN ================= */
 function generateCard(nama,gelar,nomor,foto){
-
     const canvas=document.createElement("canvas");
     canvas.width=1016;
     canvas.height=638;
     const ctx=canvas.getContext("2d");
 
-    // Gold Gradient Background
     const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop(0,"#D4AF37");
     gradient.addColorStop(0.5,"#FFD700");
@@ -250,7 +243,6 @@ function generateCard(nama,gelar,nomor,foto){
     ctx.fillStyle=gradient;
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // Ornamental Border
     ctx.strokeStyle="#5a3d00";
     ctx.lineWidth=20;
     ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
@@ -259,7 +251,6 @@ function generateCard(nama,gelar,nomor,foto){
     ctx.lineWidth=4;
     ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
 
-    // Title
     ctx.fillStyle="#3b2a00";
     ctx.font="bold 52px Georgia";
     ctx.textAlign="center";
@@ -269,7 +260,6 @@ function generateCard(nama,gelar,nomor,foto){
     ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
 
     function drawContent(){
-
         ctx.textAlign="left";
         ctx.fillStyle="#3b2a00";
         ctx.font="bold 42px Georgia";
@@ -283,7 +273,6 @@ function generateCard(nama,gelar,nomor,foto){
             if(!err){
                 ctx.drawImage(qrCanvas,canvas.width-300,400);
             }
-
             const link=document.createElement("a");
             link.download="Kartu_"+nomor+".png";
             link.href=canvas.toDataURL("image/png");
