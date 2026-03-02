@@ -186,11 +186,22 @@ let pengurus=[];
 async function loadAnggota(){
   try{
     const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+Date.now());
-    allData=await res.json()||[];
+    const result=await res.json();
+
+    if(Array.isArray(result)){
+      allData=result;
+    }else if(result.status==="success"){
+      allData=result.data||[];
+    }else{
+      throw new Error(result.message||"Gagal");
+    }
+
     updateStatistik();
     isiDropdownPengurus();
     renderTabel();
-  }catch{
+
+  }catch(err){
+    console.log(err);
     document.getElementById("tabelAnggota").innerHTML=
     "<tr><td colspan='4'>Gagal memuat data</td></tr>";
   }
@@ -199,9 +210,20 @@ async function loadAnggota(){
 async function loadPengurus(){
   try{
     const res=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
-    pengurus=await res.json()||[];
+    const result=await res.json();
+
+    if(Array.isArray(result)){
+      pengurus=result;
+    }else if(result.status==="success"){
+      pengurus=result.data||[];
+    }else{
+      throw new Error(result.message||"Gagal");
+    }
+
     tampilPengurus();
-  }catch{
+
+  }catch(err){
+    console.log(err);
     document.getElementById("listPengurus").innerHTML="<li>Gagal memuat pengurus</li>";
   }
 }
