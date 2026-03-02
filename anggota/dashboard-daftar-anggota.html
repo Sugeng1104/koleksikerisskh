@@ -93,7 +93,6 @@ th{ background:#222; color:gold; }
     box-shadow:0 0 10px rgba(212,175,55,0.3);
 }
 #strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
-
 </style>
 </head>
 
@@ -112,13 +111,12 @@ th{ background:#222; color:gold; }
 <div id="strukturPengurus" class="card">
 <h3>Struktur Pengurus</h3>
 <ul id="listPengurus" style="list-style:none; padding:0; text-align:center;">
-<li>Memuat data...</li>
+<li class="loading">Memuat data...</li>
 </ul>
 </div>
 
 <div class="card">
 <h2>Daftar Anggota</h2>
-
 <table>
 <thead>
 <tr>
@@ -139,9 +137,6 @@ th{ background:#222; color:gold; }
 <script>
 /* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
-const CACHE_KEY = "cacheAnggota";
-const CACHE_TIME_KEY = "cacheTime";
-const CACHE_DURATION = 60000;
 
 /* ================= LOGIN PROTECTION ================= */
 (function(){
@@ -149,7 +144,6 @@ const CACHE_DURATION = 60000;
     const username = localStorage.getItem("username");
     const role = localStorage.getItem("role");
     const namaLengkap = localStorage.getItem("namaLengkap");
-
     if(isLoggedIn !== "true" || !username || !role || !namaLengkap){
         localStorage.clear();
         window.location.href = "anggota-login.html";
@@ -160,16 +154,7 @@ const CACHE_DURATION = 60000;
 /* ================= USER INFO ================= */
 const usernameLogin = localStorage.getItem("username");
 const roleLogin = localStorage.getItem("role");
-
-let levelLogin = parseInt(localStorage.getItem("level"));
-if(!levelLogin){
-    if(roleLogin === "Super Admin") levelLogin = 3;
-    else if(roleLogin === "Admin") levelLogin = 2;
-    else levelLogin = 1;
-}
-
-document.getElementById("userInfo").innerHTML =
-`Login sebagai: <strong>${usernameLogin}</strong> (${roleLogin})`;
+const namaLogin = localStorage.getItem("namaLengkap");
 
 /* ================= LOGOUT ================= */
 function logout(){
@@ -207,17 +192,11 @@ function renderAnggota(data){
         const safeNomor = nomor.replace(/'/g,"\\'");
         const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
         
-        // Tombol Cetak Kartu hanya untuk user yang login
         let aksiButton = "";
-        if(nama.toLowerCase() === localStorage.getItem("namaLengkap")?.toLowerCase()){
+        if(nama.toLowerCase() === namaLogin.toLowerCase()){
             aksiButton = `<button class="btn btn-blue"
-            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
-            Cetak Kartu
-            </button>`;
-            // Tambahkan tombol Ganti Sandi berwarna merah sejajar kolom Foto
-            aksiButton += `<br><button class="btn btn-red" onclick="gantiSandi()">
-            Ganti Sandi
-            </button>`;
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">Cetak Kartu</button>
+            <br><button class="btn btn-red" onclick="gantiSandi()">Ganti Sandi</button>`;
         }
 
         html+=`
@@ -233,60 +212,41 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ================= FETCH ================= */
-async function fetchData(force=false){
-    const now = Date.now();
-    const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
-
-    if(!force && lastFetch && (now - lastFetch < CACHE_DURATION)){
-        return;
-    }
-
+/* ================= FETCH DATA ================= */
+async function fetchData(){
     try{
-        const res = await fetch(WEB_APP_URL + "?t=" + now);
-        const result = await res.json();
-        const data = result.data || result;
-        if(data && data.length>0){
-            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-            localStorage.setItem(CACHE_TIME_KEY, now);
-            renderAnggota(data);
-        }
-    }catch(e){ console.log("Fetch gagal"); }
+        const now = Date.now();
+        // Ambil daftar anggota
+        const res = await fetch(WEB_APP_URL + "?action=getanggota&t="+now);
+        const data = await res.json();
+        renderAnggota(data);
 
-    // Fetch pengurus
-    try{
-        const res2 = await fetch(WEB_APP_URL + "?action=getpengurus&t=" + now);
-        const result2 = await res2.json();
-        renderPengurus(result2);
-    }catch(e){ console.log("Fetch pengurus gagal"); }
+        // Ambil pengurus
+        const res2 = await fetch(WEB_APP_URL + "?action=getpengurus&t="+now);
+        const data2 = await res2.json();
+        renderPengurus(data2);
+
+    }catch(e){ console.log("Fetch gagal:", e); }
 }
 
 /* ================= PREMIUM CARD DESIGN ================= */
 function generateCard(nama,gelar,nomor,foto){
     const canvas=document.createElement("canvas");
-    canvas.width=1016;
-    canvas.height=638;
+    canvas.width=1016; canvas.height=638;
     const ctx=canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-    gradient.addColorStop(0,"#D4AF37");
-    gradient.addColorStop(0.5,"#FFD700");
-    gradient.addColorStop(1,"#B8860B");
-    ctx.fillStyle=gradient;
+    gradient.addColorStop(0,"#D4AF37"); gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B"); ctx.fillStyle=gradient;
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.strokeStyle="#5a3d00"; ctx.lineWidth=20;
-    ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
-    ctx.strokeStyle="#fff3b0"; ctx.lineWidth=4;
-    ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
-    ctx.fillStyle="#3b2a00"; ctx.font="bold 52px Georgia";
-    ctx.textAlign="center"; ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
-    ctx.font="bold 36px Georgia";
-    ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
+    ctx.strokeStyle="#5a3d00"; ctx.lineWidth=20; ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+    ctx.strokeStyle="#fff3b0"; ctx.lineWidth=4; ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
+    ctx.fillStyle="#3b2a00"; ctx.font="bold 52px Georgia"; ctx.textAlign="center";
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+    ctx.font="bold 36px Georgia"; ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
 
     function drawContent(){
-        ctx.textAlign="left"; ctx.fillStyle="#3b2a00"; ctx.font="bold 42px Georgia";
-        ctx.fillText(nama,350,300);
-        ctx.font="30px Georgia"; ctx.fillText(gelar || "",350,350);
-        ctx.fillText("No Anggota : "+nomor,350,400);
+        ctx.textAlign="left"; ctx.fillStyle="#3b2a00"; ctx.font="bold 42px Georgia"; ctx.fillText(nama,350,300);
+        ctx.font="30px Georgia"; ctx.fillText(gelar || "",350,350); ctx.fillText("No Anggota : "+nomor,350,400);
         QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
             if(!err) ctx.drawImage(qrCanvas,canvas.width-300,400);
             const link=document.createElement("a"); link.download="Kartu_"+nomor+".png";
@@ -310,9 +270,9 @@ function gantiSandi(){
     const sandiBaru = prompt("Masukkan sandi baru:");
     if(!sandiBaru) return;
 
-    fetch(WEB_APP_URL, {
+    fetch(WEB_APP_URL,{
         method:"POST",
-        headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
         body:`action=gantipassword&username=${encodeURIComponent(username)}&sandiLama=${encodeURIComponent(sandiLama)}&sandiBaru=${encodeURIComponent(sandiBaru)}`
     })
     .then(res=>res.json())
@@ -324,10 +284,9 @@ function gantiSandi(){
 }
 
 /* INIT */
-loadAnggotaFast();
-setInterval(()=>{ fetchData(true); },30000);
+fetchData();
+setInterval(fetchData,30000);
 
 </script>
-
 </body>
 </html>
