@@ -177,11 +177,14 @@ function renderAnggota(data){
         const safeNomor = nomor.replace(/'/g,"\\'");
         const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
 
-        // Tombol Cetak Kartu muncul untuk semua user
-        let aksiButton = `<button class="btn btn-blue"
+        // Tombol Cetak Kartu hanya muncul jika nama sama dengan user login
+        let aksiButton = "";
+        if(nama.toLowerCase() === localStorage.getItem("namaLengkap")?.toLowerCase()){
+            aksiButton = `<button class="btn btn-blue"
             onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
             Cetak Kartu
-        </button>`;
+            </button>`;
+        }
 
         html+=`
         <tr>
