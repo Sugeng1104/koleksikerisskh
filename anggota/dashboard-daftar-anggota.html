@@ -121,6 +121,7 @@ th{ background:#222; color:gold; }
 </div>
 
 <script>
+
 /* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 const CACHE_KEY = "cacheAnggota";
@@ -168,26 +169,23 @@ function renderAnggota(data){
         const gelar=row["Gelar"]||"";
         const nomor=row["No Anggota"]||"-";
         const nohp=row["No HP"]||"-";
-        const foto=row["Foto"]||"";
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
 
         const safeNama = nama.replace(/'/g,"\\'");
         const safeGelar = gelar.replace(/'/g,"\\'");
         const safeNomor = nomor.replace(/'/g,"\\'");
-        const safeFoto = foto.replace(/'/g,"\\'");
+        const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
 
-        let aksiButton="";
-        if(levelLogin >= 2){
-            aksiButton = `<button class="btn btn-blue"
-                onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
-                Cetak Kartu
-            </button>`;
-        }
+        // Tombol Cetak Kartu muncul untuk semua user
+        let aksiButton = `<button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu
+        </button>`;
 
         html+=`
         <tr>
-            <td><img src="${foto}" class="foto-kecil"></td>
+            <td><img src="${safeFoto}" class="foto-kecil"></td>
             <td>${nama}</td>
             <td>${nomor}</td>
             <td>${nohp}</td>
@@ -195,11 +193,10 @@ function renderAnggota(data){
             <td>${aksiButton}</td>
         </tr>`;
     });
-
     document.getElementById("listAnggota").innerHTML=html;
 }
 
-/* ================= FETCH DATA ================= */
+/* ================= FETCH ================= */
 async function fetchData(force=false){
     const now = Date.now();
     const lastFetch = localStorage.getItem(CACHE_TIME_KEY);
@@ -209,8 +206,10 @@ async function fetchData(force=false){
     }
 
     try{
-        const res = await fetch(`${WEB_APP_URL}?action=getanggota&username=${usernameLogin}&role=${roleLogin}&t=${now}`);
-        const data = await res.json();
+        const res = await fetch(WEB_APP_URL + "?t=" + now);
+        const result = await res.json();
+        const data = result.data || result;
+
         if(data && data.length>0){
             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
             localStorage.setItem(CACHE_TIME_KEY, now);
@@ -270,9 +269,8 @@ function generateCard(nama,gelar,nomor,foto){
         ctx.fillText("No Anggota : "+nomor,350,400);
 
         QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
-            if(!err){
-                ctx.drawImage(qrCanvas,canvas.width-300,400);
-            }
+            if(!err) ctx.drawImage(qrCanvas,canvas.width-300,400);
+
             const link=document.createElement("a");
             link.download="Kartu_"+nomor+".png";
             link.href=canvas.toDataURL("image/png");
@@ -286,15 +284,8 @@ function generateCard(nama,gelar,nomor,foto){
         const img=new Image();
         img.crossOrigin="anonymous";
         img.src=foto;
-
-        img.onload=function(){
-            ctx.drawImage(img,100,250,200,260);
-            drawContent();
-        };
-
-        img.onerror=function(){
-            drawContent();
-        };
+        img.onload=function(){ ctx.drawImage(img,100,250,200,260); drawContent(); };
+        img.onerror=function(){ drawContent(); };
     }else{
         drawContent();
     }
