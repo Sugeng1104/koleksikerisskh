@@ -95,49 +95,6 @@ th{ background:#222; color:gold; }
 #strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
 </style>
 </head>
-
-<!-- ================= MODAL GANTI PASSWORD ================= -->
-<div id="modalPassword" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-justify-content:center;
-align-items:center;
-z-index:9999;
-">
-
-<div style="
-background:#111;
-padding:30px;
-border-radius:12px;
-width:350px;
-box-shadow:0 0 20px gold;
-color:white;
-">
-
-<h3 style="color:gold; text-align:center;">Ganti Password</h3>
-
-<input type="password" id="oldPass" placeholder="Password Lama"
-style="width:100%; padding:8px; margin:8px 0;">
-
-<input type="password" id="newPass" placeholder="Password Baru"
-style="width:100%; padding:8px; margin:8px 0;">
-
-<input type="password" id="confirmPass" placeholder="Konfirmasi Password"
-style="width:100%; padding:8px; margin:8px 0;">
-
-<div style="text-align:center; margin-top:15px;">
-<button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
-<button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
-</div>
-
-</div>
-</div>
-
 <body>
 
 <div class="container">
@@ -363,5 +320,48 @@ fetchData();
 setInterval(fetchData,30000);
 
 </script>
+
+    <!-- ================= MODAL GANTI PASSWORD ================= -->
+<div id="modalPassword" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:#111;
+padding:30px;
+border-radius:12px;
+width:350px;
+box-shadow:0 0 20px gold;
+color:white;
+">
+
+<h3 style="color:gold; text-align:center;">Ganti Password</h3>
+
+<input type="password" id="oldPass" placeholder="Password Lama"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<input type="password" id="newPass" placeholder="Password Baru"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<input type="password" id="confirmPass" placeholder="Konfirmasi Password"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<div style="text-align:center; margin-top:15px;">
+<button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
+<button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
+</div>
+
+</div>
+</div>
+    
 </body>
 </html>
