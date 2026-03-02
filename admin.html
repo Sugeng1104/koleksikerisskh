@@ -206,40 +206,6 @@ async function loadPengurus(){
   }
 }
 
-/* ================= STATISTIK ================= */
-function updateStatistik(){
-  const total=allData.length;
-  const aktif=allData.filter(a=>a.Status==="Aktif").length;
-  document.getElementById("totalAnggota").innerText=total;
-  document.getElementById("totalAktif").innerText=aktif;
-  document.getElementById("totalNonaktif").innerText=total-aktif;
-}
-
-/* ================= DROPDOWN PENGURUS ================= */
-function isiDropdownPengurus(){
-  const select=document.getElementById("namaPengurus");
-  select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
-  allData.filter(a=>a.Status==="Aktif")
-  .forEach(a=>{
-    const opt=document.createElement("option");
-    opt.value=a["Nama Lengkap"];
-    opt.textContent=a["Nama Lengkap"];
-    select.appendChild(opt);
-  });
-}
-
-function tampilPengurus(){
-  const list=document.getElementById("listPengurus");
-  list.innerHTML="";
-  if(!pengurus.length){
-    list.innerHTML="<li>Belum ada pengurus</li>";
-    return;
-  }
-  pengurus.forEach(p=>{
-    list.innerHTML+=`<li>${p.Jabatan} - ${p.Nama}</li>`;
-  });
-}
-
 /* ================= UBAH STATUS ================= */
 async function ubahStatus(no,status){
   if(!confirm("Ubah status anggota ini?")) return;
@@ -248,6 +214,7 @@ async function ubahStatus(no,status){
   formData.append("action","updatestatus");
   formData.append("noAnggota",no);
   formData.append("status",status);
+  formData.append("role",localStorage.getItem("role"));
 
   try{
     const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
@@ -256,7 +223,7 @@ async function ubahStatus(no,status){
       alert("Status berhasil diperbarui");
       loadAnggota();
     }else{
-      alert("Gagal memperbarui status");
+      alert(result.message || "Gagal memperbarui status");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
@@ -270,6 +237,7 @@ async function hapusAnggota(no){
   const formData=new URLSearchParams();
   formData.append("action","hapusanggota");
   formData.append("noAnggota",no);
+  formData.append("role",localStorage.getItem("role"));
 
   try{
     const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
@@ -278,7 +246,7 @@ async function hapusAnggota(no){
       alert("Anggota berhasil dihapus");
       loadAnggota();
     }else{
-      alert("Gagal menghapus anggota");
+      alert(result.message || "Gagal menghapus anggota");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
@@ -299,6 +267,7 @@ async function tambahPengurus(){
   formData.append("action","tambahpengurus");
   formData.append("nama",nama);
   formData.append("jabatan",jabatan);
+  formData.append("role",localStorage.getItem("role"));
 
   try{
     const res=await fetch(WEB_APP_URL,{method:"POST",body:formData});
@@ -307,7 +276,7 @@ async function tambahPengurus(){
       alert("Pengurus berhasil ditambahkan");
       loadPengurus();
     }else{
-      alert("Gagal menambahkan pengurus");
+      alert(result.message || "Gagal menambahkan pengurus");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
