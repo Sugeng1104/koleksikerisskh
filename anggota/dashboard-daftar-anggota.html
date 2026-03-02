@@ -200,7 +200,7 @@ function renderAnggota(data){
         if(nama.toLowerCase() === namaLogin.toLowerCase()){
             aksiButton = `<button class="btn btn-blue"
             onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">Cetak Kartu</button>
-            <br><button class="btn btn-red" onclick="gantiSandi()">Ganti Sandi</button>`;
+            <br><button class="btn btn-red" onclick="bukaModalPassword()">Ganti Password</button>`;
         }
 
         html+=`
