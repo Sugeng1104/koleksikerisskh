@@ -138,7 +138,6 @@ th,td{
         <option value="Aktif">Aktif</option>
         <option value="Nonaktif">Tidak Aktif</option>
       </select>
-      <button onclick="exportExcel()">Export Excel</button>
     </div>
 
     <table>
@@ -182,7 +181,7 @@ function logout(){
 let allData=[];
 let pengurus=[];
 
-/* ================= LOAD DATA ================= */
+/* ================= LOAD ANGGOTA ================= */
 async function loadAnggota(){
   try{
     const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+Date.now());
@@ -207,6 +206,7 @@ async function loadAnggota(){
   }
 }
 
+/* ================= LOAD PENGURUS ================= */
 async function loadPengurus(){
   try{
     const res=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
@@ -228,6 +228,41 @@ async function loadPengurus(){
   }
 }
 
+/* ================= STATISTIK ================= */
+function updateStatistik(){
+  const total=allData.length;
+  const aktif=allData.filter(a=>a.Status==="Aktif").length;
+  document.getElementById("totalAnggota").innerText=total;
+  document.getElementById("totalAktif").innerText=aktif;
+  document.getElementById("totalNonaktif").innerText=total-aktif;
+}
+
+/* ================= DROPDOWN ================= */
+function isiDropdownPengurus(){
+  const select=document.getElementById("namaPengurus");
+  select.innerHTML="<option value=''>Pilih Anggota Aktif</option>";
+  allData.filter(a=>a.Status==="Aktif")
+  .forEach(a=>{
+    const opt=document.createElement("option");
+    opt.value=a["Nama Lengkap"];
+    opt.textContent=a["Nama Lengkap"];
+    select.appendChild(opt);
+  });
+}
+
+/* ================= TAMPIL PENGURUS ================= */
+function tampilPengurus(){
+  const list=document.getElementById("listPengurus");
+  list.innerHTML="";
+  if(!pengurus.length){
+    list.innerHTML="<li>Belum ada pengurus</li>";
+    return;
+  }
+  pengurus.forEach(p=>{
+    list.innerHTML+=`<li>${p.Jabatan} - ${p.Nama}</li>`;
+  });
+}
+
 /* ================= UBAH STATUS ================= */
 async function ubahStatus(no,status){
   if(!confirm("Ubah status anggota ini?")) return;
@@ -245,7 +280,7 @@ async function ubahStatus(no,status){
       alert("Status berhasil diperbarui");
       loadAnggota();
     }else{
-      alert(result.message || "Gagal memperbarui status");
+      alert(result.message||"Gagal memperbarui status");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
@@ -267,8 +302,9 @@ async function hapusAnggota(no){
     if(result.status==="success"){
       alert("Anggota berhasil dihapus");
       loadAnggota();
+      loadPengurus();
     }else{
-      alert(result.message || "Gagal menghapus anggota");
+      alert(result.message||"Gagal menghapus anggota");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
@@ -298,14 +334,14 @@ async function tambahPengurus(){
       alert("Pengurus berhasil ditambahkan");
       loadPengurus();
     }else{
-      alert(result.message || "Gagal menambahkan pengurus");
+      alert(result.message||"Gagal menambahkan pengurus");
     }
   }catch{
     alert("Terjadi kesalahan koneksi");
   }
 }
 
-/* ================= TABEL ================= */
+/* ================= RENDER TABEL ================= */
 function renderTabel(){
   const search=document.getElementById("searchInput").value.toLowerCase();
   const filter=document.getElementById("filterStatus").value;
