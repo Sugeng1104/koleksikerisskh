@@ -290,6 +290,10 @@ async function fetchData(){
         const data2 = await res2.json();
         renderPengurus(data2);
 
+        const res3 = await fetch(WEB_APP_URL + "?action=getsertifikat&t="+now);
+        const data3 = await res3.json();
+        renderSertifikat(data3);
+
     }catch(e){ console.log("Fetch gagal:", e); }
 }
 
@@ -386,19 +390,97 @@ function tutupPopupSertifikat(){
 }
 
 /* ================= SUBMIT PENGAJUAN ================= */
-function submitPengajuan(){
+async function submitPengajuan(){
 
     const namaPusaka = document.getElementById("namaPusaka").value;
     const jenisPusaka = document.getElementById("jenisPusaka").value;
     const namaPemilik = document.getElementById("namaPemilik").value;
+    const panjang = document.getElementById("panjangBilah").value;
+    const lebar = document.getElementById("lebarPangkal").value;
+    const tebal = document.getElementById("tebalPangkal").value;
+    const berat = document.getElementById("beratBilah").value;
+    const catatan = document.getElementById("catatanPusaka").value;
+
+    const file1 = document.getElementById("foto1").files[0];
+    const file2 = document.getElementById("foto2").files[0];
 
     if(!namaPusaka || !jenisPusaka || !namaPemilik){
         alert("Nama Pusaka, Jenis, dan Nama Pemilik wajib diisi!");
         return;
     }
 
-    alert("Pengajuan berhasil dikirim.\nData akan dianalisis terlebih dahulu.");
-    tutupPopupSertifikat();
+    const base64Foto1 = await toBase64(file1);
+    const base64Foto2 = await toBase64(file2);
+
+    try{
+        const response = await fetch(WEB_APP_URL,{
+            method:"POST",
+            headers:{"Content-Type":"application/x-www-form-urlencoded"},
+            body: new URLSearchParams({
+                action:"ajukan",
+                namaPusaka,
+                jenis:jenisPusaka,
+                pemilik:namaPemilik,
+                panjang,
+                lebar,
+                tebal,
+                berat,
+                catatan,
+                foto1: base64Foto1,
+                foto2: base64Foto2
+            })
+        });
+
+        const result = await response.json();
+
+        if(result.status==="success"){
+            alert("Pengajuan berhasil dikirim!");
+            tutupPopupSertifikat();
+        } else {
+            alert("Gagal: " + result.message);
+        }
+
+    }catch(err){
+        alert("Error: " + err.message);
+    }
+}
+
+function toBase64(file){
+    return new Promise((resolve,reject)=>{
+        if(!file){ resolve(""); return; }
+        const reader = new FileReader();
+        reader.onload = ()=> resolve(reader.result.split(",")[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderSertifikat(data){
+    const tbody = document.getElementById("listSertifikat");
+
+    if(!data || data.length===0){
+        tbody.innerHTML='<tr><td colspan="5">Belum ada sertifikat</td></tr>';
+        return;
+    }
+
+    let html="";
+
+    data.forEach(row=>{
+        html+=`
+        <tr>
+            <td>${row["No Registrasi"]||"-"}</td>
+            <td>${row["Nama Pusaka"]||"-"}</td>
+            <td>${row["Jenis"]||"-"}</td>
+            <td>${row["Pemilik"]||"-"}</td>
+            <td>
+                <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
+                Cetak
+                </a>
+            </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML=html;
 }
 
 /* INIT */
@@ -479,3 +561,5 @@ style="width:100%; padding:8px; margin:6px 0;"></textarea>
 
 </body>
 </html>
+
+
