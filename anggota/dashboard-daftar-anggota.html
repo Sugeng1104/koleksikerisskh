@@ -85,6 +85,7 @@ th{ background:#222; color:gold; }
 }
 .btn-blue{ background:#007bff; color:white; }
 .btn-red{ background:#dc3545; color:white; }
+.btn-gold{ background:gold; color:black; }
 
 .loading{ text-align:center; color:gold; }
 
@@ -137,7 +138,36 @@ th{ background:#222; color:gold; }
 </table>
 </div>
 
+<!-- ================= TAMBAHAN SERTIFIKAT (TIDAK MENGUBAH SISTEM LAMA) ================= -->
+<div id="sertifikatSection" class="card" style="display:none;">
+<h2>Ajukan Sertifikat Pusaka</h2>
+
+<input type="text" id="namaPusaka" placeholder="Nama Pusaka">
+<input type="text" id="jenisPusaka" placeholder="Jenis">
+<input type="text" id="pemilikPusaka" placeholder="Nama Pemilik">
+<button class="btn btn-gold" onclick="ajukanSertifikat()">Ajukan</button>
+
+<hr style="margin:25px 0; border:1px solid #333;">
+
+<h2>List Sertifikat</h2>
+<table>
+<thead>
+<tr>
+<th>No Registrasi</th>
+<th>Nama Pusaka</th>
+<th>Jenis</th>
+<th>Pemilik</th>
+<th>Cetak Sertifikat</th>
+</tr>
+</thead>
+<tbody id="listSertifikat">
+<tr><td colspan="5" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+</div>
+
 <script>
+
 /* ================= CONFIG ================= */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
@@ -162,6 +192,11 @@ const namaLogin = localStorage.getItem("namaLengkap");
 document.getElementById("userInfo").innerHTML = `Login sebagai: <strong>${usernameLogin}</strong>`;
 document.getElementById("userRoleInfo").innerHTML = `Role: <strong>${roleLogin}</strong>`;
 
+/* ================= TAMBAHAN: TAMPILKAN SERTIFIKAT KHUSUS USER ================= */
+if(roleLogin === "User"){
+    document.getElementById("sertifikatSection").style.display="block";
+}
+
 /* ================= LOGOUT ================= */
 function logout(){
     localStorage.clear();
@@ -180,20 +215,8 @@ function renderPengurus(data){
     listEl.innerHTML="";
 
     data.forEach(row=>{
-
-        const jabatan =
-            row.jabatan ||
-            row.Jabatan ||
-            row["Jabatan"] ||
-            "-";
-
-        const nama =
-            row.nama ||
-            row.Nama ||
-            row["Nama Lengkap"] ||
-            row["nama"] ||
-            "-";
-
+        const jabatan = row.jabatan || row.Jabatan || row["Jabatan"] || "-";
+        const nama = row.nama || row.Nama || row["Nama Lengkap"] || row["nama"] || "-";
         listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
     });
 }
@@ -203,7 +226,6 @@ function renderAnggota(data){
     let html="";
 
     data.slice().reverse().forEach(row=>{
-
         const nama=row["Nama Lengkap"]||"-";
         const gelar=row["Gelar"]||"";
         const nomor=row["No Anggota"]||"-";
@@ -218,7 +240,6 @@ function renderAnggota(data){
 
         let aksiButton = "";
 
-        // ================= SUPER ADMIN FULL ACCESS =================
         if(roleLogin === "Super Admin" || 
            nama.toLowerCase() === namaLogin.toLowerCase()){
 
@@ -251,12 +272,10 @@ function renderAnggota(data){
 async function fetchData(){
     try{
         const now = Date.now();
-        // Ambil daftar anggota
         const res = await fetch(WEB_APP_URL + "?action=getanggota&t="+now);
         const data = await res.json();
         renderAnggota(data);
 
-        // Ambil pengurus
         const res2 = await fetch(WEB_APP_URL + "?action=getpengurus&t="+now);
         const data2 = await res2.json();
         renderPengurus(data2);
@@ -353,50 +372,19 @@ setInterval(fetchData,30000);
 
 </script>
 
-    <!-- ================= MODAL GANTI PASSWORD ================= -->
-<div id="modalPassword" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-justify-content:center;
-align-items:center;
-z-index:9999;
-">
-
-<div style="
-background:#111;
-padding:30px;
-border-radius:12px;
-width:350px;
-box-shadow:0 0 20px gold;
-color:white;
-">
-
+<!-- MODAL PASSWORD TETAP SAMA (TIDAK DIUBAH) -->
+<div id="modalPassword" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:9999;">
+<div style="background:#111;padding:30px;border-radius:12px;width:350px;box-shadow:0 0 20px gold;color:white;">
 <h3 style="color:gold; text-align:center;">Ganti Password</h3>
-
-<input type="password" id="oldPass" placeholder="Password Lama"
-style="width:100%; padding:8px; margin:8px 0;">
-
-<input type="password" id="newPass" placeholder="Password Baru"
-style="width:100%; padding:8px; margin:8px 0;">
-
-<input type="password" id="confirmPass" placeholder="Konfirmasi Password"
-style="width:100%; padding:8px; margin:8px 0;">
-
+<input type="password" id="oldPass" placeholder="Password Lama" style="width:100%; padding:8px; margin:8px 0;">
+<input type="password" id="newPass" placeholder="Password Baru" style="width:100%; padding:8px; margin:8px 0;">
+<input type="password" id="confirmPass" placeholder="Konfirmasi Password" style="width:100%; padding:8px; margin:8px 0;">
 <div style="text-align:center; margin-top:15px;">
 <button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
 <button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
 </div>
+</div>
+</div>
 
-</div>
-</div>
-    
 </body>
 </html>
-
-
-
