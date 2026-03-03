@@ -201,23 +201,36 @@ function renderPengurus(data){
 /* ================= RENDER ANGGOTA ================= */
 function renderAnggota(data){
     let html="";
+
     data.slice().reverse().forEach(row=>{
+
         const nama=row["Nama Lengkap"]||"-";
         const gelar=row["Gelar"]||"";
         const nomor=row["No Anggota"]||"-";
         const nohp=row["No HP"]||"-";
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
         const safeNama = nama.replace(/'/g,"\\'");
         const safeGelar = gelar.replace(/'/g,"\\'");
         const safeNomor = nomor.replace(/'/g,"\\'");
         const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
-        
+
         let aksiButton = "";
-        if(nama.toLowerCase() === namaLogin.toLowerCase()){
-            aksiButton = `<button class="btn btn-blue"
-            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">Cetak Kartu</button>
-            <br><button class="btn btn-red" onclick="bukaModalPassword()">Ganti Password</button>`;
+
+        // ================= SUPER ADMIN FULL ACCESS =================
+        if(roleLogin === "Super Admin" || 
+           nama.toLowerCase() === namaLogin.toLowerCase()){
+
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu</button>
+
+            <br><button class="btn btn-red"
+            onclick="bukaModalPassword()">
+            Ganti Password</button>
+            `;
         }
 
         html+=`
@@ -230,6 +243,7 @@ function renderAnggota(data){
             <td>${aksiButton}</td>
         </tr>`;
     });
+
     document.getElementById("listAnggota").innerHTML=html;
 }
 
