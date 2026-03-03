@@ -171,38 +171,66 @@ function logout(){
 /* ================= RENDER PENGURUS ================= */
 function renderPengurus(data){
     const listEl = document.getElementById("listPengurus");
+
     if(!data || data.length===0){
         listEl.innerHTML="<li>Tidak ada data pengurus</li>";
         return;
     }
+
     listEl.innerHTML="";
+
     data.forEach(row=>{
-        const nama = row["Nama Lengkap"]||"-";
-        const jabatan = row["Jabatan"]||"-";
-        listEl.innerHTML += `<li>${jabatan} : ${nama}</li>`;
+
+        const jabatan =
+            row.jabatan ||
+            row.Jabatan ||
+            row["Jabatan"] ||
+            "-";
+
+        const nama =
+            row.nama ||
+            row.Nama ||
+            row["Nama Lengkap"] ||
+            row["nama"] ||
+            "-";
+
+        listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
     });
 }
 
 /* ================= RENDER ANGGOTA ================= */
 function renderAnggota(data){
     let html="";
+
     data.slice().reverse().forEach(row=>{
+
         const nama=row["Nama Lengkap"]||"-";
         const gelar=row["Gelar"]||"";
         const nomor=row["No Anggota"]||"-";
         const nohp=row["No HP"]||"-";
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
         const safeNama = nama.replace(/'/g,"\\'");
         const safeGelar = gelar.replace(/'/g,"\\'");
         const safeNomor = nomor.replace(/'/g,"\\'");
         const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
-        
+
         let aksiButton = "";
-        if(nama.toLowerCase() === namaLogin.toLowerCase()){
-            aksiButton = `<button class="btn btn-blue"
-            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">Cetak Kartu</button>
-            <br><button class="btn btn-red" onclick="bukaModalPassword()">Ganti Password</button>`;
+
+        // ================= SUPER ADMIN FULL ACCESS =================
+        if(roleLogin === "Super Admin" || 
+           nama.toLowerCase() === namaLogin.toLowerCase()){
+
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu</button>
+
+            <br><button class="btn btn-red"
+            onclick="bukaModalPassword()">
+            Ganti Password</button>
+            `;
         }
 
         html+=`
@@ -215,6 +243,7 @@ function renderAnggota(data){
             <td>${aksiButton}</td>
         </tr>`;
     });
+
     document.getElementById("listAnggota").innerHTML=html;
 }
 
@@ -368,3 +397,6 @@ style="width:100%; padding:8px; margin:8px 0;">
     
 </body>
 </html>
+
+
+
