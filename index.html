@@ -283,50 +283,32 @@ footer{
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* LOAD PENGURUS */
 async function loadPengurus(){
     try{
-        const res=await fetch(WEB_APP_URL+"?action=getPengurus&t="+Date.now());
-        const data=await res.json();
-        const list=document.getElementById("pengurusList");
-        list.innerHTML="";
+        const res = await fetch(WEB_APP_URL + "?action=getPengurus&t=" + Date.now());
+        const data = await res.json();
+        const list = document.getElementById("pengurusList");
+        list.innerHTML = "";
 
-        if(!data.length){
-            list.innerHTML="<li>Belum ada pengurus</li>";
+        if(!data || !data.length){
+            list.innerHTML = "<li>Belum ada pengurus</li>";
             return;
         }
 
         data.forEach(p=>{
-            list.innerHTML+=`<li><strong>${p.jabatan}</strong> : ${p.nama}</li>`;
+            const jabatan = p.jabatan || p.Jabatan || "-";
+            const nama = p.nama || p["Nama Lengkap"] || p.Nama || "-";
+
+            list.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
         });
 
-    }catch{
+    }catch(error){
         document.getElementById("pengurusList").innerHTML="<li>Gagal memuat data</li>";
+        console.error(error);
     }
 }
 
-/* LOGIN */
-function bukaLogin(){
-    document.getElementById("loginModal").style.display="flex";
-}
-
-function tutupLogin(){
-    document.getElementById("loginModal").style.display="none";
-}
-
-function cekLogin(){
-    const user=document.getElementById("username").value.trim();
-    const pass=document.getElementById("password").value.trim();
-
-    if(user==="Sugeng11" && pass==="300507Sg#"){
-        localStorage.setItem("adminLogin","true");
-        window.location.href="admin-panel.html";
-    }else{
-        document.getElementById("errorLogin").innerText="Username atau Password salah!";
-    }
-}
-
-document.addEventListener("DOMContentLoaded",loadPengurus);
+document.addEventListener("DOMContentLoaded", loadPengurus);
 
 </script>
 
