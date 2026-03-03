@@ -478,11 +478,23 @@ function renderSertifikat(data){
     let html="";
 
     data.forEach(row=>{
-        const status = row["Status"] || "Disetujui";
+        const status = 
+            row["Status"] || 
+            row["STATUS"] || 
+            row["status"] || 
+            "Menunggu";
 
-const statusBadge = status === "Menunggu" 
-    ? '<span class="status-nonaktif">Menunggu</span>'
-    : '<span class="status-aktif">Disetujui</span>';
+let statusBadge = "";
+
+if(status === "Menunggu"){
+    statusBadge = '<span class="status-nonaktif">Menunggu</span>';
+}
+else if(status === "Disetujui"){
+    statusBadge = '<span class="status-aktif">Disetujui</span>';
+}
+else{
+    statusBadge = '<span class="status-nonaktif">'+status+'</span>';
+}
 
 html+=`
 <tr>
@@ -581,5 +593,3 @@ style="width:100%; padding:8px; margin:6px 0;"></textarea>
 
 </body>
 </html>
-
-
