@@ -18,7 +18,7 @@ body{
     color:white;
     padding:40px;
 }
-.container{ max-width:1200px; margin:auto; position:relative; }
+.container{ max-width:1100px; margin:auto; position:relative; }
 
 h1{
     color:gold;
@@ -85,7 +85,6 @@ th{ background:#222; color:gold; }
 }
 .btn-blue{ background:#007bff; color:white; }
 .btn-red{ background:#dc3545; color:white; }
-.btn-gold{ background:gold; color:black; }
 
 .loading{ text-align:center; color:gold; }
 
@@ -105,13 +104,13 @@ th{ background:#222; color:gold; }
 
 <div class="login-top">
     <div class="user-info" id="userInfo"></div>
-    <div id="userRoleInfo" style="margin-bottom:4px; color:gold; font-weight:bold;"></div>
+    <div class="user-role-info" id="userRoleInfo" style="margin-bottom:4px; color:gold; font-weight:bold;"></div>
     <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
 <h1>Komunitas Keris SKH</h1>
 
-<!-- ================= STRUKTUR PENGURUS ================= -->
+<!-- Struktur Pengurus -->
 <div id="strukturPengurus" class="card">
 <h3>Struktur Pengurus</h3>
 <ul id="listPengurus" style="list-style:none; padding:0; text-align:center;">
@@ -119,7 +118,6 @@ th{ background:#222; color:gold; }
 </ul>
 </div>
 
-<!-- ================= DAFTAR ANGGOTA ================= -->
 <div class="card">
 <h2>Daftar Anggota</h2>
 <table>
@@ -139,120 +137,263 @@ th{ background:#222; color:gold; }
 </table>
 </div>
 
-<!-- ================= KHUSUS USER: SERTIFIKAT ================= -->
-<div id="sertifikatSection" style="display:none;">
-
-<div class="card">
-<h2>Ajukan Sertifikat Pusaka</h2>
-<input type="text" id="namaPusaka" placeholder="Nama Pusaka">
-<input type="text" id="jenisPusaka" placeholder="Jenis">
-<input type="text" id="pemilikPusaka" placeholder="Nama Pemilik">
-<button class="btn btn-gold" onclick="ajukanSertifikat()">Ajukan</button>
-</div>
-
-<div class="card">
-<h2>List Sertifikat</h2>
-<table>
-<thead>
-<tr>
-<th>No Registrasi</th>
-<th>Nama Pusaka</th>
-<th>Jenis</th>
-<th>Pemilik</th>
-<th>Cetak</th>
-</tr>
-</thead>
-<tbody id="listSertifikat">
-<tr><td colspan="5" class="loading">Belum ada data</td></tr>
-</tbody>
-</table>
-</div>
-
-</div>
-
 <script>
-const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+/* ================= CONFIG ================= */
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
-/* LOGIN CHECK */
+/* ================= LOGIN PROTECTION ================= */
 (function(){
-    const isLoggedIn=localStorage.getItem("isLoggedIn");
-    const username=localStorage.getItem("username");
-    const role=localStorage.getItem("role");
-    if(isLoggedIn!=="true"||!username||!role){
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    const namaLengkap = localStorage.getItem("namaLengkap");
+    if(isLoggedIn !== "true" || !username || !role || !namaLengkap){
         localStorage.clear();
-        window.location.href="anggota-login.html";
+        window.location.href = "anggota-login.html";
         return;
     }
 })();
 
-const roleLogin=localStorage.getItem("role");
-const usernameLogin=localStorage.getItem("username");
+/* ================= USER INFO ================= */
+const usernameLogin = localStorage.getItem("username");
+const roleLogin = localStorage.getItem("role");
+const namaLogin = localStorage.getItem("namaLengkap");
 
-document.getElementById("userInfo").innerHTML=`Login sebagai: <strong>${usernameLogin}</strong>`;
-document.getElementById("userRoleInfo").innerHTML=`Role: <strong>${roleLogin}</strong>`;
+document.getElementById("userInfo").innerHTML = `Login sebagai: <strong>${usernameLogin}</strong>`;
+document.getElementById("userRoleInfo").innerHTML = `Role: <strong>${roleLogin}</strong>`;
 
-if(roleLogin==="User"){
-    document.getElementById("sertifikatSection").style.display="block";
-}
-
+/* ================= LOGOUT ================= */
 function logout(){
     localStorage.clear();
-    window.location.href="daftar-anggota.html";
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
 }
 
 /* ================= RENDER PENGURUS ================= */
 function renderPengurus(data){
-    const listEl=document.getElementById("listPengurus");
-    if(!data||data.length===0){
-        listEl.innerHTML="<li>Tidak ada data</li>";
+    const listEl = document.getElementById("listPengurus");
+
+    if(!data || data.length===0){
+        listEl.innerHTML="<li>Tidak ada data pengurus</li>";
         return;
     }
+
     listEl.innerHTML="";
+
     data.forEach(row=>{
-        listEl.innerHTML+=`<li><strong>${row.jabatan||"-"}</strong> : ${row.nama||"-"}</li>`;
+
+        const jabatan =
+            row.jabatan ||
+            row.Jabatan ||
+            row["Jabatan"] ||
+            "-";
+
+        const nama =
+            row.nama ||
+            row.Nama ||
+            row["Nama Lengkap"] ||
+            row["nama"] ||
+            "-";
+
+        listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
     });
 }
 
 /* ================= RENDER ANGGOTA ================= */
 function renderAnggota(data){
     let html="";
+
     data.slice().reverse().forEach(row=>{
+
+        const nama=row["Nama Lengkap"]||"-";
+        const gelar=row["Gelar"]||"";
+        const nomor=row["No Anggota"]||"-";
+        const nohp=row["No HP"]||"-";
         const status=row.Status||"Nonaktif";
         const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+        const safeNama = nama.replace(/'/g,"\\'");
+        const safeGelar = gelar.replace(/'/g,"\\'");
+        const safeNomor = nomor.replace(/'/g,"\\'");
+        const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
+
+        let aksiButton = "";
+
+        // ================= SUPER ADMIN FULL ACCESS =================
+        if(roleLogin === "Super Admin" || 
+           nama.toLowerCase() === namaLogin.toLowerCase()){
+
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu</button>
+
+            <br><button class="btn btn-red"
+            onclick="bukaModalPassword()">
+            Ganti Password</button>
+            `;
+        }
+
         html+=`
         <tr>
-            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
-            <td>${row["Nama Lengkap"]||"-"}</td>
-            <td>${row["No Anggota"]||"-"}</td>
-            <td>${row["No HP"]||"-"}</td>
+            <td><img src="${safeFoto}" class="foto-kecil"></td>
+            <td>${nama}</td>
+            <td>${nomor}</td>
+            <td>${nohp}</td>
             <td><span class="${statusClass}">${status}</span></td>
-            <td>-</td>
+            <td>${aksiButton}</td>
         </tr>`;
     });
+
     document.getElementById("listAnggota").innerHTML=html;
 }
 
 /* ================= FETCH DATA ================= */
 async function fetchData(){
-    const now=Date.now();
-    const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+now);
-    const data=await res.json();
-    renderAnggota(data);
+    try{
+        const now = Date.now();
+        // Ambil daftar anggota
+        const res = await fetch(WEB_APP_URL + "?action=getanggota&t="+now);
+        const data = await res.json();
+        renderAnggota(data);
 
-    const res2=await fetch(WEB_APP_URL+"?action=getpengurus&t="+now);
-    const data2=await res2.json();
-    renderPengurus(data2);
+        // Ambil pengurus
+        const res2 = await fetch(WEB_APP_URL + "?action=getpengurus&t="+now);
+        const data2 = await res2.json();
+        renderPengurus(data2);
+
+    }catch(e){ console.log("Fetch gagal:", e); }
 }
 
-/* ================= SERTIFIKAT ================= */
-function ajukanSertifikat(){
-    alert("Fitur sertifikat aktif.");
+/* ================= PREMIUM CARD DESIGN ================= */
+function generateCard(nama,gelar,nomor,foto){
+    const canvas=document.createElement("canvas");
+    canvas.width=1016; canvas.height=638;
+    const ctx=canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop(0,"#D4AF37"); gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B"); ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle="#5a3d00"; ctx.lineWidth=20; ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+    ctx.strokeStyle="#fff3b0"; ctx.lineWidth=4; ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
+    ctx.fillStyle="#3b2a00"; ctx.font="bold 52px Georgia"; ctx.textAlign="center";
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+    ctx.font="bold 36px Georgia"; ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
+
+    function drawContent(){
+        ctx.textAlign="left"; ctx.fillStyle="#3b2a00"; ctx.font="bold 42px Georgia"; ctx.fillText(nama,350,300);
+        ctx.font="30px Georgia"; ctx.fillText(gelar || "",350,350); ctx.fillText("No Anggota : "+nomor,350,400);
+        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+            if(!err) ctx.drawImage(qrCanvas,canvas.width-300,400);
+            const link=document.createElement("a"); link.download="Kartu_"+nomor+".png";
+            link.href=canvas.toDataURL("image/png"); document.body.appendChild(link);
+            link.click(); document.body.removeChild(link);
+        });
+    }
+
+    if(foto){
+        const img=new Image(); img.crossOrigin="anonymous"; img.src=foto;
+        img.onload=function(){ ctx.drawImage(img,100,250,200,260); drawContent(); };
+        img.onerror=function(){ drawContent(); };
+    }else{ drawContent(); }
+}
+
+/* ================= GANTI SANDI ================= */
+function bukaModalPassword(){
+    document.getElementById("modalPassword").style.display="flex";
+}
+
+function tutupModalPassword(){
+    document.getElementById("modalPassword").style.display="none";
+    document.getElementById("oldPass").value="";
+    document.getElementById("newPass").value="";
+    document.getElementById("confirmPass").value="";
+}
+
+function submitGantiPassword(){
+    const username = localStorage.getItem("username");
+    const sandiLama = document.getElementById("oldPass").value;
+    const sandiBaru = document.getElementById("newPass").value;
+    const confirmPass = document.getElementById("confirmPass").value;
+
+    if(!sandiLama || !sandiBaru || !confirmPass){
+        alert("Semua field wajib diisi!");
+        return;
+    }
+
+    if(sandiBaru.length < 6){
+        alert("Password minimal 6 karakter!");
+        return;
+    }
+
+    if(sandiBaru !== confirmPass){
+        alert("Konfirmasi password tidak cocok!");
+        return;
+    }
+
+    fetch(WEB_APP_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=gantipassword&username=${encodeURIComponent(username)}&sandiLama=${encodeURIComponent(sandiLama)}&sandiBaru=${encodeURIComponent(sandiBaru)}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.status==="success"){
+            alert("Password berhasil diganti!");
+            tutupModalPassword();
+        }else{
+            alert("Gagal: "+res.message);
+        }
+    })
+    .catch(e=>alert("Error: "+e.message));
 }
 
 /* INIT */
 fetchData();
 setInterval(fetchData,30000);
+
 </script>
 
+    <!-- ================= MODAL GANTI PASSWORD ================= -->
+<div id="modalPassword" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:#111;
+padding:30px;
+border-radius:12px;
+width:350px;
+box-shadow:0 0 20px gold;
+color:white;
+">
+
+<h3 style="color:gold; text-align:center;">Ganti Password</h3>
+
+<input type="password" id="oldPass" placeholder="Password Lama"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<input type="password" id="newPass" placeholder="Password Baru"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<input type="password" id="confirmPass" placeholder="Konfirmasi Password"
+style="width:100%; padding:8px; margin:8px 0;">
+
+<div style="text-align:center; margin-top:15px;">
+<button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
+<button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
+</div>
+
+</div>
+</div>
+    
 </body>
 </html>
