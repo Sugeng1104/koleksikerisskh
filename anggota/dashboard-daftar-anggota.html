@@ -478,19 +478,27 @@ function renderSertifikat(data){
     let html="";
 
     data.forEach(row=>{
-        html+=`
-        <tr>
-            <td>${row["No Registrasi"]||"-"}</td>
-            <td>${row["Nama Pusaka"]||"-"}</td>
-            <td>${row["Jenis"]||"-"}</td>
-            <td>${row["Pemilik"]||"-"}</td>
-            <td>
-                <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
-                Cetak
-                </a>
-            </td>
-        </tr>`;
-    });
+        const status = row["Status"] || "Disetujui";
+
+const statusBadge = status === "Menunggu" 
+    ? '<span class="status-nonaktif">Menunggu</span>'
+    : '<span class="status-aktif">Disetujui</span>';
+
+html+=`
+<tr>
+   <td>${row["No Registrasi"]||"-"}</td>
+   <td>${row["Nama Pusaka"]||"-"}</td>
+   <td>${row["Jenis"]||"-"}</td>
+   <td>${row["Pemilik"]||"-"}</td>
+   <td>${statusBadge}</td> <!-- TAMBAHKAN DI SINI -->
+   <td>
+      <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
+      Cetak
+      </a>
+   </td>
+</tr>`;
+
+   });
 
     tbody.innerHTML=html;
 }
