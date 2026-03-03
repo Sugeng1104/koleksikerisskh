@@ -297,6 +297,108 @@ function generateCard(nama,gelar,nomor,foto){
     }else{ drawContent(); }
 }
 
+<!-- ================= KHUSUS USER : SERTIFIKAT ================= -->
+<div id="sertifikatSection" class="card" style="display:none;">
+<h2>Ajukan Sertifikat Pusaka</h2>
+
+<input type="text" id="namaPusaka" placeholder="Nama Pusaka">
+<input type="text" id="jenisPusaka" placeholder="Jenis">
+<input type="text" id="pemilikPusaka" placeholder="Nama Pemilik">
+<button class="btn btn-blue" onclick="ajukanSertifikat()">Ajukan</button>
+
+<hr style="margin:25px 0; border:1px solid #333;">
+
+<h2>List Sertifikat</h2>
+<table>
+<thead>
+<tr>
+<th>No Registrasi</th>
+<th>Nama Pusaka</th>
+<th>Jenis</th>
+<th>Pemilik</th>
+<th>Cetak Sertifikat</th>
+</tr>
+</thead>
+<tbody id="listSertifikat">
+<tr><td colspan="5" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+</div>
+
+/* ================= TAMPILKAN SERTIFIKAT UNTUK USER ================= */
+if(roleLogin === "User"){
+    document.getElementById("sertifikatSection").style.display="block";
+    loadSertifikat();
+}
+
+/* ================= AJUKAN SERTIFIKAT ================= */
+function ajukanSertifikat(){
+
+    const nama=document.getElementById("namaPusaka").value;
+    const jenis=document.getElementById("jenisPusaka").value;
+    const pemilik=document.getElementById("pemilikPusaka").value;
+
+    if(!nama||!jenis||!pemilik){
+        alert("Semua field wajib diisi!");
+        return;
+    }
+
+    fetch(WEB_APP_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=ajukansertifikat&nama=${encodeURIComponent(nama)}&jenis=${encodeURIComponent(jenis)}&pemilik=${encodeURIComponent(pemilik)}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.status==="success"){
+            alert("Pengajuan berhasil!");
+            loadSertifikat();
+        }else{
+            alert("Gagal: "+res.message);
+        }
+    });
+}
+
+/* ================= LOAD DATA SERTIFIKAT ================= */
+function loadSertifikat(){
+
+    fetch(WEB_APP_URL+"?action=getsertifikat")
+    .then(res=>res.json())
+    .then(data=>{
+
+        if(!data || data.length===0){
+            document.getElementById("listSertifikat").innerHTML=
+            "<tr><td colspan='5'>Belum ada data</td></tr>";
+            return;
+        }
+
+        let html="";
+        data.forEach(row=>{
+            html+=`
+            <tr>
+            <td>${row.noRegistrasi||"-"}</td>
+            <td>${row.nama||"-"}</td>
+            <td>${row.jenis||"-"}</td>
+            <td>${row.pemilik||"-"}</td>
+            <td>
+                <button class="btn btn-blue"
+                onclick="cetakSertifikat('${row.noRegistrasi}')">
+                Cetak
+                </button>
+            </td>
+            </tr>`;
+        });
+
+        document.getElementById("listSertifikat").innerHTML=html;
+    });
+}
+
+/* ================= CETAK SERTIFIKAT ================= */
+function cetakSertifikat(no){
+    alert("Cetak Sertifikat No Registrasi: "+no);
+}
+    
+
 /* ================= GANTI SANDI ================= */
 function bukaModalPassword(){
     document.getElementById("modalPassword").style.display="flex";
