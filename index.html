@@ -65,22 +65,19 @@ h3{color:gold}
 
 footer{text-align:center;padding:30px;background:#111;color:#777}
 
-/* STRUKTUR PENGURUS */
-.pengurus-section{
-text-align:center;
-margin-top:30px;
+/* LOAD STRUKTUR */
+async function loadStruktur(){
+try{
+const r=await fetch(WEB_APP_URL+"?action=getpengurus&t="+Date.now());
+const d=await r.json();
+let html="";
+(d||[]).forEach(p=>{
+html+=p.Jabatan+" : <strong>"+(p["Nama Lengkap"]||p.Nama||"-")+"</strong><br>";
+});
+document.getElementById("strukturPengurus").innerHTML=html||"Belum ada pengurus";
+}catch{
+document.getElementById("strukturPengurus").innerHTML="Gagal memuat struktur.";
 }
-.pengurus-section h3{
-color:gold;
-margin-bottom:20px;
-}
-.pengurus-list{
-list-style:none;
-padding:0;
-}
-.pengurus-list li{
-margin:8px 0;
-font-size:18px;
 }
 
 /* LOGIN POPUP */
