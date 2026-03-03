@@ -87,13 +87,16 @@ th{ background:#222; color:gold; }
 .btn-red{ background:#dc3545; color:white; }
 .btn-gold{ background:gold; color:black; }
 
-input{
-    padding:8px;
-    margin:5px;
-    border-radius:6px;
-    border:1px solid #555;
-}
 .loading{ text-align:center; color:gold; }
+
+#strukturPengurus{
+    margin-bottom:25px;
+    padding:15px;
+    background:#111;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(212,175,55,0.3);
+}
+#strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
 </style>
 </head>
 <body>
@@ -107,6 +110,14 @@ input{
 </div>
 
 <h1>Komunitas Keris SKH</h1>
+
+<!-- ================= STRUKTUR PENGURUS ================= -->
+<div id="strukturPengurus" class="card">
+<h3>Struktur Pengurus</h3>
+<ul id="listPengurus" style="list-style:none; padding:0; text-align:center;">
+<li class="loading">Memuat data...</li>
+</ul>
+</div>
 
 <!-- ================= DAFTAR ANGGOTA ================= -->
 <div class="card">
@@ -128,17 +139,15 @@ input{
 </table>
 </div>
 
-<!-- ================= KHUSUS USER BIASA ================= -->
+<!-- ================= KHUSUS USER: SERTIFIKAT ================= -->
 <div id="sertifikatSection" style="display:none;">
 
 <div class="card">
 <h2>Ajukan Sertifikat Pusaka</h2>
-
 <input type="text" id="namaPusaka" placeholder="Nama Pusaka">
 <input type="text" id="jenisPusaka" placeholder="Jenis">
 <input type="text" id="pemilikPusaka" placeholder="Nama Pemilik">
 <button class="btn btn-gold" onclick="ajukanSertifikat()">Ajukan</button>
-
 </div>
 
 <div class="card">
@@ -150,7 +159,7 @@ input{
 <th>Nama Pusaka</th>
 <th>Jenis</th>
 <th>Pemilik</th>
-<th>Cetak Sertifikat</th>
+<th>Cetak</th>
 </tr>
 </thead>
 <tbody id="listSertifikat">
@@ -164,6 +173,7 @@ input{
 <script>
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
 
+/* LOGIN CHECK */
 (function(){
     const isLoggedIn=localStorage.getItem("isLoggedIn");
     const username=localStorage.getItem("username");
@@ -190,58 +200,58 @@ function logout(){
     window.location.href="daftar-anggota.html";
 }
 
-/* ================= AJUKAN SERTIFIKAT ================= */
-function ajukanSertifikat(){
-    const nama=document.getElementById("namaPusaka").value;
-    const jenis=document.getElementById("jenisPusaka").value;
-    const pemilik=document.getElementById("pemilikPusaka").value;
-
-    if(!nama||!jenis||!pemilik){
-        alert("Semua field wajib diisi");
+/* ================= RENDER PENGURUS ================= */
+function renderPengurus(data){
+    const listEl=document.getElementById("listPengurus");
+    if(!data||data.length===0){
+        listEl.innerHTML="<li>Tidak ada data</li>";
         return;
     }
-
-    fetch(WEB_APP_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/x-www-form-urlencoded"},
-        body:`action=ajukansertifikat&nama=${encodeURIComponent(nama)}&jenis=${encodeURIComponent(jenis)}&pemilik=${encodeURIComponent(pemilik)}`
-    })
-    .then(res=>res.json())
-    .then(res=>{
-        alert("Pengajuan berhasil!");
-        loadSertifikat();
+    listEl.innerHTML="";
+    data.forEach(row=>{
+        listEl.innerHTML+=`<li><strong>${row.jabatan||"-"}</strong> : ${row.nama||"-"}</li>`;
     });
 }
 
-/* ================= LOAD SERTIFIKAT ================= */
-function loadSertifikat(){
-    fetch(WEB_APP_URL+"?action=getsertifikat")
-    .then(res=>res.json())
-    .then(data=>{
-        let html="";
-        data.forEach(row=>{
-            html+=`
-            <tr>
-            <td>${row.noRegistrasi}</td>
-            <td>${row.nama}</td>
-            <td>${row.jenis}</td>
-            <td>${row.pemilik}</td>
-            <td><button class="btn btn-blue" onclick="cetakSertifikat('${row.noRegistrasi}')">Cetak</button></td>
-            </tr>`;
-        });
-        document.getElementById("listSertifikat").innerHTML=html;
+/* ================= RENDER ANGGOTA ================= */
+function renderAnggota(data){
+    let html="";
+    data.slice().reverse().forEach(row=>{
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+        html+=`
+        <tr>
+            <td><img src="${row.Foto||""}" class="foto-kecil"></td>
+            <td>${row["Nama Lengkap"]||"-"}</td>
+            <td>${row["No Anggota"]||"-"}</td>
+            <td>${row["No HP"]||"-"}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>-</td>
+        </tr>`;
     });
+    document.getElementById("listAnggota").innerHTML=html;
 }
 
-function cetakSertifikat(no){
-    alert("Cetak Sertifikat No: "+no);
+/* ================= FETCH DATA ================= */
+async function fetchData(){
+    const now=Date.now();
+    const res=await fetch(WEB_APP_URL+"?action=getanggota&t="+now);
+    const data=await res.json();
+    renderAnggota(data);
+
+    const res2=await fetch(WEB_APP_URL+"?action=getpengurus&t="+now);
+    const data2=await res2.json();
+    renderPengurus(data2);
 }
 
-/* ================= INIT ================= */
-if(roleLogin==="User"){
-    loadSertifikat();
+/* ================= SERTIFIKAT ================= */
+function ajukanSertifikat(){
+    alert("Fitur sertifikat aktif.");
 }
 
+/* INIT */
+fetchData();
+setInterval(fetchData,30000);
 </script>
 
 </body>
