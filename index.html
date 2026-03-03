@@ -4,204 +4,168 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="google-site-verification" content="u9u7rniOYVRlAqI9ctAu3WZOAnL3m7ntPF8VO0B0ZwM4" />
 
 <title>Komunitas Keris SKH | Sejiwa Keris Harum</title>
+<meta name="description" content="Komunitas Keris SKH - Sejiwa Keris Harum. Wadah pelestari budaya keris Nusantara.">
 
-<meta name="description" content="Komunitas Keris SKH (Sejiwa Keris Harum) - Wadah pelestari budaya keris Nusantara.">
-<meta name="keywords" content="Keris SKH, Komunitas Keris, Sejiwa Keris Harum, Warisan Budaya, Keris Nusantara">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 
 /* ===== GLOBAL ===== */
 body{
     margin:0;
-    font-family:Georgia, serif;
-    background:#000;
-    color:#eee;
+    background:linear-gradient(to bottom,#000,#0a0a0a,#000);
+    color:#f5f5f5;
+    font-family:'Cormorant Garamond', serif;
 }
 
 h1,h2,h3{
-    margin:0 0 15px 0;
+    font-family:'Cinzel', serif;
+    letter-spacing:1px;
 }
 
-section{
-    padding:60px 15%;
-    line-height:1.8;
-}
-
-h3{
-    color:gold;
-}
-
-/* ===== ADMIN BUTTON ===== */
-.admin-top{
+/* ===== NAVBAR ===== */
+.navbar{
     position:fixed;
-    top:20px;
-    right:30px;
-    background:linear-gradient(45deg,gold,#b8860b);
-    color:black;
-    padding:8px 18px;
-    border-radius:5px;
-    font-weight:bold;
-    text-decoration:none;
+    top:0;
+    width:100%;
+    background:rgba(0,0,0,0.85);
+    border-bottom:1px solid gold;
+    padding:15px 0;
+    text-align:center;
     z-index:1000;
+}
+
+.navbar a{
+    color:gold;
+    text-decoration:none;
+    margin:0 25px;
+    font-weight:600;
     transition:0.3s;
 }
-.admin-top:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 15px gold;
+
+.navbar a:hover{
+    text-shadow:0 0 10px gold;
 }
 
 /* ===== HERO ===== */
 .hero{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:80px 10%;
-    gap:60px;
-    flex-wrap:wrap;
+    padding:140px 10% 80px;
+    text-align:center;
 }
 
 .hero img{
-    width:320px;
-    animation:glow 3s infinite alternate;
+    width:200px;
+    margin-bottom:30px;
+    filter:drop-shadow(0 0 20px gold);
 }
 
-@keyframes glow{
-    from{filter:drop-shadow(0 0 10px #00ff88)}
-    to{filter:drop-shadow(0 0 40px #00ff88)}
-}
-
-.hero-text{
-    max-width:600px;
-}
-
-.hero-text h1{
+.hero h1{
+    font-size:48px;
     color:gold;
-    font-size:42px;
 }
 
-.hero-text h2{
-    color:#aaa;
-    margin-bottom:25px;
+.hero h2{
+    color:#ccc;
+    margin-bottom:30px;
+}
+
+.hero p{
+    max-width:800px;
+    margin:auto;
+    font-size:20px;
+    line-height:1.8;
 }
 
 /* ===== BUTTON ===== */
-.buttons{
-    margin-top:25px;
-}
-
 .btn{
     display:inline-block;
-    padding:12px 25px;
-    margin:10px 10px 0 0;
-    background:linear-gradient(45deg,gold,#b8860b);
-    color:black;
+    margin:20px 10px 0;
+    padding:12px 28px;
+    border:1px solid gold;
+    color:gold;
     text-decoration:none;
-    font-weight:bold;
-    border-radius:5px;
     transition:0.3s;
 }
+
 .btn:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 15px gold;
+    background:gold;
+    color:black;
+    box-shadow:0 0 20px gold;
+}
+
+/* ===== SECTION ===== */
+section{
+    padding:80px 15%;
+    text-align:center;
+}
+
+.section-title{
+    font-size:32px;
+    color:gold;
+    margin-bottom:40px;
+    position:relative;
+}
+
+.section-title::after{
+    content:"";
+    width:80px;
+    height:2px;
+    background:gold;
+    display:block;
+    margin:15px auto;
 }
 
 /* ===== PENGURUS ===== */
-.pengurus-section{
-    padding:50px 15%;
-    background:#111;
+.pengurus-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:30px;
 }
 
-.pengurus-list{
-    list-style:none;
-    padding:0;
-    margin-top:20px;
+.card{
+    border:1px solid gold;
+    padding:25px;
+    background:rgba(255,215,0,0.05);
+    transition:0.4s;
 }
 
-.pengurus-list li{
-    padding:8px 0;
-    border-bottom:1px solid #333;
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 0 25px gold;
+}
+
+.card h4{
+    color:gold;
+    margin-bottom:10px;
 }
 
 /* ===== GALERI ===== */
 .gallery{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:20px;
-    margin-top:30px;
+    gap:25px;
 }
 
 .gallery img{
     width:100%;
-    border-radius:8px;
+    border:2px solid gold;
     transition:0.4s;
-    border:1px solid #333;
 }
 
 .gallery img:hover{
     transform:scale(1.05);
-    box-shadow:0 0 20px #00ff88;
+    box-shadow:0 0 25px gold;
 }
 
 /* ===== FOOTER ===== */
 footer{
-    text-align:center;
     padding:30px;
-    background:#111;
-    color:#777;
-}
-
-/* ===== LOGIN MODAL ===== */
-#loginModal{
-    display:none;
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(0,0,0,0.85);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-}
-
-.login-box{
-    background:#111;
-    padding:30px;
-    border-radius:12px;
-    width:300px;
     text-align:center;
-    box-shadow:0 0 25px gold;
-    animation:fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;transform:scale(0.9)}
-    to{opacity:1;transform:scale(1)}
-}
-
-.login-box input{
-    width:100%;
-    padding:8px;
-    margin:8px 0;
-    border-radius:6px;
-    border:none;
-}
-
-.login-box button{
-    width:100%;
-    padding:10px;
-    background:gold;
-    border:none;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:10px;
-}
-
-#errorLogin{
-    color:red;
-    margin-top:10px;
-    font-size:14px;
+    background:#000;
+    border-top:1px solid gold;
+    color:#999;
 }
 
 </style>
@@ -209,75 +173,51 @@ footer{
 
 <body>
 
-<a href="admin.html" class="admin-top">ADMIN</a>
+<!-- NAVBAR -->
+<div class="navbar">
+    <a href="#">Beranda</a>
+    <a href="#pengurus">Pengurus</a>
+    <a href="galeri.html">Galeri</a>
+    <a href="daftar-anggota.html">Anggota</a>
+    <a href="admin.html">Admin</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">
     <img src="logo-skh.png" alt="Logo SKH">
+    <h1>Komunitas Keris SKH</h1>
+    <h2>Sejiwa Keris Harum</h2>
 
-    <div class="hero-text">
-        <h1>Komunitas Keris SKH</h1>
-        <h2>Sejiwa Keris Harum</h2>
-
-        <p>
-        Keris bukan sekadar senjata tradisional, melainkan mahakarya budaya Nusantara yang sarat makna filosofi dan nilai estetika tinggi.
-        </p>
-
-        <p>
-        Pengakuan dunia melalui UNESCO terhadap keris sebagai Warisan Budaya Takbenda mempertegas bahwa keris adalah pusaka agung bangsa.
-        </p>
-
-        <div class="buttons">
-            <a href="admin-sertifikat.html" class="btn">Masuk Arsip Sertifikat</a>
-            <a href="daftar-anggota.html" class="btn">Daftar Anggota SKH</a>
-            <a href="#" onclick="bukaLogin(); return false;" class="btn">Tambah Koleksi (Admin)</a>
-        </div>
-    </div>
-</div>
-
-<!-- STRUKTUR PENGURUS -->
-<div class="pengurus-section">
-    <h3>Struktur Pengurus</h3>
-    <ul class="pengurus-list" id="pengurusList">
-        <li>Memuat data...</li>
-    </ul>
-</div>
-
-<!-- TENTANG -->
-<section>
-    <h3>Tentang SKH</h3>
     <p>
-    Komunitas Keris SKH hadir sebagai wadah pecinta dan pelestari budaya keris Nusantara.
+    Keris adalah pusaka luhur Nusantara, warisan adiluhung yang memancarkan filosofi,
+    spiritualitas, dan keindahan seni tempa para Empu.
     </p>
 
-    <h3>
-        <a href="galeri.html" style="color:gold;text-decoration:none;">
-            Galeri Keris
-        </a>
-    </h3>
+    <a href="admin-sertifikat.html" class="btn">Arsip Sertifikat</a>
+    <a href="#" onclick="document.getElementById('pengurus').scrollIntoView({behavior:'smooth'});" class="btn">Lihat Pengurus</a>
+</div>
 
+<!-- PENGURUS -->
+<section id="pengurus">
+    <div class="section-title">Struktur Pengurus</div>
+    <div class="pengurus-grid" id="pengurusList">
+        <div>Memuat data...</div>
+    </div>
+</section>
+
+<!-- GALERI -->
+<section>
+    <div class="section-title">Galeri Keris</div>
     <div class="gallery">
-        <img src="galeri1.jpg" alt="Galeri 1">
-        <img src="galeri2.jpg" alt="Galeri 2">
-        <img src="galeri3.jpg" alt="Galeri 3">
+        <img src="galeri1.jpg">
+        <img src="galeri2.jpg">
+        <img src="galeri3.jpg">
     </div>
 </section>
 
 <footer>
 © 2026 Komunitas Keris SKH – Sejiwa Keris Harum
 </footer>
-
-<!-- LOGIN MODAL -->
-<div id="loginModal">
-  <div class="login-box">
-    <h3>Login Admin SKH</h3>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="cekLogin()">Masuk</button>
-    <button onclick="tutupLogin()" style="background:#333;color:white;margin-top:8px">Batal</button>
-    <div id="errorLogin"></div>
-  </div>
-</div>
 
 <script>
 
@@ -287,11 +227,11 @@ async function loadPengurus(){
     try{
         const res = await fetch(WEB_APP_URL + "?action=getPengurus&t=" + Date.now());
         const data = await res.json();
-        const list = document.getElementById("pengurusList");
-        list.innerHTML = "";
+        const container = document.getElementById("pengurusList");
+        container.innerHTML="";
 
         if(!data || !data.length){
-            list.innerHTML = "<li>Belum ada pengurus</li>";
+            container.innerHTML="<div>Belum ada pengurus</div>";
             return;
         }
 
@@ -299,12 +239,16 @@ async function loadPengurus(){
             const jabatan = p.jabatan || p.Jabatan || "-";
             const nama = p.nama || p["Nama Lengkap"] || p.Nama || "-";
 
-            list.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
+            container.innerHTML += `
+                <div class="card">
+                    <h4>${jabatan}</h4>
+                    <div>${nama}</div>
+                </div>
+            `;
         });
 
-    }catch(error){
-        document.getElementById("pengurusList").innerHTML="<li>Gagal memuat data</li>";
-        console.error(error);
+    }catch{
+        document.getElementById("pengurusList").innerHTML="Gagal memuat data";
     }
 }
 
