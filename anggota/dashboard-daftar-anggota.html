@@ -171,15 +171,30 @@ function logout(){
 /* ================= RENDER PENGURUS ================= */
 function renderPengurus(data){
     const listEl = document.getElementById("listPengurus");
+
     if(!data || data.length===0){
         listEl.innerHTML="<li>Tidak ada data pengurus</li>";
         return;
     }
+
     listEl.innerHTML="";
+
     data.forEach(row=>{
-        const nama = row["Nama Lengkap"]||"-";
-        const jabatan = row["Jabatan"]||"-";
-        listEl.innerHTML += `<li>${jabatan} : ${nama}</li>`;
+
+        const jabatan =
+            row.jabatan ||
+            row.Jabatan ||
+            row["Jabatan"] ||
+            "-";
+
+        const nama =
+            row.nama ||
+            row.Nama ||
+            row["Nama Lengkap"] ||
+            row["nama"] ||
+            "-";
+
+        listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
     });
 }
 
