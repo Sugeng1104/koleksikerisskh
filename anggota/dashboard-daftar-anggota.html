@@ -140,16 +140,41 @@ th{ background:#222; color:gold; }
 
 <!-- ================= TAMBAHAN SERTIFIKAT (TIDAK MENGUBAH SISTEM LAMA) ================= -->
 <div id="sertifikatSection" class="card" style="display:none;">
-<h2>Ajukan Sertifikat Pusaka</h2>
 
-<input type="text" id="namaPusaka" placeholder="Nama Pusaka">
-<input type="text" id="jenisPusaka" placeholder="Jenis">
-<input type="text" id="pemilikPusaka" placeholder="Nama Pemilik">
-<button class="btn btn-gold" onclick="ajukanSertifikat()">Ajukan</button>
+<h2>Pengajuan Sertifikat Pusaka</h2>
+
+<div style="margin-bottom:20px; line-height:1.8;">
+<b>Syarat Pengajuan Sertifikat Pusaka:</b><br>
+1. Foto Pusaka Jelas dari 2 sisi yang berbeda<br>
+2. Nama Pusaka, Jenis Pusaka, dan Nama Pemilik<br>
+3. Panjang bilah, Lebar Pangkal, Tebal Pangkal, dan Berat Bilah<br>
+4. Menuliskan informasi yang diketahui (Opsional)<br><br>
+Segala informasi akan dianalisis terlebih dahulu sebelum diterbitkan Sertifikat Pusaka.
+</div>
+
+<div style="text-align:center; margin-bottom:25px;">
+<button class="btn btn-gold" onclick="bukaPopupSertifikat()">Pengajuan Sertifikat</button>
+</div>
 
 <hr style="margin:25px 0; border:1px solid #333;">
 
 <h2>List Sertifikat</h2>
+<table>
+<thead>
+<tr>
+<th>No Registrasi</th>
+<th>Nama Pusaka</th>
+<th>Jenis</th>
+<th>Pemilik</th>
+<th>Cetak Sertifikat</th>
+</tr>
+</thead>
+<tbody id="listSertifikat">
+<tr><td colspan="5" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+
+</div>
 <table>
 <thead>
 <tr>
@@ -366,6 +391,31 @@ function submitGantiPassword(){
     .catch(e=>alert("Error: "+e.message));
 }
 
+/* ================= POPUP SERTIFIKAT ================= */
+function bukaPopupSertifikat(){
+    document.getElementById("popupSertifikat").style.display="flex";
+}
+
+function tutupPopupSertifikat(){
+    document.getElementById("popupSertifikat").style.display="none";
+}
+
+/* ================= SUBMIT PENGAJUAN ================= */
+function submitPengajuan(){
+
+    const namaPusaka = document.getElementById("namaPusaka").value;
+    const jenisPusaka = document.getElementById("jenisPusaka").value;
+    const namaPemilik = document.getElementById("namaPemilik").value;
+
+    if(!namaPusaka || !jenisPusaka || !namaPemilik){
+        alert("Nama Pusaka, Jenis, dan Nama Pemilik wajib diisi!");
+        return;
+    }
+
+    alert("Pengajuan berhasil dikirim.\nData akan dianalisis terlebih dahulu.");
+    tutupPopupSertifikat();
+}
+
 /* INIT */
 fetchData();
 setInterval(fetchData,30000);
@@ -383,6 +433,62 @@ setInterval(fetchData,30000);
 <button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
 <button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
 </div>
+</div>
+</div>
+
+<!-- ================= POPUP PENGAJUAN SERTIFIKAT ================= -->
+<div id="popupSertifikat" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.8);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:#111;
+padding:30px;
+border-radius:12px;
+width:400px;
+max-height:90vh;
+overflow-y:auto;
+box-shadow:0 0 20px gold;
+color:white;
+">
+
+<h3 style="color:gold; text-align:center;">Form Pengajuan Sertifikat</h3>
+
+<input type="text" id="namaPusaka" placeholder="Nama Pusaka" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="jenisPusaka" placeholder="Jenis Pusaka" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="namaPemilik" placeholder="Nama Pemilik" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="panjangBilah" placeholder="Panjang Bilah" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="lebarPangkal" placeholder="Lebar Pangkal" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="tebalPangkal" placeholder="Tebal Pangkal" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="beratBilah" placeholder="Berat Bilah" style="width:100%; padding:8px; margin:6px 0;">
+
+<textarea id="catatanPusaka" placeholder="Catatan / Informasi Tambahan (Opsional)"
+style="width:100%; padding:8px; margin:6px 0;"></textarea>
+
+<div style="margin:8px 0;">
+<label>Unggah Foto 1</label>
+<input type="file" id="foto1" style="width:100%; opacity:0.7;">
+</div>
+
+<div style="margin:8px 0;">
+<label>Unggah Foto 2</label>
+<input type="file" id="foto2" style="width:100%; opacity:0.7;">
+</div>
+
+<div style="text-align:center; margin-top:15px;">
+<button class="btn btn-red" onclick="tutupPopupSertifikat()">Batal</button>
+<button class="btn btn-gold" onclick="submitPengajuan()">Ajukan</button>
+</div>
+
 </div>
 </div>
 
