@@ -179,7 +179,10 @@ Segala informasi akan dianalisis terlebih dahulu sebelum diterbitkan Sertifikat 
 <script>
 
 /* ================= CONFIG ================= */
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+const WEBAPP_ANGGOTA = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+const WEBAPP_SERTIFIKAT = "https://script.google.com/macros/s/AKfycbzmuteeEVHPLT7UYAq-o1Shbu2jCACL40r9cFGLQRsML9HqO4CMZfqKIUfZ3sTpit4lAw/exec";
+
 
 /* ================= LOGIN PROTECTION ================= */
 (function(){
@@ -282,15 +285,15 @@ function renderAnggota(data){
 async function fetchData(){
     try{
         const now = Date.now();
-        const res = await fetch(WEB_APP_URL + "?action=getanggota&t="+now);
+        const res = await fetch(WEBAPP_ANGGOTA + "?action=getanggota&t="+now);
         const data = await res.json();
         renderAnggota(data);
 
-        const res2 = await fetch(WEB_APP_URL + "?action=getpengurus&t="+now);
+        const res2 = await fetch(WEBAPP_ANGGOTA + "?action=getpengurus&t="+now);
         const data2 = await res2.json();
         renderPengurus(data2);
 
-        const res3 = await fetch(WEB_APP_URL + "?action=getsertifikat&t="+now);
+        const res3 = await fetch(WEBAPP_SERTIFIKAT + "?action=getsertifikat&t="+now);
         const data3 = await res3.json();
         renderSertifikat(data3);
 
@@ -363,7 +366,7 @@ function submitGantiPassword(){
         return;
     }
 
-    fetch(WEB_APP_URL,{
+    fetch(WEBAPP_ANGGOTA,{
         method:"POST",
         headers:{"Content-Type":"application/x-www-form-urlencoded"},
         body:`action=gantipassword&username=${encodeURIComponent(username)}&sandiLama=${encodeURIComponent(sandiLama)}&sandiBaru=${encodeURIComponent(sandiBaru)}`
@@ -413,7 +416,7 @@ async function submitPengajuan(){
     const base64Foto2 = await toBase64(file2);
 
     try{
-        const response = await fetch(WEB_APP_URL,{
+        const response = await fetch(WEBAPP_SERTIFIKAT,{
             method:"POST",
             headers:{"Content-Type":"application/x-www-form-urlencoded"},
             body: new URLSearchParams({
