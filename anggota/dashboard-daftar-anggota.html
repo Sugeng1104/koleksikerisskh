@@ -11,6 +11,45 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
+
+/* ================= STATISTIK DASHBOARD ================= */
+.statistik-container{
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.stat-card{
+    flex:1;
+    min-width:220px;
+    background:linear-gradient(145deg,#1e1e1e,#111);
+    border:1px solid #c9a227;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 0 15px rgba(201,162,39,0.3);
+    transition:0.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 0 25px rgba(201,162,39,0.6);
+}
+
+.stat-card h3{
+    color:#c9a227;
+    font-size:16px;
+    margin-bottom:10px;
+    letter-spacing:1px;
+}
+
+.stat-card p{
+    font-size:32px;
+    font-weight:bold;
+    color:white;
+}
+
 body{
     margin:0;
     font-family:Georgia,serif;
@@ -157,6 +196,27 @@ Segala informasi akan dianalisis terlebih dahulu sebelum diterbitkan Sertifikat 
 </div>
 
 <hr style="margin:25px 0; border:1px solid #333;">
+
+<!-- ================= STATISTIK DASHBOARD ================= -->
+<div class="statistik-container">
+
+  <div class="stat-card">
+    <h3>Total Sertifikat</h3>
+    <p id="totalSertifikat">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Terbit Hari Ini</h3>
+    <p id="hariIni">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Terbit Bulan Ini</h3>
+    <p id="bulanIni">0</p>
+  </div>
+
+</div>
+
 
 <h2>List Sertifikat</h2>
 <table>
@@ -305,21 +365,6 @@ async function fetchData(){
         const data2 = await res2.json();
         renderPengurus(data2);
         
-/* ================= LOAD STATISTIK DASHBOARD ================= */
-async function loadStatistik(){
-    try{
-        const res = await fetch(WEBAPP_SERTIFIKAT + "?action=statistik");
-        const data = await res.json();
-
-        console.log("Statistik:", data);
-
-        // Kalau nanti mau ditampilkan di HTML,
-        // tinggal buat element dan isi di sini
-
-    }catch(err){
-        console.log("Gagal load statistik:", err);
-    }
-}
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
 let endpoint = "getsertifikat";
@@ -338,6 +383,22 @@ renderSertifikat(data3);
 
 
     }catch(e){ console.log("Fetch gagal:", e); }
+}
+
+/* ================= LOAD STATISTIK DASHBOARD ================= */
+async function loadStatistik(){
+    try{
+        const res = await fetch(WEBAPP_SERTIFIKAT + "?action=statistik");
+        const data = await res.json();
+
+        console.log("Statistik:", data);
+
+        // Kalau nanti mau ditampilkan di HTML,
+        // tinggal buat element dan isi di sini
+
+    }catch(err){
+        console.log("Gagal load statistik:", err);
+    }
 }
 
 /* ================= PREMIUM CARD DESIGN ================= */
@@ -738,5 +799,6 @@ color:white;
 
 </body>
 </html>
+
 
 
