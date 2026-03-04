@@ -232,7 +232,7 @@ Segala informasi akan dianalisis terlebih dahulu sebelum diterbitkan Sertifikat 
 </thead>
 
 <tbody id="listSertifikat">
-<tr><td colspan="5" class="loading">Memuat data...</td></tr>
+<tr><td colspan="6" class="loading">Memuat data...</td></tr>
 </tbody>
 </table>
 </div>
@@ -367,19 +367,18 @@ async function fetchData(){
         
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
-let endpoint = "getsertifikat";
 
 // 🔥 ADMIN & SUPER ADMIN LIHAT SHEET PENGAJUAN
-if(roleLogin === "Super Admin" || roleLogin === "Admin"){
-    endpoint = "getpengajuan";
-}
+const resSertifikat = await fetch(
+WEBAPP_SERTIFIKAT + "?action=getsertifikat&t=" + now,
+{ method:"GET", mode:"cors" }
+);
 
-const res3 = await fetch(WEBAPP_SERTIFIKAT + "?action="+endpoint+"&t="+now,{
-    method:"GET",
-    mode:"cors"
-});
-const data3 = await res3.json();
-renderSertifikat(data3);
+const dataSertifikat = await resSertifikat.json();
+
+console.log("Data Sertifikat:", dataSertifikat); // DEBUG
+
+renderSertifikat(dataSertifikat);
 
 
     }catch(e){ console.log("Fetch gagal:", e); }
