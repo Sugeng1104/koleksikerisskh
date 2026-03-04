@@ -614,55 +614,65 @@ function toBase64(file){
 function renderSertifikat(data){
     const tbody = document.getElementById("listSertifikat");
 
-    if(!Array.isArray(data) || data.length === 0){
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6" style="text-align:center;">
-            Belum ada sertifikat
-            </td>
-        </tr>`;
+    if(!data || data.length===0){
+        tbody.innerHTML='<tr><td colspan="5">Belum ada sertifikat</td></tr>';
         return;
     }
 
-    let html = "";
+    let html="";
 
     data.forEach((row,index)=>{
+        const status = 
+            row["Status"] || 
+            row["STATUS"] || 
+            row["status"] || 
+            "Menunggu";
 
-        const noReg = row["No Registrasi"] || "-";
-        const nama = row["Nama Pusaka"] || "-";
-        const jenis = row["Jenis"] || "-";
-        const pemilik = row["Pemilik"] || "-";
-        const status = row["Status"] || "Menunggu";
-        const linkPDF = row["Link PDF"] || "#";
+let statusBadge = "";
 
-        let statusBadge = status;
+if(roleLogin === "Super Admin" || roleLogin === "Admin"){
 
-        if(roleLogin === "Super Admin" || roleLogin === "Admin"){
-            if(status === "Menunggu"){
-                statusBadge = `
-                <button class="btn btn-gold"
-                onclick='openDetail(${JSON.stringify(row)}, ${index})'>
-                Periksa
-                </button>`;
-            }
-        }
+    if(status === "Menunggu"){
+        statusBadge = `
+        <button class="btn btn-gold"
+        onclick='openDetail(${JSON.stringify(row)}, ${index})'>
+        Periksa
+        </button>`;
+    }
 
-        html += `
-        <tr>
-            <td>${noReg}</td>
-            <td>${nama}</td>
-            <td>${jenis}</td>
-            <td>${pemilik}</td>
-            <td>${statusBadge}</td>
-            <td>
-                <a href="${linkPDF}" target="_blank" class="btn btn-gold">
-                Cetak
-                </a>
-            </td>
-        </tr>`;
-    });
+    else if(status === "Disetujui"){
+        statusBadge = `
+        <button class="btn btn-blue"
+        onclick="openKonfirmasi('${row["No Registrasi"]}')">
+        Disetujui
+        </button>`;
+    }
 
-    tbody.innerHTML = html;
+    else if(status === "Ditolak"){
+        statusBadge = `<span class="status-nonaktif">Ditolak</span>`;
+    }
+
+}else{
+    statusBadge = status;
+}
+
+html+=`
+<tr>
+   <td>${row["No Registrasi"] || row["No Registrasi "] || row["No. Registrasi"] ||     "-"}</td>
+   <td>${row["Nama Pusaka"]||"-"}</td>
+   <td>${row["Jenis"]||"-"}</td>
+   <td>${row["Pemilik"]||"-"}</td>
+   <td>${statusBadge}</td> <!-- TAMBAHKAN DI SINI -->
+   <td>
+      <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
+      Cetak
+      </a>
+   </td>
+</tr>`;
+
+   });
+
+    tbody.innerHTML=html;
 }
 
 let currentRowIndex = 0;
