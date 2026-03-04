@@ -648,7 +648,13 @@ if(roleLogin === "Super Admin" || roleLogin === "Admin"){
 
 html+=`
 <tr>
-   <td>${row["No Registrasi"] || row["No Registrasi "] || row["No. Registrasi"] ||     "-"}</td>
+   <td>${
+    row["No Registrasi"] ||
+    row["No Registrasi "] ||
+    row["No. Registrasi"] ||
+    (row["Status"] === "Menunggu" ? "Belum Terbit" : "-")
+}</td>
+   "-"}</td>
    <td>${row["Nama Pusaka"]||"-"}</td>
    <td>${row["Jenis"]||"-"}</td>
    <td>${row["Pemilik"]||"-"}</td>
