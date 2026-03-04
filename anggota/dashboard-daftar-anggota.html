@@ -352,27 +352,19 @@ function renderAnggota(data){
 async function fetchData(){
     try{
         const now = Date.now();
-
-        // 1️⃣ Ambil Anggota
-        const resAnggota = await fetch(WEBAPP_ANGGOTA + "?action=getanggota&t="+now);
-        const dataAnggota = await resAnggota.json();
-        renderAnggota(dataAnggota);
-
-        // 2️⃣ Ambil Pengurus
-        const resPengurus = await fetch(WEBAPP_ANGGOTA + "?action=getpengurus&t="+now);
-        const dataPengurus = await resPengurus.json();
-        renderPengurus(dataPengurus);
-
-        // 3️⃣ Ambil Sertifikat (SATU KALI SAJA)
-        const resSertifikat = await fetch(WEBAPP_SERTIFIKAT + "?action=getsertifikat&t="+now);
-        const dataSertifikat = await resSertifikat.json();
-        renderSertifikat(dataSertifikat);
-
-    }catch(e){
-        console.log("Fetch gagal:", e);
-    }
-}
-
+        const res = await fetch(WEBAPP_ANGGOTA + "?action=getanggota&t="+now,{
+            method:"GET",
+            mode:"cors"
+        });
+        const data = await res.json();
+        renderAnggota(data);
+        const res2 = await fetch(WEBAPP_ANGGOTA + "?action=getpengurus&t="+now,{
+            method:"GET",
+            mode:"cors"
+        });
+        const data2 = await res2.json();
+        renderPengurus(data2);
+        
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
 
@@ -395,32 +387,18 @@ renderSertifikat(dataSertifikat);
 /* ================= LOAD STATISTIK DASHBOARD ================= */
 async function loadStatistik(){
     try{
-        const now = Date.now();
-
-        const res = await fetch(
-            WEBAPP_SERTIFIKAT + "?action=statistik&t=" + now,
-            { method:"GET", mode:"cors" }
-        );
-
+        const res = await fetch(WEBAPP_SERTIFIKAT + "?action=statistik");
         const data = await res.json();
 
         console.log("Statistik:", data);
 
-        // ⬇️ INI YANG SEBELUMNYA BELUM ADA
-        document.getElementById("totalSertifikat").innerText =
-            data.total || 0;
-
-        document.getElementById("hariIni").innerText =
-            data.hariIni || 0;
-
-        document.getElementById("bulanIni").innerText =
-            data.bulanIni || 0;
+        // Kalau nanti mau ditampilkan di HTML,
+        // tinggal buat element dan isi di sini
 
     }catch(err){
         console.log("Gagal load statistik:", err);
     }
 }
-
 
 /* ================= PREMIUM CARD DESIGN ================= */
 function generateCard(nama,gelar,nomor,foto){
