@@ -627,18 +627,18 @@ let currentRegID = "";
 
 function openDetail(row){
 
-    currentRegID = row["No Registrasi"];
+    // Karena masih pengajuan, belum punya nomor registrasi
+    currentRegID = row["No Registrasi"] || "";
 
     let html = `
-    <p><b>No Registrasi:</b> ${row["No Registrasi"]}</p>
-    <p><b>Nama Pusaka:</b> ${row["Nama Pusaka"]}</p>
-    <p><b>Jenis:</b> ${row["Jenis"]}</p>
-    <p><b>Pemilik:</b> ${row["Pemilik"]}</p>
-    <p><b>Panjang:</b> ${row["Panjang"]||"-"}</p>
-    <p><b>Lebar:</b> ${row["Lebar"]||"-"}</p>
-    <p><b>Tebal:</b> ${row["Tebal"]||"-"}</p>
-    <p><b>Berat:</b> ${row["Berat"]||"-"}</p>
-    <p><b>Catatan:</b> ${row["Catatan"]||"-"}</p>
+    <p><b>Nama Pusaka:</b> ${row["Nama Pusaka"] || "-"}</p>
+    <p><b>Jenis:</b> ${row["Jenis"] || "-"}</p>
+    <p><b>Pemilik:</b> ${row["Pemilik"] || "-"}</p>
+    <p><b>Panjang:</b> ${row["Panjang"] || "-"}</p>
+    <p><b>Lebar:</b> ${row["Lebar"] || "-"}</p>
+    <p><b>Tebal:</b> ${row["Tebal"] || "-"}</p>
+    <p><b>Berat:</b> ${row["Berat"] || "-"}</p>
+    <p><b>Catatan:</b> ${row["Catatan"] || "-"}</p>
     <p>
         <b>Foto:</b> 
         <a href="${row["Link Folder"]||"#"}" target="_blank" style="color:gold;">
