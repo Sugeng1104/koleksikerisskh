@@ -394,9 +394,20 @@ WEBAPP_SERTIFIKAT + "?action=getsertifikat&t=" + now,
 
 const dataSertifikat = await resSertifikat.json();
 
-console.log("Data Sertifikat:", dataSertifikat); // DEBUG
 
-renderSertifikat(dataSertifikat);
+// ================= TAMBAHAN: AMBIL DATA PENGAJUAN =================
+const resPengajuan = await fetch(
+WEBAPP_SERTIFIKAT + "?action=getpengajuan&t=" + now,
+{ method:"GET", mode:"cors" }
+);
+
+const dataPengajuan = await resPengajuan.json();
+
+
+// 🔥 GABUNGKAN
+const semuaData = [...dataSertifikat, ...dataPengajuan];
+
+renderSertifikat(semuaData);
 
 
     }catch(e){ console.log("Fetch gagal:", e); }
@@ -863,3 +874,5 @@ color:white;
 
 </body>
 </html>
+
+
