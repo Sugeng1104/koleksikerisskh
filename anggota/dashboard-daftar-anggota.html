@@ -301,6 +301,21 @@ function renderPengurus(data){
     });
 }
 
+        /* ================= FETCH SERTIFIKAT ================= */
+        const namaLogin = localStorage.getItem("nama"); // atau sesuai sistem login kamu
+
+        const res3 = await fetch(
+            WEBAPP_ANGGOTA + "?action=getsertifikat&pemilik=" + 
+            encodeURIComponent(namaLogin) + "&t=" + now,
+            {
+                method:"GET",
+                mode:"cors"
+            }
+        );
+
+        const data3 = await res3.json();
+        renderSertifikat(data3);   // pastikan function ini ada
+
 /* ================= RENDER ANGGOTA ================= */
 function renderAnggota(data){
     let html="";
