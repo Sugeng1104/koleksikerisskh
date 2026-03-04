@@ -1,3 +1,4 @@
+cek dan tandai yang jelas bagian diganti atau ditambah.
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -569,7 +570,7 @@ function renderSertifikat(data){
 
     let html="";
 
-    data.forEach((row,index)=>{
+    data.forEach(row=>{
         const status = 
             row["Status"] || 
             row["STATUS"] || 
@@ -583,7 +584,7 @@ if(roleLogin === "Super Admin" || roleLogin === "Admin"){
     if(status === "Menunggu"){
         statusBadge = `
         <button class="btn btn-gold"
-        onclick='openDetail(${JSON.stringify(row)}, ${index + 2})'>
+        onclick='openDetail(${JSON.stringify(row)})'>
         Periksa
         </button>`;
     }
@@ -624,14 +625,8 @@ html+=`
 }
 
 let currentRegID = "";
-let currentRowIndex = null; // ✅ TAMBAHAN BARU
 
-
-function openDetail(row, rowIndex){
-    currentRowIndex = rowIndex; // ✅ TAMBAHAN WAJIB
-    currentRegID = row["No Registrasi"] || "";
-
-    let html = `
+function openDetail(row){
 
     // Karena masih pengajuan, belum punya nomor registrasi
     currentRegID = row["No Registrasi"] || "";
@@ -666,7 +661,7 @@ function updateStatus(statusBaru){
     fetch(WEBAPP_SERTIFIKAT,{
         method:"POST",
         headers:{"Content-Type":"application/x-www-form-urlencoded"},
-        body:`action=updatestatus&row=${currentRowIndex}&status=${statusBaru}`
+        body:`action=updatestatus&noReg=${currentRegID}&status=${statusBaru}`
     })
     .then(res=>res.json())
     .then(res=>{
@@ -805,6 +800,5 @@ color:white;
 
 </body>
 </html>
-
 
 
