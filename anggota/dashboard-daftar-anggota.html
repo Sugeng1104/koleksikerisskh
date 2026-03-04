@@ -294,7 +294,7 @@ function renderPengurus(data){
 
     listEl.innerHTML="";
 
-    data.forEach(row=>{
+    data.forEach((row,index)=>{
         const jabatan = row.jabatan || row.Jabatan || row["Jabatan"] || "-";
         const nama = row.nama || row.Nama || row["Nama Lengkap"] || row["nama"] || "-";
         listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
@@ -569,7 +569,7 @@ function renderSertifikat(data){
 
     let html="";
 
-    data.forEach(row=>{
+    data.forEach((row,index)=>{
         const status = 
             row["Status"] || 
             row["STATUS"] || 
@@ -583,7 +583,7 @@ if(roleLogin === "Super Admin" || roleLogin === "Admin"){
     if(status === "Menunggu"){
         statusBadge = `
         <button class="btn btn-gold"
-        onclick='openDetail(${JSON.stringify(row)})'>
+        onclick='openDetail(${JSON.stringify(row)}, ${index + 2})'>
         Periksa
         </button>`;
     }
@@ -623,11 +623,19 @@ html+=`
     tbody.innerHTML=html;
 }
 
+let currentRowIndex = 0;
 let currentRegID = "";
 
-function openDetail(row){
+function openDetail(row, rowIndex){
 
-    // Karena masih pengajuan, belum punya nomor registrasi
+    // Simpan row index untuk dikirim ke Apps Script
+    currentRowIndex = rowIndex + 2; 
+    // +2 karena:
+    // index dimulai dari 0
+    // baris 1 adalah header sheet
+
+    // Karena ini masih dari sheet Pengajuan,
+    // belum punya nomor registrasi
     currentRegID = row["No Registrasi"] || "";
 
     let html = `
@@ -655,12 +663,36 @@ function closePopup(){
     document.getElementById("popupDetail").style.display="none";
 }
 
+function approvePengajuan(){
+
+    if(!confirm("Setujui pengajuan ini dan terbitkan sertifikat?")){
+        return;
+    }
+
+    fetch(WEBAPP_SERTIFIKAT,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=setujui&row=${currentRowIndex}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.status === "approved"){
+            alert("Sertifikat berhasil diterbitkan!\nNomor: " + res.nomor);
+            closePopup();
+            fetchData();
+        } else {
+            alert("Gagal: " + res.message);
+        }
+    });
+}
+
+
 function updateStatus(statusBaru){
 
     fetch(WEBAPP_SERTIFIKAT,{
         method:"POST",
         headers:{"Content-Type":"application/x-www-form-urlencoded"},
-        body:`action=updatestatus&noReg=${currentRegID}&status=${statusBaru}`
+        body:`action=updatestatus&row=${currentRowIndex}&status=${statusBaru}`
     })
     .then(res=>res.json())
     .then(res=>{
@@ -790,7 +822,7 @@ color:white;
 
 <div style="text-align:center; margin-top:20px;">
 <button class="btn btn-gold" onclick="closePopup()">Batal</button>
-<button class="btn btn-blue" onclick="updateStatus('Disetujui')">Setujui</button>
+<button class="btn btn-blue" onclick="approvePengajuan()">Setujui</button>
 <button class="btn btn-red" onclick="updateStatus('Ditolak')">Tolak</button>
 </div>
 
@@ -799,5 +831,4 @@ color:white;
 
 </body>
 </html>
-
 
