@@ -370,19 +370,40 @@ function renderAnggota(data){
 async function fetchData(){
     try{
         const now = Date.now();
+
+        // ================= ANGGOTA =================
         const res = await fetch(WEBAPP_ANGGOTA + "?action=getanggota&t="+now,{
             method:"GET",
             mode:"cors"
         });
         const data = await res.json();
         renderAnggota(data);
+
+        // ================= PENGURUS =================
         const res2 = await fetch(WEBAPP_ANGGOTA + "?action=getpengurus&t="+now,{
             method:"GET",
             mode:"cors"
         });
         const data2 = await res2.json();
         renderPengurus(data2);
-        
+
+        // ================= SERTIFIKAT =================
+        const resSertifikat = await fetch(
+            WEBAPP_SERTIFIKAT + "?action=getsertifikat&t=" + now,
+            { method:"GET", mode:"cors" }
+        );
+
+        const dataSertifikat = await resSertifikat.json();
+
+        console.log("Data Sertifikat:", dataSertifikat);
+
+        renderSertifikat(dataSertifikat);
+
+    }catch(e){
+        console.log("Fetch gagal:", e);
+    }
+}
+
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
 
@@ -593,65 +614,55 @@ function toBase64(file){
 function renderSertifikat(data){
     const tbody = document.getElementById("listSertifikat");
 
-    if(!data || data.length===0){
-        tbody.innerHTML='<tr><td colspan="5">Belum ada sertifikat</td></tr>';
+    if(!Array.isArray(data) || data.length === 0){
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="6" style="text-align:center;">
+            Belum ada sertifikat
+            </td>
+        </tr>`;
         return;
     }
 
-    let html="";
+    let html = "";
 
     data.forEach((row,index)=>{
-        const status = 
-            row["Status"] || 
-            row["STATUS"] || 
-            row["status"] || 
-            "Menunggu";
 
-let statusBadge = "";
+        const noReg = row["No Registrasi"] || "-";
+        const nama = row["Nama Pusaka"] || "-";
+        const jenis = row["Jenis"] || "-";
+        const pemilik = row["Pemilik"] || "-";
+        const status = row["Status"] || "Menunggu";
+        const linkPDF = row["Link PDF"] || "#";
 
-if(roleLogin === "Super Admin" || roleLogin === "Admin"){
+        let statusBadge = status;
 
-    if(status === "Menunggu"){
-        statusBadge = `
-        <button class="btn btn-gold"
-        onclick='openDetail(${JSON.stringify(row)}, ${index})'>
-        Periksa
-        </button>`;
-    }
+        if(roleLogin === "Super Admin" || roleLogin === "Admin"){
+            if(status === "Menunggu"){
+                statusBadge = `
+                <button class="btn btn-gold"
+                onclick='openDetail(${JSON.stringify(row)}, ${index})'>
+                Periksa
+                </button>`;
+            }
+        }
 
-    else if(status === "Disetujui"){
-        statusBadge = `
-        <button class="btn btn-blue"
-        onclick="openKonfirmasi('${row["No Registrasi"]}')">
-        Disetujui
-        </button>`;
-    }
+        html += `
+        <tr>
+            <td>${noReg}</td>
+            <td>${nama}</td>
+            <td>${jenis}</td>
+            <td>${pemilik}</td>
+            <td>${statusBadge}</td>
+            <td>
+                <a href="${linkPDF}" target="_blank" class="btn btn-gold">
+                Cetak
+                </a>
+            </td>
+        </tr>`;
+    });
 
-    else if(status === "Ditolak"){
-        statusBadge = `<span class="status-nonaktif">Ditolak</span>`;
-    }
-
-}else{
-    statusBadge = status;
-}
-
-html+=`
-<tr>
-   <td>${row["No Registrasi"] || row["No Registrasi "] || row["No. Registrasi"] ||     "-"}</td>
-   <td>${row["Nama Pusaka"]||"-"}</td>
-   <td>${row["Jenis"]||"-"}</td>
-   <td>${row["Pemilik"]||"-"}</td>
-   <td>${statusBadge}</td> <!-- TAMBAHKAN DI SINI -->
-   <td>
-      <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
-      Cetak
-      </a>
-   </td>
-</tr>`;
-
-   });
-
-    tbody.innerHTML=html;
+    tbody.innerHTML = html;
 }
 
 let currentRowIndex = 0;
