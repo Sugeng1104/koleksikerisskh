@@ -304,6 +304,22 @@ async function fetchData(){
         });
         const data2 = await res2.json();
         renderPengurus(data2);
+        
+/* ================= LOAD STATISTIK DASHBOARD ================= */
+async function loadStatistik(){
+    try{
+        const res = await fetch(WEBAPP_SERTIFIKAT + "?action=statistik");
+        const data = await res.json();
+
+        console.log("Statistik:", data);
+
+        // Kalau nanti mau ditampilkan di HTML,
+        // tinggal buat element dan isi di sini
+
+    }catch(err){
+        console.log("Gagal load statistik:", err);
+    }
+}
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
 let endpoint = "getsertifikat";
@@ -601,10 +617,14 @@ function openKonfirmasi(noReg){
     }
 }
 
-
-/* INIT */
+    /* INIT */
 fetchData();
-setInterval(fetchData,30000);
+loadStatistik();
+
+setInterval(()=>{
+    fetchData();
+    loadStatistik();
+},30000);
 
 </script>
 
