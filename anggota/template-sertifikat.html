@@ -3,84 +3,105 @@
 <head>
 <style>
 body{
-  font-family: Georgia, serif;
-  background:#f6edd9;
-  padding:40px;
-  text-align:center;
+ font-family: Georgia, serif;
+ background:#f6edd9;
+ padding:40px;
+ text-align:center;
 }
+
 
 .frame{
-  border:10px double #b8860b;
-  padding:40px;
+ border:10px double #b8860b;
+ padding:40px;
 }
+
 
 .logo{
-  width:120px;
-  margin-bottom:15px;
+ width:120px;
+ margin-bottom:15px;
 }
+
 
 h1{
-  font-size:34px;
-  letter-spacing:3px;
-  margin-bottom:5px;
+ font-size:34px;
+ letter-spacing:3px;
+ margin-bottom:5px;
 }
+
 
 .sub{
-  font-size:14px;
-  margin-bottom:20px;
+ font-size:14px;
+ margin-bottom:20px;
 }
+
 
 .content{
-  display:flex;
-  margin-top:25px;
+ display:flex;
+ margin-top:25px;
 }
+
 
 .left{
-  width:40%;
+ width:40%;
 }
+
 
 .right{
-  width:60%;
-  text-align:left;
-  padding-left:20px;
+ width:60%;
+ text-align:left;
+ padding-left:20px;
 }
+
 
 table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:15px;
+ width:100%;
+ border-collapse:collapse;
+ margin-top:15px;
 }
+
 
 td{
-  border:1px solid #b8860b;
-  padding:6px;
+ border:1px solid #b8860b;
+ padding:6px;
 }
+
 
 .footer{
-  margin-top:30px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+ margin-top:30px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
 }
 
+
 .qr{
-  width:120px;
+ width:120px;
 }
 </style>
 </head>
 
+
 <body>
+
 
 <div class="frame">
 
-<img src="https://raw.githubusercontent.com/USERNAME/REPO/main/logo-skh.png" class="logo">
+
+<img src="https://drive.google.com/uc?export=view&id=1s0ZwQ3Bg3dP9B_0YywSkGyBFHDafm5ig"
+     class="logo">
+
 
 <h1>SERTIFIKAT PUSAKA</h1>
+
+
 <div class="sub">Komunitas Keris SKH</div>
+
 
 <p><b>Nomor Registrasi:</b> <?= nomor ?></p>
 
+
 <div class="content">
+
 
 <div class="left">
 <? if(foto1){ ?>
@@ -88,11 +109,13 @@ td{
 <? } ?>
 </div>
 
+
 <div class="right">
 <p><b>Nama Pusaka:</b> <?= nama ?></p>
 <p><b>Jenis:</b> <?= jenis ?></p>
 <p><b>Pemilik:</b> <?= pemilik ?></p>
 <p><b>Tanggal Terbit:</b> <?= tanggal ?></p>
+
 
 <table>
 <tr><td>Panjang Bilah</td><td><?= panjang ?></td></tr>
@@ -101,15 +124,19 @@ td{
 <tr><td>Berat Bilah</td><td><?= berat ?></td></tr>
 </table>
 
+
 <p style="margin-top:15px;"><i><?= deskripsi ?></i></p>
+
 
 </div>
 </div>
+
 
 <div class="footer">
 <div>
 <img src="<?= qrLink ?>" class="qr">
 </div>
+
 
 <div>
 Kurator Komunitas SKH<br>
@@ -117,7 +144,10 @@ Kurator Komunitas SKH<br>
 </div>
 </div>
 
+
 </div>
+
 
 </body>
 </html>
+
