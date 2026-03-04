@@ -692,7 +692,7 @@ function updateStatus(statusBaru){
     fetch(WEBAPP_SERTIFIKAT,{
         method:"POST",
         headers:{"Content-Type":"application/x-www-form-urlencoded"},
-        body:`action=updatestatus&row=${currentRowIndex}&status=${statusBaru}`
+        body:`action=updatestatus&noReg=${currentRegID}&status=${statusBaru}`
     })
     .then(res=>res.json())
     .then(res=>{
@@ -701,6 +701,7 @@ function updateStatus(statusBaru){
         fetchData();
     });
 }
+
 
 function openKonfirmasi(noReg){
 
@@ -831,3 +832,5 @@ color:white;
 
 </body>
 </html>
+
+
