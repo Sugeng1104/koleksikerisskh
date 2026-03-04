@@ -12,6 +12,19 @@
 
 <style>
 
+/* ================= HEADER LOGO ================= */
+.header-area{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.logo-skh{
+    width:130px;
+    margin-bottom:15px;
+    filter: drop-shadow(0 0 10px gold);
+}
+
+
 /* ================= STATISTIK DASHBOARD ================= */
 .statistik-container{
     display:flex;
@@ -136,6 +149,7 @@ th{ background:#222; color:gold; }
     box-shadow:0 0 10px rgba(212,175,55,0.3);
 }
 #strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
+
 </style>
 </head>
 <body>
@@ -148,7 +162,11 @@ th{ background:#222; color:gold; }
     <button class="btn btn-red" onclick="logout()">Keluar</button>
 </div>
 
-<h1>Komunitas Keris SKH</h1>
+<div class="header-area">
+    <img src="logo-skh.png" alt="Logo SKH" class="logo-skh">
+    <h1>Komunitas Keris SKH</h1>
+</div>
+
 
 <!-- Struktur Pengurus -->
 <div id="strukturPengurus" class="card">
