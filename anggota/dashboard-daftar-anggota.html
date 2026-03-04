@@ -405,10 +405,16 @@ const dataPengajuan = await resPengajuan.json();
 
 
 // 🔥 GABUNGKAN
-const semuaData = [...dataSertifikat, ...dataPengajuan];
+// Ambil hanya pengajuan yang masih Menunggu
+const pengajuanMenunggu = dataPengajuan.filter(row => {
+    const status = row["Status"] || row["status"] || "Menunggu";
+    return status === "Menunggu";
+});
+
+// Gabungkan
+const semuaData = [...dataSertifikat, ...pengajuanMenunggu];
 
 renderSertifikat(semuaData);
-
 
     }catch(e){ console.log("Fetch gagal:", e); }
 }
