@@ -319,6 +319,19 @@ function renderPengurus(data){
     });
 }
 
+/* ================= FIX GOOGLE DRIVE LINK ================= */
+function fixDriveLink(url){
+
+    if(!url) return "";
+
+    if(url.includes("drive.google.com/file/d/")){
+        const id = url.split("/d/")[1].split("/")[0];
+        return "https://drive.google.com/uc?export=view&id="+id;
+    }
+
+    return url;
+}
+
 /* ================= RENDER ANGGOTA ================= */
 function renderAnggota(data){
     let html="";
@@ -334,7 +347,9 @@ function renderAnggota(data){
         const safeNama = nama.replace(/'/g,"\\'");
         const safeGelar = gelar.replace(/'/g,"\\'");
         const safeNomor = nomor.replace(/'/g,"\\'");
-        const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
+
+        const fotoUrl = fixDriveLink(row["Foto"] || "");
+        const safeFoto = fotoUrl.replace(/'/g,"\\'");
 
         let aksiButton = "";
 
@@ -354,7 +369,12 @@ function renderAnggota(data){
 
         html+=`
         <tr>
-            <td><img src="${safeFoto}" class="foto-kecil"></td>
+           <td>
+           <img 
+           src="${safeFoto}" 
+           class="foto-kecil"
+           onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png';">
+           </td>
             <td>${nama}</td>
             <td>${nomor}</td>
             <td>${nohp}</td>
@@ -885,5 +905,4 @@ color:white;
 
 </body>
 </html>
-
 
