@@ -262,6 +262,23 @@ const WEBAPP_ANGGOTA = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNT
 
 const WEBAPP_SERTIFIKAT = "https://script.google.com/macros/s/AKfycbxKuOuMN4iJ0FlRcPeOVi2VecssvU0Jvypp-2xyT_L9OseJ4PzndaSjzWJSi0eoMlZB/exec";
 
+/* ================= NORMALISASI LINK GOOGLE DRIVE ================= */
+function convertDriveLink(url){
+
+    if(!url) return "";
+
+    if(url.includes("drive.google.com")){
+
+        const idMatch = url.match(/[-\w]{25,}/);
+
+        if(idMatch){
+            return "https://drive.google.com/uc?export=view&id=" + idMatch[0];
+        }
+
+    }
+
+    return url;
+}
 
 /* ================= LOGIN PROTECTION ================= */
 (function(){
@@ -402,6 +419,32 @@ async function fetchData(){
         });
         const data2 = await res2.json();
         renderPengurus(data2);
+
+async function kirimData(formData){
+
+const url="PASTE_URL_WEB_APP_DISINI";
+
+try{
+
+const response = await fetch(url,{
+method:"POST",
+body:formData
+});
+
+const hasil = await response.text();
+
+console.log(hasil);
+
+alert("Data berhasil disimpan");
+
+}catch(err){
+
+console.error(err);
+alert("Koneksi ke server gagal");
+
+}
+
+}
         
 
 /* ================= SERTIFIKAT / PENGAJUAN ================= */
