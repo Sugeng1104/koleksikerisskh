@@ -5,137 +5,168 @@
 
 <style>
 
-body{
- font-family:"Times New Roman",serif;
- background:#d8ccb0;
- padding:40px;
- text-align:center;
+/* SETTING CETAK */
+
+@page{
+ size:A4;
+ margin:1cm;
 }
 
-/* FRAME UTAMA */
+body{
+ margin:0;
+ font-family:"Times New Roman",serif;
+ background:#d8ccb0;
+}
 
-.frame{
+/* HALAMAN A4 */
+
+.page{
+
+ width:19cm;
+ height:27.7cm;
+
+ margin:auto;
+
  background:#f6f0dc;
- border:16px double #8b6a1a;
- padding:70px;
+
+ border:14px double #8b6a1a;
+
+ padding:1.2cm;
+
+ box-sizing:border-box;
+
  position:relative;
- box-shadow:0 0 40px rgba(0,0,0,0.35);
+
 }
 
 /* BORDER DALAM */
 
-.frame:before{
+.page:before{
  content:"";
  position:absolute;
- top:18px;
- left:18px;
- right:18px;
- bottom:18px;
+ top:12px;
+ left:12px;
+ right:12px;
+ bottom:12px;
  border:3px solid #caa64b;
 }
 
-/* WATERMARK KERIS */
+/* WATERMARK */
 
-.frame:after{
+.page:after{
+
  content:"";
+
  position:absolute;
+
  top:0;
  left:0;
  right:0;
  bottom:0;
 
- background-image:url('https://upload.wikimedia.org/wikipedia/commons/6/6a/Keris_Indonesia.svg');
+ background-image:url("https://upload.wikimedia.org/wikipedia/commons/6/6a/Keris_Indonesia.svg");
+
  background-repeat:no-repeat;
+
  background-position:center;
+
  background-size:420px;
 
  opacity:0.045;
+
 }
 
 /* HEADER */
 
-.logo{
- width:120px;
- margin-bottom:10px;
+.header{
+ text-align:center;
 }
 
-h1{
- font-size:44px;
- letter-spacing:6px;
- color:#6b4c06;
+.logo{
+ width:110px;
  margin-bottom:8px;
+}
+
+.title{
+ font-size:40px;
+ letter-spacing:6px;
+ color:#6a4c06;
 }
 
 .sub{
  font-size:16px;
- color:#5a4b22;
+ margin-top:4px;
 }
 
 .ornamen{
- margin:10px 0 20px 0;
+ margin-top:6px;
  color:#9b7a24;
  letter-spacing:3px;
- font-size:18px;
 }
 
 /* NOMOR */
 
 .nomor{
- margin-top:10px;
- font-size:15px;
+ margin-top:8px;
+ font-size:14px;
 }
 
-/* GARIS ORNAMEN */
+/* GARIS */
 
 .garis{
- margin:30px auto;
- width:75%;
+ margin:20px auto;
  height:2px;
+ width:70%;
  background:linear-gradient(to right,transparent,#b7963a,transparent);
 }
 
-/* CONTENT */
+/* GRID CONTENT */
 
 .content{
- display:flex;
- margin-top:35px;
+
+ display:grid;
+
+ grid-template-columns: 40% 60%;
+
+ gap:25px;
+
+ margin-top:10px;
+
 }
 
 /* FOTO */
 
-.left{
- width:40%;
-}
+.foto-frame{
 
-.framefoto{
  border:10px solid #b7953a;
- padding:10px;
+
+ padding:8px;
+
  background:white;
- box-shadow:0 0 15px rgba(0,0,0,0.25);
+
+ box-shadow:0 0 10px rgba(0,0,0,0.25);
+
 }
 
-.framefoto img{
+.foto-frame img{
  width:100%;
 }
 
 /* DATA */
 
-.right{
- width:60%;
- text-align:left;
- padding-left:30px;
+.data{
  font-size:15px;
 }
 
 table{
  width:100%;
  border-collapse:collapse;
- margin-top:15px;
+ margin-top:10px;
 }
 
 td{
  border:1px solid #b7953a;
- padding:7px;
+ padding:6px;
 }
 
 td:first-child{
@@ -147,7 +178,7 @@ td:first-child{
 /* DESKRIPSI */
 
 .deskripsi{
- margin-top:18px;
+ margin-top:15px;
  font-style:italic;
  line-height:1.6;
 }
@@ -155,21 +186,32 @@ td:first-child{
 /* FOOTER */
 
 .footer{
- margin-top:45px;
+
+ position:absolute;
+
+ bottom:1.5cm;
+
+ left:1.2cm;
+
+ right:1.2cm;
+
  display:flex;
+
  justify-content:space-between;
+
  align-items:flex-end;
+
 }
 
 /* QR */
 
 .qr{
- width:110px;
+ width:105px;
 }
 
 .verif{
  font-size:11px;
- margin-top:6px;
+ text-align:center;
 }
 
 /* TTD */
@@ -180,22 +222,18 @@ td:first-child{
 }
 
 .ttdline{
- margin-top:45px;
- border-top:1px solid #555;
+
+ margin-top:40px;
+
+ border-top:1px solid #444;
+
  width:200px;
+
  margin-left:auto;
  margin-right:auto;
+
  padding-top:5px;
-}
 
-/* STEMPEL */
-
-.stempel{
- position:absolute;
- right:120px;
- bottom:140px;
- width:120px;
- opacity:0.8;
 }
 
 </style>
@@ -203,11 +241,13 @@ td:first-child{
 
 <body>
 
-<div class="frame">
+<div class="page">
+
+<div class="header">
 
 <img src="https://drive.google.com/uc?export=view&id=1s0ZwQ3Bg3dP9B_0YywSkGyBFHDafm5ig" class="logo">
 
-<h1>SERTIFIKAT PUSAKA</h1>
+<div class="title">SERTIFIKAT PUSAKA</div>
 
 <div class="sub">Komunitas Keris SKH</div>
 
@@ -217,22 +257,23 @@ td:first-child{
 <b>Nomor Registrasi :</b> <?= nomor ?>
 </div>
 
+</div>
+
 <div class="garis"></div>
 
 <div class="content">
 
-<div class="left">
+<div>
 
 <? if(foto1){ ?>
 
-<div class="framefoto">
+<div class="foto-frame">
 <img src="<?= foto1 ?>">
 </div>
 
 <? } else { ?>
 
 <div style="
-width:100%;
 height:240px;
 border:3px dashed #b7953a;
 display:flex;
@@ -247,7 +288,7 @@ Foto Pusaka
 
 </div>
 
-<div class="right">
+<div class="data">
 
 <p><b>Nama Pusaka :</b> <?= nama ?></p>
 <p><b>Jenis :</b> <?= jenis ?></p>
@@ -255,10 +296,27 @@ Foto Pusaka
 <p><b>Tanggal Terbit :</b> <?= tanggal ?></p>
 
 <table>
-<tr><td>Panjang Bilah</td><td><?= panjang ?></td></tr>
-<tr><td>Lebar Pangkal</td><td><?= lebar ?></td></tr>
-<tr><td>Tebal Pangkal</td><td><?= tebal ?></td></tr>
-<tr><td>Berat Bilah</td><td><?= berat ?></td></tr>
+
+<tr>
+<td>Panjang Bilah</td>
+<td><?= panjang ?></td>
+</tr>
+
+<tr>
+<td>Lebar Pangkal</td>
+<td><?= lebar ?></td>
+</tr>
+
+<tr>
+<td>Tebal Pangkal</td>
+<td><?= tebal ?></td>
+</tr>
+
+<tr>
+<td>Berat Bilah</td>
+<td><?= berat ?></td>
+</tr>
+
 </table>
 
 <div class="deskripsi">
@@ -269,16 +327,20 @@ Foto Pusaka
 
 </div>
 
-<div class="garis"></div>
-
 <div class="footer">
 
 <div>
+
 <img src="<?= qrLink ?>" class="qr">
-<div class="verif">Scan untuk verifikasi sertifikat</div>
+
+<div class="verif">
+Scan untuk verifikasi
+</div>
+
 </div>
 
 <div class="ttd">
+
 Kurator Komunitas SKH
 
 <div class="ttdline">
