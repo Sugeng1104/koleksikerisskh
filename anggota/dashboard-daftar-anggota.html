@@ -1,1 +1,484 @@
+/* =====================================================
+  KONFIGURASI
+===================================================== */
+const SPREADSHEET_ID   = "15kwQjyyDaope2h5GMhZEUMtjMyd86PxuQuK36ZR4bSI";
+const SHEET_PENGAJUAN  = "Pengajuan";
+const SHEET_SERTIFIKAT = "Sertifikat";
+const MAIN_FOLDER_ID   = "1WqSNcGLLLThWg89t-V6XXSdfyQVy0cRj";
+
+
+/* =====================================================
+  🔥 SYSTEM LOCK (ANTI DOUBLE CLICK / RACE CONDITION)
+===================================================== */
+function withLock(callback) {
+ const lock = LockService.getScriptLock();
+ lock.waitLock(30000); // tunggu max 30 detik
+
+
+ try {
+   return callback();
+ } finally {
+   lock.releaseLock();
+ }
+}
+
+
+
+/* =====================================================
+  TEST AKSES DRIVE (WAJIB UNTUK TRIGGER IZIN)
+===================================================== */
+function testDrive() {
+ DriveApp.getRootFolder();
+}
+
+
+/* =====================================================
+  DO GET
+===================================================== */
+function doGet(e) {
+ const action = e.parameter.action;
+ const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+
+ /* ===============================
+  🔥 VALIDASI NOMOR (QR CHECK)
+ ================================ */
+if (action === "ceksertifikat") {
+  const nomor = e.parameter.no;
+  const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
+  const data = sheet.getDataRange().getValues();
+
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == nomor) {
+      return output({
+        valid: true,
+        pesan: "Sertifikat pusaka \"" + data[i][2] +
+               "\" telah terverifikasi keasliannya oleh Kurator Komunitas SKH.",
+        nomor: data[i][0],
+        tanggal: data[i][1],
+        nama: data[i][2],
+        jenis: data[i][3],
+        pemilik: data[i][4],
+        status: data[i][7]
+      });
+    }
+  }
+
+
+  // jika tidak ditemukan
+  return output({ valid: false });
+}
+
+
+ /* ===============================
+  🔥 DASHBOARD STATISTIK
+ ================================ */
+ if (action === "statistik") {
+   const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
+   const data = sheet.getDataRange().getValues();
+
+
+   let total = data.length - 1;
+   let hariIni = 0;
+   let bulanIni = 0;
+
+
+   const now = new Date();
+   const bulan = now.getMonth();
+   const tahun = now.getFullYear();
+
+
+   for (let i = 1; i < data.length; i++) {
+     const tanggal = new Date(data[i][1]);
+
+
+     if (
+       tanggal.getDate() === now.getDate() &&
+       tanggal.getMonth() === bulan &&
+       tanggal.getFullYear() === tahun
+     ) {
+       hariIni++;
+     }
+
+
+     if (
+       tanggal.getMonth() === bulan &&
+       tanggal.getFullYear() === tahun
+     ) {
+       bulanIni++;
+     }
+   }
+
+
+   return output({
+     total: total,
+     hariIni: hariIni,
+     bulanIni: bulanIni
+   });
+ }
+
+
+ /* ===============================
+    GET SERTIFIKAT (Sheet Sertifikat)
+ =============================== */
+ if (action === "getsertifikat") {
+   const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
+   const data = sheet.getDataRange().getValues();
+   const headers = data[0];
+   const result = [];
+
+
+   for (let i = 1; i < data.length; i++) {
+     let obj = {};
+     for (let j = 0; j < headers.length; j++) {
+       obj[headers[j]] = data[i][j];
+     }
+     result.push(obj);
+   }
+
+
+   return output(result);
+ }
+
+
+ /* ===============================
+    🔥 TAMBAHKAN DI SINI
+    GET PENGAJUAN (Sheet Pengajuan)
+ =============================== */
+ if (action === "getpengajuan") {
+   const sheet = ss.getSheetByName(SHEET_PENGAJUAN);
+   const data = sheet.getDataRange().getValues();
+   const headers = data[0];
+   const result = [];
+
+
+   for (let i = 1; i < data.length; i++) {
+     let obj = {};
+     for (let j = 0; j < headers.length; j++) {
+       obj[headers[j]] = data[i][j];
+     }
+     result.push(obj);
+   }
+
+
+   return output(result);
+ }
+
+
+ return output({ status: "error", message: "Action tidak dikenal" });
+}
+
+
+
+/* =====================================================
+  DO POST
+===================================================== */
+function doPost(e) {
+ try {
+   if (!e || !e.parameter || !e.parameter.action) {
+     return output({ status: "error", message: "Action tidak ada" });
+   }
+
+
+   const action = e.parameter.action;
+   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+
+   /* ===============================
+      AJUKAN SERTIFIKAT
+   =============================== */
+   if (action === "ajukan") {
+     return ajukanSertifikat(e, ss);
+   }
+
+
+   /* ===============================
+      SETUJUI SERTIFIKAT
+   =============================== */
+   if (action === "setujui") {
+     return setujuiSertifikat(e, ss);
+   }
+
+
+   /* ===============================
+      UPDATE STATUS (ADMIN)
+   =============================== */
+   if (action === "updatestatus") {
+     return updateStatus(e, ss);
+   }
+
+
+   return output({ status: "error", message: "Action tidak dikenal" });
+
+
+ } catch (err) {
+   return output({ status: "error", message: err.toString() });
+ }
+}
+
+
+/* =====================================================
+  FUNCTION: AJUKAN SERTIFIKAT
+===================================================== */
+function ajukanSertifikat(e, ss) {
+ const sheet = ss.getSheetByName(SHEET_PENGAJUAN);
+ const namaPemilik = e.parameter.pemilik;
+
+
+ const mainFolder = DriveApp.getFolderById(MAIN_FOLDER_ID);
+ const folderIterator = mainFolder.getFoldersByName(namaPemilik);
+ const folderPemilik = folderIterator.hasNext()
+   ? folderIterator.next()
+   : mainFolder.createFolder(namaPemilik);
+
+
+ const linkFoto1 = simpanFoto(e.parameter.foto1, folderPemilik, "foto1");
+ const linkFoto2 = simpanFoto(e.parameter.foto2, folderPemilik, "foto2");
+
+
+ if (!e.parameter.namaPusaka || !namaPemilik) {
+   return output({ status: "error", message: "Data tidak lengkap" });
+ }
+
+
+ sheet.appendRow([
+   new Date(),
+   e.parameter.namaPusaka,
+   e.parameter.jenis,
+   namaPemilik,
+   e.parameter.panjang,
+   e.parameter.lebar,
+   e.parameter.tebal,
+   e.parameter.berat,
+   e.parameter.catatan,
+   linkFoto1,
+   linkFoto2,
+   "Menunggu"
+ ]);
+
+
+ return output({ status: "success" });
+}
+
+
+
+/* =====================================================
+  FUNCTION: SETUJUI SERTIFIKAT (ENTERPRISE SAFE)
+===================================================== */
+function setujuiSertifikat(e, ss) {
+ return withLock(() => {
+
+
+   const sheetPengajuan = ss.getSheetByName(SHEET_PENGAJUAN);
+   const sheetSertifikat = ss.getSheetByName(SHEET_SERTIFIKAT);
+
+
+   const rowIndex = parseInt(e.parameter.row);
+
+
+   if (!rowIndex || rowIndex < 2) {
+     return output({ status: "error", message: "Row tidak valid" });
+   }
+
+
+   const currentStatus = sheetPengajuan.getRange(rowIndex, 12).getValue();
+
+
+   if (currentStatus === "Disetujui") {
+     return output({ status: "error", message: "Sudah disetujui sebelumnya" });
+   }
+
+
+   const data = sheetPengajuan.getRange(rowIndex, 1, 1, 12).getValues()[0];
+
+
+   const nomor = generateNomor(sheetSertifikat);
+   const linkPDF = generatePDF(data, nomor);
+   const qrLink = generateQRCode(nomor);
+
+
+   sheetSertifikat.appendRow([
+     nomor,        // 1 No Registrasi
+     new Date(),   // 2 Tanggal Terbit
+     data[1],      // 3 Nama Pusaka
+     data[2],      // 4 Jenis
+     data[3],      // 5 Pemilik
+     qrLink,       // 6 QR Code
+     linkPDF,      // 7 Link PDF
+     "Disetujui"   // 8 Status
+   ]);
+
+
+   sheetPengajuan.getRange(rowIndex, 12).setValue("Disetujui");
+
+
+   return output({
+     status: "approved",
+     nomor: nomor,
+     pdf: linkPDF
+   });
+
+
+ });
+}
+
+
+
+
+/* =====================================================
+  FUNCTION: UPDATE STATUS
+===================================================== */
+function updateStatus(e, ss) {
+ const noReg = e.parameter.noReg;
+ const statusBaru = e.parameter.status;
+
+
+ const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
+ const data = sheet.getDataRange().getValues();
+
+
+ for (let i = 1; i < data.length; i++) {
+   if (data[i][0] == noReg) {
+     sheet.getRange(i + 1, 8).setValue(statusBaru);
+     break;
+   }
+ }
+
+
+ return output({ status: "success" });
+}
+
+
+
+
+/* =====================================================
+  SIMPAN FOTO BASE64 KE DRIVE
+===================================================== */
+function simpanFoto(base64, folder, namaFile) {
+ if (!base64) return "";
+
+
+ const blob = Utilities.newBlob(
+   Utilities.base64Decode(base64),
+   "image/jpeg",
+   namaFile + ".jpg"
+ );
+
+
+ const file = folder.createFile(blob);
+ return file.getUrl();
+}
+
+
+
+
+/* =====================================================
+  GENERATE NOMOR REGISTRASI (ANTI DUPLIKAT)
+===================================================== */
+function generateNomor(sheet) {
+ const now = new Date();
+ const tahun = now.getFullYear();
+ const bulan = ("0" + (now.getMonth() + 1)).slice(-2);
+ const tanggal = ("0" + now.getDate()).slice(-2);
+ const kodeTanggal = bulan + tanggal;
+
+
+ const prefix = "SKH-" + tahun + "-" + kodeTanggal;
+
+
+ const data = sheet.getDataRange().getValues();
+ let maxUrut = 0;
+
+
+ for (let i = 1; i < data.length; i++) {
+   const nomor = data[i][0];
+   if (nomor && nomor.startsWith(prefix)) {
+     const parts = nomor.split("-");
+     const urut = parseInt(parts[3]);
+     if (urut > maxUrut) {
+       maxUrut = urut;
+     }
+   }
+ }
+
+
+ const nextUrut = ("0" + (maxUrut + 1)).slice(-2);
+ return prefix + "-" + nextUrut;
+}
+
+
+
+
+/* =====================================================
+  GENERATE QR CODE
+===================================================== */
+function generateQRCode(nomor) {
+
+
+  const baseUrl = "https://script.google.com/macros/s/AKfycbxKuOuMN4iJ0FlRcPeOVi2VecssvU0Jvypp-2xyT_L9OseJ4PzndaSjzWJSi0eoMlZB/exec";
+
+
+  const urlValidasi = baseUrl + "?action=ceksertifikat&no=" + nomor;
+
+
+  return "https://quickchart.io/qr?size=200&text=" +
+         encodeURIComponent(urlValidasi);
+}
+
+
+/* =====================================================
+  GENERATE PDF SERTIFIKAT
+===================================================== */
+function generatePDF(data, nomor) {
+
+
+const template = HtmlService.createTemplateFromFile("template-sertifikat");
+
+
+template.nomor = nomor;
+template.tanggal = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd MMMM yyyy");
+
+
+template.nama = data[1];
+template.jenis = data[2];
+template.pemilik = data[3];
+template.panjang = data[4];
+template.lebar = data[5];
+template.tebal = data[6];
+template.berat = data[7];
+template.deskripsi = data[8];
+
+
+template.foto1 = data[9]; // link foto jika ada
+
+
+template.qrLink = generateQRCode(nomor);
+
+
+const html = template.evaluate().getContent();
+
+
+const blob = Utilities.newBlob(html, "text/html", "sertifikat.html")
+.getAs("application/pdf")
+.setName("Sertifikat-" + nomor + ".pdf");
+
+
+  // ✅ FIX DI SINI
+  const folder = DriveApp.getFolderById(MAIN_FOLDER_ID);
+  const file = folder.createFile(blob);
+
+
+  return file.getUrl();
+}
+
+
+/* =====================================================
+  OUTPUT JSON
+===================================================== */
+function output(obj) {
+ return ContentService
+   .createTextOutput(JSON.stringify(obj))
+   .setMimeType(ContentService.MimeType.JSON);
+}
 
