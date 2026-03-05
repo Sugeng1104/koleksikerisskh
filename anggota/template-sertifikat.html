@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>
 body{
  font-family: Georgia, serif;
@@ -10,10 +11,13 @@ body{
 }
 
 
-.frame{
+..frame{
  border:10px double #b8860b;
  padding:40px;
+ page-break-inside:avoid;
 }
+
+
 
 
 .logo{
@@ -105,7 +109,39 @@ td{
 
 <div class="left">
 <? if(foto1){ ?>
-<img src="<?= foto1 ?>" style="width:100%; border:3px solid #b8860b;">
+<div class="left">
+
+
+<? if(foto1){ ?>
+
+
+<img 
+src="<?= foto1 ?>" 
+style="width:100%; border:3px solid #b8860b; border-radius:6px;">
+
+
+<? } else { ?>
+
+
+<div style="
+width:100%;
+height:220px;
+border:3px dashed #b8860b;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#888;
+font-size:12px;">
+Foto Pusaka
+</div>
+
+
+<? } ?>
+
+
+</div>
+
+
 <? } ?>
 </div>
 
@@ -134,7 +170,12 @@ td{
 
 <div class="footer">
 <div>
-<img src="<?= qrLink ?>" class="qr">
+<img src="<?= qrLink ?>" class="qr" style="display:block;">
+</div>
+
+
+<div style="font-size:10px; margin-top:5px;">
+Scan untuk verifikasi sertifikat
 </div>
 
 
