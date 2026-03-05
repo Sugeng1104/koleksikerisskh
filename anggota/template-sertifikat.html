@@ -2,60 +2,130 @@
 <html>
 <head>
 <meta charset="UTF-8">
+
 <style>
+
 body{
- font-family: Georgia, serif;
- background:#f6edd9;
+ font-family:"Times New Roman",serif;
+ background:#d8ccb0;
  padding:40px;
  text-align:center;
 }
 
+/* FRAME UTAMA */
 
-..frame{
- border:10px double #b8860b;
- padding:40px;
- page-break-inside:avoid;
+.frame{
+ background:#f6f0dc;
+ border:16px double #8b6a1a;
+ padding:70px;
+ position:relative;
+ box-shadow:0 0 40px rgba(0,0,0,0.35);
 }
 
+/* BORDER DALAM */
 
+.frame:before{
+ content:"";
+ position:absolute;
+ top:18px;
+ left:18px;
+ right:18px;
+ bottom:18px;
+ border:3px solid #caa64b;
+}
 
+/* WATERMARK KERIS */
+
+.frame:after{
+ content:"";
+ position:absolute;
+ top:0;
+ left:0;
+ right:0;
+ bottom:0;
+
+ background-image:url('https://upload.wikimedia.org/wikipedia/commons/6/6a/Keris_Indonesia.svg');
+ background-repeat:no-repeat;
+ background-position:center;
+ background-size:420px;
+
+ opacity:0.045;
+}
+
+/* HEADER */
 
 .logo{
  width:120px;
- margin-bottom:15px;
+ margin-bottom:10px;
 }
-
 
 h1{
- font-size:34px;
- letter-spacing:3px;
- margin-bottom:5px;
+ font-size:44px;
+ letter-spacing:6px;
+ color:#6b4c06;
+ margin-bottom:8px;
 }
-
 
 .sub{
- font-size:14px;
- margin-bottom:20px;
+ font-size:16px;
+ color:#5a4b22;
 }
 
+.ornamen{
+ margin:10px 0 20px 0;
+ color:#9b7a24;
+ letter-spacing:3px;
+ font-size:18px;
+}
+
+/* NOMOR */
+
+.nomor{
+ margin-top:10px;
+ font-size:15px;
+}
+
+/* GARIS ORNAMEN */
+
+.garis{
+ margin:30px auto;
+ width:75%;
+ height:2px;
+ background:linear-gradient(to right,transparent,#b7963a,transparent);
+}
+
+/* CONTENT */
 
 .content{
  display:flex;
- margin-top:25px;
+ margin-top:35px;
 }
 
+/* FOTO */
 
 .left{
  width:40%;
 }
 
+.framefoto{
+ border:10px solid #b7953a;
+ padding:10px;
+ background:white;
+ box-shadow:0 0 15px rgba(0,0,0,0.25);
+}
+
+.framefoto img{
+ width:100%;
+}
+
+/* DATA */
 
 .right{
  width:60%;
  text-align:left;
- padding-left:20px;
+ padding-left:30px;
+ font-size:15px;
 }
-
 
 table{
  width:100%;
@@ -63,95 +133,126 @@ table{
  margin-top:15px;
 }
 
-
 td{
- border:1px solid #b8860b;
- padding:6px;
+ border:1px solid #b7953a;
+ padding:7px;
 }
 
+td:first-child{
+ background:#efe1b8;
+ font-weight:bold;
+ width:45%;
+}
+
+/* DESKRIPSI */
+
+.deskripsi{
+ margin-top:18px;
+ font-style:italic;
+ line-height:1.6;
+}
+
+/* FOOTER */
 
 .footer{
- margin-top:30px;
+ margin-top:45px;
  display:flex;
  justify-content:space-between;
- align-items:center;
+ align-items:flex-end;
 }
 
+/* QR */
 
 .qr{
- width:120px;
+ width:110px;
 }
+
+.verif{
+ font-size:11px;
+ margin-top:6px;
+}
+
+/* TTD */
+
+.ttd{
+ text-align:center;
+ font-size:15px;
+}
+
+.ttdline{
+ margin-top:45px;
+ border-top:1px solid #555;
+ width:200px;
+ margin-left:auto;
+ margin-right:auto;
+ padding-top:5px;
+}
+
+/* STEMPEL */
+
+.stempel{
+ position:absolute;
+ right:120px;
+ bottom:140px;
+ width:120px;
+ opacity:0.8;
+}
+
 </style>
 </head>
 
-
 <body>
-
 
 <div class="frame">
 
-
-<img src="https://drive.google.com/uc?export=view&id=1s0ZwQ3Bg3dP9B_0YywSkGyBFHDafm5ig"
-     class="logo">
-
+<img src="https://drive.google.com/uc?export=view&id=1s0ZwQ3Bg3dP9B_0YywSkGyBFHDafm5ig" class="logo">
 
 <h1>SERTIFIKAT PUSAKA</h1>
 
-
 <div class="sub">Komunitas Keris SKH</div>
 
+<div class="ornamen">❖ Arsip Koleksi Pusaka Nusantara ❖</div>
 
-<p><b>Nomor Registrasi:</b> <?= nomor ?></p>
+<div class="nomor">
+<b>Nomor Registrasi :</b> <?= nomor ?>
+</div>
 
+<div class="garis"></div>
 
 <div class="content">
 
-
 <div class="left">
-<? if(foto1){ ?>
-<div class="left">
-
 
 <? if(foto1){ ?>
 
-
-<img 
-src="<?= foto1 ?>" 
-style="width:100%; border:3px solid #b8860b; border-radius:6px;">
-
+<div class="framefoto">
+<img src="<?= foto1 ?>">
+</div>
 
 <? } else { ?>
 
-
 <div style="
 width:100%;
-height:220px;
-border:3px dashed #b8860b;
+height:240px;
+border:3px dashed #b7953a;
 display:flex;
 align-items:center;
 justify-content:center;
-color:#888;
-font-size:12px;">
+font-size:12px;
+color:#777;">
 Foto Pusaka
 </div>
 
-
 <? } ?>
 
-
 </div>
-
-
-<? } ?>
-</div>
-
 
 <div class="right">
-<p><b>Nama Pusaka:</b> <?= nama ?></p>
-<p><b>Jenis:</b> <?= jenis ?></p>
-<p><b>Pemilik:</b> <?= pemilik ?></p>
-<p><b>Tanggal Terbit:</b> <?= tanggal ?></p>
 
+<p><b>Nama Pusaka :</b> <?= nama ?></p>
+<p><b>Jenis :</b> <?= jenis ?></p>
+<p><b>Pemilik :</b> <?= pemilik ?></p>
+<p><b>Tanggal Terbit :</b> <?= tanggal ?></p>
 
 <table>
 <tr><td>Panjang Bilah</td><td><?= panjang ?></td></tr>
@@ -160,35 +261,35 @@ Foto Pusaka
 <tr><td>Berat Bilah</td><td><?= berat ?></td></tr>
 </table>
 
-
-<p style="margin-top:15px;"><i><?= deskripsi ?></i></p>
-
-
-</div>
+<div class="deskripsi">
+<?= deskripsi ?>
 </div>
 
+</div>
+
+</div>
+
+<div class="garis"></div>
 
 <div class="footer">
-<div>
-<img src="<?= qrLink ?>" class="qr" style="display:block;">
-</div>
-
-
-<div style="font-size:10px; margin-top:5px;">
-Scan untuk verifikasi sertifikat
-</div>
-
 
 <div>
-Kurator Komunitas SKH<br>
-✔️ Terverifikasi
-</div>
-</div>
-
-
+<img src="<?= qrLink ?>" class="qr">
+<div class="verif">Scan untuk verifikasi sertifikat</div>
 </div>
 
+<div class="ttd">
+Kurator Komunitas SKH
+
+<div class="ttdline">
+Tanda Tangan Kurator
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 </body>
 </html>
-
