@@ -631,7 +631,7 @@ if(roleLogin === "Super Admin" || roleLogin === "Admin"){
     if(status === "Menunggu"){
         statusBadge = `
         <button class="btn btn-gold"
-        onclick='openDetail(${JSON.stringify(row)}, ${index})'>
+       onclick='openDetail(${JSON.stringify(row).replace(/'/g,"\\'")}, ${index})'
         Periksa
         </button>`;
     }
@@ -660,7 +660,6 @@ html+=`
     row["No. Registrasi"] ||
     (row["Status"] === "Menunggu" ? "Belum Terbit" : "-")
 }</td>
-   "-"}</td>
    <td>${row["Nama Pusaka"]||"-"}</td>
    <td>${row["Jenis"]||"-"}</td>
    <td>${row["Pemilik"]||"-"}</td>
@@ -672,8 +671,9 @@ html+=`
    </td>
 </tr>`;
 
+});
+
     tbody.innerHTML=html;
-}
 
 let currentRowIndex = 0;
 let currentRegID = "";
@@ -701,7 +701,7 @@ function openDetail(row, rowIndex){
     <p><b>Catatan:</b> ${row["Catatan"] || "-"}</p>
     <p>
         <b>Foto:</b> 
-        <a href="${row["Link Folder"]||"#"}" target="_blank" style="color:gold;">
+        <a href="${row["Link Foto 1"]||"#"}" target="_blank" style="color:gold;">
         ⭕ Periksa Foto
         </a>
     </p>
@@ -884,6 +884,4 @@ color:white;
 
 </body>
 </html>
-
-
 
