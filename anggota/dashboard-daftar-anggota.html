@@ -1,484 +1,889 @@
-/* =====================================================
-  KONFIGURASI
-===================================================== */
-const SPREADSHEET_ID   = "15kwQjyyDaope2h5GMhZEUMtjMyd86PxuQuK36ZR4bSI";
-const SHEET_PENGAJUAN  = "Pengajuan";
-const SHEET_SERTIFIKAT = "Sertifikat";
-const MAIN_FOLDER_ID   = "1WqSNcGLLLThWg89t-V6XXSdfyQVy0cRj";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Komunitas Keris SKH</title>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-/* =====================================================
-  🔥 SYSTEM LOCK (ANTI DOUBLE CLICK / RACE CONDITION)
-===================================================== */
-function withLock(callback) {
- const lock = LockService.getScriptLock();
- lock.waitLock(30000); // tunggu max 30 detik
+<style>
 
+/* ================= HEADER LOGO ================= */
+.header-area{
+    text-align:center;
+    margin-bottom:40px;
+}
 
- try {
-   return callback();
- } finally {
-   lock.releaseLock();
- }
+.logo-skh{
+    width:130px;
+    margin-bottom:15px;
+    filter: drop-shadow(0 0 10px gold);
 }
 
 
-
-/* =====================================================
-  TEST AKSES DRIVE (WAJIB UNTUK TRIGGER IZIN)
-===================================================== */
-function testDrive() {
- DriveApp.getRootFolder();
+/* ================= STATISTIK DASHBOARD ================= */
+.statistik-container{
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
 }
 
+.stat-card{
+    flex:1;
+    min-width:220px;
+    background:linear-gradient(145deg,#1e1e1e,#111);
+    border:1px solid #c9a227;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 0 15px rgba(201,162,39,0.3);
+    transition:0.3s;
+}
 
-/* =====================================================
-  DO GET
-===================================================== */
-function doGet(e) {
- const action = e.parameter.action;
- const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+.stat-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 0 25px rgba(201,162,39,0.6);
+}
+
+.stat-card h3{
+    color:#c9a227;
+    font-size:16px;
+    margin-bottom:10px;
+    letter-spacing:1px;
+}
+
+.stat-card p{
+    font-size:32px;
+    font-weight:bold;
+    color:white;
+}
+
+body{
+    margin:0;
+    font-family:Georgia,serif;
+    background:#000;
+    color:white;
+    padding:40px;
+}
+.container{ max-width:1100px; margin:auto; position:relative; }
+
+h1{
+    color:gold;
+    text-align:center;
+    margin-bottom:40px;
+    text-shadow:0 0 10px rgba(212,175,55,0.6);
+}
+
+.login-top{
+    position:absolute;
+    top:0;
+    right:0;
+    text-align:right;
+}
+
+.user-info{
+    font-size:14px;
+    margin-bottom:8px;
+    color:gold;
+}
+
+.card{
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+h2{ color:gold; margin-bottom:15px; }
+
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+th, td{ border:1px solid #444; padding:10px; text-align:center; }
+th{ background:#222; color:gold; }
+
+.foto-kecil{
+    width:55px;
+    height:55px;
+    object-fit:cover;
+    border-radius:8px;
+    border:2px solid gold;
+}
+
+.status-aktif{
+    background:#00aa00;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+.status-nonaktif{
+    background:#aa0000;
+    padding:5px 10px;
+    border-radius:6px;
+    font-weight:bold;
+}
+
+.btn{
+    padding:8px 14px;
+    border-radius:8px;
+    margin:4px;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+}
+.btn-blue{ background:#007bff; color:white; }
+.btn-red{ background:#dc3545; color:white; }
+.btn-gold{ background:gold; color:black; }
+
+.loading{ text-align:center; color:gold; }
+
+#strukturPengurus{
+    margin-bottom:25px;
+    padding:15px;
+    background:#111;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(212,175,55,0.3);
+}
+#strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="login-top">
+    <div class="user-info" id="userInfo"></div>
+    <div class="user-role-info" id="userRoleInfo" style="margin-bottom:4px; color:gold; font-weight:bold;"></div>
+    <button class="btn btn-red" onclick="logout()">Keluar</button>
+</div>
+
+<div class="header-area">
+    <img src="../logo-skh.png" alt="Logo SKH" class="logo-skh">
+    <h1>Komunitas Keris SKH</h1>
+</div>
 
 
- /* ===============================
-  🔥 VALIDASI NOMOR (QR CHECK)
- ================================ */
-if (action === "ceksertifikat") {
-  const nomor = e.parameter.no;
-  const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
-  const data = sheet.getDataRange().getValues();
+<!-- Struktur Pengurus -->
+<div id="strukturPengurus" class="card">
+<h3>Struktur Pengurus</h3>
+<ul id="listPengurus" style="list-style:none; padding:0; text-align:center;">
+<li class="loading">Memuat data...</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>Daftar Anggota</h2>
+<table>
+<thead>
+<tr>
+<th>Foto</th>
+<th>Nama Lengkap</th>
+<th>No Anggota</th>
+<th>No HP</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="listAnggota">
+<tr><td colspan="6" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ================= TAMBAHAN SERTIFIKAT (TIDAK MENGUBAH SISTEM LAMA) ================= -->
+<div id="sertifikatSection" class="card" style="display:none;">
+
+<h2>Pengajuan Sertifikat Pusaka</h2>
+
+<div style="margin-bottom:20px; line-height:1.8;">
+<b>Syarat Pengajuan Sertifikat Pusaka:</b><br>
+1. Foto Pusaka Jelas dari 2 sisi yang berbeda<br>
+2. Nama Pusaka, Jenis Pusaka, dan Nama Pemilik<br>
+3. Panjang bilah, Lebar Pangkal, Tebal Pangkal, dan Berat Bilah<br>
+4. Menuliskan informasi yang diketahui (Opsional)<br><br>
+Segala informasi akan dianalisis terlebih dahulu sebelum diterbitkan Sertifikat Pusaka.
+</div>
+
+<div style="text-align:center; margin-bottom:25px;">
+<button class="btn btn-gold" onclick="bukaPopupSertifikat()">Pengajuan Sertifikat</button>
+</div>
+
+<hr style="margin:25px 0; border:1px solid #333;">
+
+<!-- ================= STATISTIK DASHBOARD ================= -->
+<div class="statistik-container">
+
+  <div class="stat-card">
+    <h3>Total Sertifikat</h3>
+    <p id="totalSertifikat">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Terbit Hari Ini</h3>
+    <p id="hariIni">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Terbit Bulan Ini</h3>
+    <p id="bulanIni">0</p>
+  </div>
+
+</div>
 
 
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] == nomor) {
-      return output({
-        valid: true,
-        pesan: "Sertifikat pusaka \"" + data[i][2] +
-               "\" telah terverifikasi keasliannya oleh Kurator Komunitas SKH.",
-        nomor: data[i][0],
-        tanggal: data[i][1],
-        nama: data[i][2],
-        jenis: data[i][3],
-        pemilik: data[i][4],
-        status: data[i][7]
-      });
+<h2>List Sertifikat</h2>
+<table>
+<thead>
+<tr>
+<th>No Registrasi</th>
+<th>Nama Pusaka</th>
+<th>Jenis</th>
+<th>Pemilik</th>
+<th>Status</th> <!-- TAMBAHKAN DI SINI -->
+<th>Cetak Sertifikat</th>
+</tr>
+</thead>
+
+<tbody id="listSertifikat">
+<tr><td colspan="6" class="loading">Memuat data...</td></tr>
+</tbody>
+</table>
+</div>
+
+<script>
+
+/* ================= CONFIG ================= */
+const WEBAPP_ANGGOTA = "https://script.google.com/macros/s/AKfycbxgBRf27sB3bMFNTTTfJ6ZGBAGe2xJ0Wn1cln5afaeUSL3Wcm4HMqHeSJFBU3yK60ik6A/exec";
+
+const WEBAPP_SERTIFIKAT = "https://script.google.com/macros/s/AKfycbxKuOuMN4iJ0FlRcPeOVi2VecssvU0Jvypp-2xyT_L9OseJ4PzndaSjzWJSi0eoMlZB/exec";
+
+
+/* ================= LOGIN PROTECTION ================= */
+(function(){
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    const namaLengkap = localStorage.getItem("namaLengkap");
+    if(isLoggedIn !== "true" || !username || !role || !namaLengkap){
+        localStorage.clear();
+        window.location.href = "anggota-login.html";
+        return;
     }
-  }
+})();
 
+/* ================= USER INFO ================= */
+const usernameLogin = localStorage.getItem("username");
+const roleLogin = localStorage.getItem("role");
+const namaLogin = localStorage.getItem("namaLengkap");
 
-  // jika tidak ditemukan
-  return output({ valid: false });
+document.getElementById("userInfo").innerHTML = `Login sebagai: <strong>${usernameLogin}</strong>`;
+document.getElementById("userRoleInfo").innerHTML = `Role: <strong>${roleLogin}</strong>`;
+
+/* ================= TAMBAHAN: TAMPILKAN SERTIFIKAT KHUSUS USER ================= */
+if(roleLogin === "User"){
+    document.getElementById("sertifikatSection").style.display="block";
+}
+
+/* ================= TAMBAHAN: KHUSUS ADMIN & SUPER ADMIN ================= */
+if(roleLogin === "Super Admin" || roleLogin === "Admin"){
+    document.getElementById("sertifikatSection").style.display="block";
 }
 
 
- /* ===============================
-  🔥 DASHBOARD STATISTIK
- ================================ */
- if (action === "statistik") {
-   const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
-   const data = sheet.getDataRange().getValues();
+/* ================= LOGOUT ================= */
+function logout(){
+    localStorage.clear();
+    window.location.href="https://sugeng1104.github.io/koleksikerisskh/daftar-anggota.html";
+}
+
+/* ================= RENDER PENGURUS ================= */
+function renderPengurus(data){
+    const listEl = document.getElementById("listPengurus");
+
+    if(!data || data.length===0){
+        listEl.innerHTML="<li>Tidak ada data pengurus</li>";
+        return;
+    }
+
+    listEl.innerHTML="";
+
+    data.forEach((row,index)=>{
+        const jabatan = row.jabatan || row.Jabatan || row["Jabatan"] || "-";
+        const nama = row.nama || row.Nama || row["Nama Lengkap"] || row["nama"] || "-";
+        listEl.innerHTML += `<li><strong>${jabatan}</strong> : ${nama}</li>`;
+    });
+}
+
+/* ================= RENDER ANGGOTA ================= */
+function renderAnggota(data){
+    let html="";
+
+    data.slice().reverse().forEach(row=>{
+        const nama=row["Nama Lengkap"]||"-";
+        const gelar=row["Gelar"]||"";
+        const nomor=row["No Anggota"]||"-";
+        const nohp=row["No HP"]||"-";
+        const status=row.Status||"Nonaktif";
+        const statusClass=status==="Aktif"?"status-aktif":"status-nonaktif";
+
+        const safeNama = nama.replace(/'/g,"\\'");
+        const safeGelar = gelar.replace(/'/g,"\\'");
+        const safeNomor = nomor.replace(/'/g,"\\'");
+        const safeFoto = (row["Foto"]||"").replace(/'/g,"\\'");
+
+        let aksiButton = "";
+
+        if(roleLogin === "Super Admin" || 
+           nama.toLowerCase() === namaLogin.toLowerCase()){
+
+            aksiButton = `
+            <button class="btn btn-blue"
+            onclick="generateCard('${safeNama}','${safeGelar}','${safeNomor}','${safeFoto}')">
+            Cetak Kartu</button>
+
+            <br><button class="btn btn-red"
+            onclick="bukaModalPassword()">
+            Ganti Password</button>
+            `;
+        }
+
+        html+=`
+        <tr>
+            <td><img src="${safeFoto}" class="foto-kecil"></td>
+            <td>${nama}</td>
+            <td>${nomor}</td>
+            <td>${nohp}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>${aksiButton}</td>
+        </tr>`;
+    });
+
+    document.getElementById("listAnggota").innerHTML=html;
+}
+
+/* ================= FETCH DATA ================= */
+async function fetchData(){
+    try{
+        const now = Date.now();
+        const res = await fetch(WEBAPP_ANGGOTA + "?action=getanggota&t="+now,{
+            method:"GET",
+            mode:"cors"
+        });
+        const data = await res.json();
+        renderAnggota(data);
+        const res2 = await fetch(WEBAPP_ANGGOTA + "?action=getpengurus&t="+now,{
+            method:"GET",
+            mode:"cors"
+        });
+        const data2 = await res2.json();
+        renderPengurus(data2);
+        
+
+/* ================= SERTIFIKAT / PENGAJUAN ================= */
+
+// 🔥 ADMIN & SUPER ADMIN LIHAT SHEET PENGAJUAN
+const resSertifikat = await fetch(
+WEBAPP_SERTIFIKAT + "?action=getsertifikat&t=" + now,
+{ method:"GET", mode:"cors" }
+);
+
+const dataSertifikat = await resSertifikat.json();
 
 
-   let total = data.length - 1;
-   let hariIni = 0;
-   let bulanIni = 0;
+// ================= TAMBAHAN: AMBIL DATA PENGAJUAN =================
+const resPengajuan = await fetch(
+WEBAPP_SERTIFIKAT + "?action=getpengajuan&t=" + now,
+{ method:"GET", mode:"cors" }
+);
+
+const dataPengajuan = await resPengajuan.json();
 
 
-   const now = new Date();
-   const bulan = now.getMonth();
-   const tahun = now.getFullYear();
+// 🔥 GABUNGKAN
+// Ambil hanya pengajuan yang masih Menunggu
+const pengajuanMenunggu = dataPengajuan.filter(row => {
+    const status = row["Status"] || row["status"] || "Menunggu";
+    return status === "Menunggu";
+});
+
+// Gabungkan
+const semuaData = [...dataSertifikat, ...pengajuanMenunggu];
+
+renderSertifikat(semuaData);
+
+    }catch(e){ console.log("Fetch gagal:", e); }
+}
+
+/* ================= LOAD STATISTIK DASHBOARD ================= */
+async function loadStatistik(){
+    try{
+        const now = Date.now();
+
+        const res = await fetch(
+            WEBAPP_SERTIFIKAT + "?action=statistik&t=" + now,
+            { method:"GET", mode:"cors" }
+        );
+
+        const data = await res.json();
+
+        console.log("Statistik:", data);
+
+        // ⬇️ INI YANG SEBELUMNYA BELUM ADA
+        document.getElementById("totalSertifikat").innerText =
+            data.total || 0;
+
+        document.getElementById("hariIni").innerText =
+            data.hariIni || 0;
+
+        document.getElementById("bulanIni").innerText =
+            data.bulanIni || 0;
+
+    }catch(err){
+        console.log("Gagal load statistik:", err);
+    }
+}
 
 
-   for (let i = 1; i < data.length; i++) {
-     const tanggal = new Date(data[i][1]);
+/* ================= PREMIUM CARD DESIGN ================= */
+function generateCard(nama,gelar,nomor,foto){
+    const canvas=document.createElement("canvas");
+    canvas.width=1016; canvas.height=638;
+    const ctx=canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop(0,"#D4AF37"); gradient.addColorStop(0.5,"#FFD700");
+    gradient.addColorStop(1,"#B8860B"); ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle="#5a3d00"; ctx.lineWidth=20; ctx.strokeRect(20,20,canvas.width-40,canvas.height-40);
+    ctx.strokeStyle="#fff3b0"; ctx.lineWidth=4; ctx.strokeRect(40,40,canvas.width-80,canvas.height-80);
+    ctx.fillStyle="#3b2a00"; ctx.font="bold 52px Georgia"; ctx.textAlign="center";
+    ctx.fillText("KARTU ANGGOTA RESMI",canvas.width/2,120);
+    ctx.font="bold 36px Georgia"; ctx.fillText("Komunitas Keris SKH",canvas.width/2,170);
 
+    function drawContent(){
+        ctx.textAlign="left"; ctx.fillStyle="#3b2a00"; ctx.font="bold 42px Georgia"; ctx.fillText(nama,350,300);
+        ctx.font="30px Georgia"; ctx.fillText(gelar || "",350,350); ctx.fillText("No Anggota : "+nomor,350,400);
+        QRCode.toCanvas(nomor,{width:180},function(err,qrCanvas){
+            if(!err) ctx.drawImage(qrCanvas,canvas.width-300,400);
+            const link=document.createElement("a"); link.download="Kartu_"+nomor+".png";
+            link.href=canvas.toDataURL("image/png"); document.body.appendChild(link);
+            link.click(); document.body.removeChild(link);
+        });
+    }
 
-     if (
-       tanggal.getDate() === now.getDate() &&
-       tanggal.getMonth() === bulan &&
-       tanggal.getFullYear() === tahun
-     ) {
-       hariIni++;
-     }
+    if(foto){
+        const img=new Image(); img.crossOrigin="anonymous"; img.src=foto;
+        img.onload=function(){ ctx.drawImage(img,100,250,200,260); drawContent(); };
+        img.onerror=function(){ drawContent(); };
+    }else{ drawContent(); }
+}
 
+/* ================= GANTI SANDI ================= */
+function bukaModalPassword(){
+    document.getElementById("modalPassword").style.display="flex";
+}
 
-     if (
-       tanggal.getMonth() === bulan &&
-       tanggal.getFullYear() === tahun
-     ) {
-       bulanIni++;
-     }
-   }
+function tutupModalPassword(){
+    document.getElementById("modalPassword").style.display="none";
+    document.getElementById("oldPass").value="";
+    document.getElementById("newPass").value="";
+    document.getElementById("confirmPass").value="";
+}
 
+function submitGantiPassword(){
+    const username = localStorage.getItem("username");
+    const sandiLama = document.getElementById("oldPass").value;
+    const sandiBaru = document.getElementById("newPass").value;
+    const confirmPass = document.getElementById("confirmPass").value;
 
-   return output({
-     total: total,
-     hariIni: hariIni,
-     bulanIni: bulanIni
+    if(!sandiLama || !sandiBaru || !confirmPass){
+        alert("Semua field wajib diisi!");
+        return;
+    }
+
+    if(sandiBaru.length < 6){
+        alert("Password minimal 6 karakter!");
+        return;
+    }
+
+    if(sandiBaru !== confirmPass){
+        alert("Konfirmasi password tidak cocok!");
+        return;
+    }
+
+    fetch(WEBAPP_ANGGOTA,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=gantipassword&username=${encodeURIComponent(username)}&sandiLama=${encodeURIComponent(sandiLama)}&sandiBaru=${encodeURIComponent(sandiBaru)}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.status==="success"){
+            alert("Password berhasil diganti!");
+            tutupModalPassword();
+        }else{
+            alert("Gagal: "+res.message);
+        }
+    })
+    .catch(e=>alert("Error: "+e.message));
+}
+
+/* ================= POPUP SERTIFIKAT ================= */
+function bukaPopupSertifikat(){
+    document.getElementById("popupSertifikat").style.display="flex";
+}
+
+function tutupPopupSertifikat(){
+    document.getElementById("popupSertifikat").style.display="none";
+}
+
+/* ================= SUBMIT PENGAJUAN ================= */
+async function submitPengajuan(){
+
+    const namaPusaka = document.getElementById("namaPusaka").value;
+    const jenisPusaka = document.getElementById("jenisPusaka").value;
+    const namaPemilik = document.getElementById("namaPemilik").value;
+    const panjang = document.getElementById("panjangBilah").value;
+    const lebar = document.getElementById("lebarPangkal").value;
+    const tebal = document.getElementById("tebalPangkal").value;
+    const berat = document.getElementById("beratBilah").value;
+    const catatan = document.getElementById("catatanPusaka").value;
+
+    const file1 = document.getElementById("foto1").files[0];
+    const file2 = document.getElementById("foto2").files[0];
+
+    if(!namaPusaka || !jenisPusaka || !namaPemilik){
+        alert("Nama Pusaka, Jenis, dan Nama Pemilik wajib diisi!");
+        return;
+    }
+
+    const base64Foto1 = await toBase64(file1);
+    const base64Foto2 = await toBase64(file2);
+
+    try{
+        const response = await fetch(WEBAPP_SERTIFIKAT,{
+            method:"POST",
+            headers:{"Content-Type":"application/x-www-form-urlencoded"},
+            body: new URLSearchParams({
+                action:"ajukan",
+                namaPusaka,
+                jenis:jenisPusaka,
+                pemilik:namaPemilik,
+                panjang,
+                lebar,
+                tebal,
+                berat,
+                catatan,
+                foto1: base64Foto1,
+                foto2: base64Foto2
+            })
+        });
+
+        const result = await response.json();
+
+        if(result.status==="success"){
+            alert("Pengajuan berhasil dikirim!");
+            tutupPopupSertifikat();
+        } else {
+            alert("Gagal: " + result.message);
+        }
+
+    }catch(err){
+        alert("Error: " + err.message);
+    }
+}
+
+function toBase64(file){
+    return new Promise((resolve,reject)=>{
+        if(!file){ resolve(""); return; }
+        const reader = new FileReader();
+        reader.onload = ()=> resolve(reader.result.split(",")[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderSertifikat(data){
+    const tbody = document.getElementById("listSertifikat");
+
+    if(!data || data.length===0){
+        tbody.innerHTML='<tr><td colspan="5">Belum ada sertifikat</td></tr>';
+        return;
+    }
+
+    let html="";
+
+    data.forEach((row,index)=>{
+        const status = 
+            row["Status"] || 
+            row["STATUS"] || 
+            row["status"] || 
+            "Menunggu";
+
+let statusBadge = "";
+
+if(roleLogin === "Super Admin" || roleLogin === "Admin"){
+
+    if(status === "Menunggu"){
+        statusBadge = `
+        <button class="btn btn-gold"
+        onclick='openDetail(${JSON.stringify(row)}, ${index})'>
+        Periksa
+        </button>`;
+    }
+
+    else if(status === "Disetujui"){
+        statusBadge = `
+        <button class="btn btn-blue"
+        onclick="openKonfirmasi('${row["No Registrasi"]}')">
+        Disetujui
+        </button>`;
+    }
+
+    else if(status === "Ditolak"){
+        statusBadge = `<span class="status-nonaktif">Ditolak</span>`;
+    }
+
+}else{
+    statusBadge = status;
+}
+
+html+=`
+<tr>
+   <td>${
+    row["No Registrasi"] ||
+    row["No Registrasi "] ||
+    row["No. Registrasi"] ||
+    (row["Status"] === "Menunggu" ? "Belum Terbit" : "-")
+}</td>
+   <td>${row["Nama Pusaka"]||"-"}</td>
+   <td>${row["Jenis"]||"-"}</td>
+   <td>${row["Pemilik"]||"-"}</td>
+   <td>${statusBadge}</td> <!-- TAMBAHKAN DI SINI -->
+   <td>
+      <a href="${row["Link PDF"]||"#"}" target="_blank" class="btn btn-gold">
+      Cetak
+      </a>
+   </td>
+</tr>`;
+
    });
- }
 
+    tbody.innerHTML=html;
+}
 
- /* ===============================
-    GET SERTIFIKAT (Sheet Sertifikat)
- =============================== */
- if (action === "getsertifikat") {
-   const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
-   const data = sheet.getDataRange().getValues();
-   const headers = data[0];
-   const result = [];
+let currentRowIndex = 0;
+let currentRegID = "";
 
+function openDetail(row, rowIndex){
 
-   for (let i = 1; i < data.length; i++) {
-     let obj = {};
-     for (let j = 0; j < headers.length; j++) {
-       obj[headers[j]] = data[i][j];
-     }
-     result.push(obj);
-   }
+    // Simpan row index untuk dikirim ke Apps Script
+    currentRowIndex = rowIndex + 2; 
+    // +2 karena:
+    // index dimulai dari 0
+    // baris 1 adalah header sheet
 
+    // Karena ini masih dari sheet Pengajuan,
+    // belum punya nomor registrasi
+    currentRegID = row["No Registrasi"] || "";
 
-   return output(result);
- }
+    let html = `
+    <p><b>Nama Pusaka:</b> ${row["Nama Pusaka"] || "-"}</p>
+    <p><b>Jenis:</b> ${row["Jenis"] || "-"}</p>
+    <p><b>Pemilik:</b> ${row["Pemilik"] || "-"}</p>
+    <p><b>Panjang Bilah:</b> ${row["Panjang Bilah"] || "-"}</p>
+    <p><b>Lebar Pangkal:</b> ${row["Lebar Pangkal"] || "-"}</p>
+    <p><b>Tebal Pangkal:</b> ${row["Tebal Pangkal"] || "-"}</p>
+    <p><b>Berat Bilah:</b> ${row["Berat Bilah"] || "-"}</p>
+    <p><b>Catatan:</b> ${row["Catatan"] || "-"}</p>
+    <p>
+        <b>Foto:</b> 
+        <a href="${row["Link Folder"]||"#"}" target="_blank" style="color:gold;">
+        ⭕ Periksa Foto
+        </a>
+    </p>
+    `;
 
+    document.getElementById("detailContent").innerHTML = html;
+    document.getElementById("popupDetail").style.display="flex";
+}
 
- /* ===============================
-    🔥 TAMBAHKAN DI SINI
-    GET PENGAJUAN (Sheet Pengajuan)
- =============================== */
- if (action === "getpengajuan") {
-   const sheet = ss.getSheetByName(SHEET_PENGAJUAN);
-   const data = sheet.getDataRange().getValues();
-   const headers = data[0];
-   const result = [];
+function closePopup(){
+    document.getElementById("popupDetail").style.display="none";
+}
 
+function approvePengajuan(){
 
-   for (let i = 1; i < data.length; i++) {
-     let obj = {};
-     for (let j = 0; j < headers.length; j++) {
-       obj[headers[j]] = data[i][j];
-     }
-     result.push(obj);
-   }
+    if(!confirm("Setujui pengajuan ini dan terbitkan sertifikat?")){
+        return;
+    }
 
-
-   return output(result);
- }
-
-
- return output({ status: "error", message: "Action tidak dikenal" });
+    fetch(WEBAPP_SERTIFIKAT,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=setujui&row=${currentRowIndex}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.status === "approved"){
+            alert("Sertifikat berhasil diterbitkan!\nNomor: " + res.nomor);
+            closePopup();
+            fetchData();
+        } else {
+            alert("Gagal: " + res.message);
+        }
+    });
 }
 
 
+function updateStatus(statusBaru){
 
-/* =====================================================
-  DO POST
-===================================================== */
-function doPost(e) {
- try {
-   if (!e || !e.parameter || !e.parameter.action) {
-     return output({ status: "error", message: "Action tidak ada" });
-   }
-
-
-   const action = e.parameter.action;
-   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-
-
-   /* ===============================
-      AJUKAN SERTIFIKAT
-   =============================== */
-   if (action === "ajukan") {
-     return ajukanSertifikat(e, ss);
-   }
-
-
-   /* ===============================
-      SETUJUI SERTIFIKAT
-   =============================== */
-   if (action === "setujui") {
-     return setujuiSertifikat(e, ss);
-   }
-
-
-   /* ===============================
-      UPDATE STATUS (ADMIN)
-   =============================== */
-   if (action === "updatestatus") {
-     return updateStatus(e, ss);
-   }
-
-
-   return output({ status: "error", message: "Action tidak dikenal" });
-
-
- } catch (err) {
-   return output({ status: "error", message: err.toString() });
- }
+    fetch(WEBAPP_SERTIFIKAT,{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`action=updatestatus&noReg=${currentRegID}&status=${statusBaru}`
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        alert("Status berhasil diperbarui!");
+        closePopup();
+        fetchData();
+    });
 }
 
 
-/* =====================================================
-  FUNCTION: AJUKAN SERTIFIKAT
-===================================================== */
-function ajukanSertifikat(e, ss) {
- const sheet = ss.getSheetByName(SHEET_PENGAJUAN);
- const namaPemilik = e.parameter.pemilik;
+function openKonfirmasi(noReg){
 
-
- const mainFolder = DriveApp.getFolderById(MAIN_FOLDER_ID);
- const folderIterator = mainFolder.getFoldersByName(namaPemilik);
- const folderPemilik = folderIterator.hasNext()
-   ? folderIterator.next()
-   : mainFolder.createFolder(namaPemilik);
-
-
- const linkFoto1 = simpanFoto(e.parameter.foto1, folderPemilik, "foto1");
- const linkFoto2 = simpanFoto(e.parameter.foto2, folderPemilik, "foto2");
-
-
- if (!e.parameter.namaPusaka || !namaPemilik) {
-   return output({ status: "error", message: "Data tidak lengkap" });
- }
-
-
- sheet.appendRow([
-   new Date(),
-   e.parameter.namaPusaka,
-   e.parameter.jenis,
-   namaPemilik,
-   e.parameter.panjang,
-   e.parameter.lebar,
-   e.parameter.tebal,
-   e.parameter.berat,
-   e.parameter.catatan,
-   linkFoto1,
-   linkFoto2,
-   "Menunggu"
- ]);
-
-
- return output({ status: "success" });
+    if(confirm("Apakah ingin membatalkan persetujuan sertifikat ini?")){
+        currentRegID = noReg;
+        updateStatus("Menunggu");
+    }
 }
 
+    /* INIT */
+fetchData();
+loadStatistik();
+
+setInterval(()=>{
+    fetchData();
+    loadStatistik();
+},30000);
+
+</script>
+
+<!-- MODAL PASSWORD TETAP SAMA (TIDAK DIUBAH) -->
+<div id="modalPassword" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:9999;">
+<div style="background:#111;padding:30px;border-radius:12px;width:350px;box-shadow:0 0 20px gold;color:white;">
+<h3 style="color:gold; text-align:center;">Ganti Password</h3>
+<input type="password" id="oldPass" placeholder="Password Lama" style="width:100%; padding:8px; margin:8px 0;">
+<input type="password" id="newPass" placeholder="Password Baru" style="width:100%; padding:8px; margin:8px 0;">
+<input type="password" id="confirmPass" placeholder="Konfirmasi Password" style="width:100%; padding:8px; margin:8px 0;">
+<div style="text-align:center; margin-top:15px;">
+<button class="btn btn-blue" onclick="submitGantiPassword()">Simpan</button>
+<button class="btn btn-red" onclick="tutupModalPassword()">Batal</button>
+</div>
+</div>
+</div>
+
+<!-- ================= POPUP PENGAJUAN SERTIFIKAT ================= -->
+<div id="popupSertifikat" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.8);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:#111;
+padding:30px;
+border-radius:12px;
+width:400px;
+max-height:90vh;
+overflow-y:auto;
+box-shadow:0 0 20px gold;
+color:white;
+">
+
+<h3 style="color:gold; text-align:center;">Form Pengajuan Sertifikat</h3>
+
+<input type="text" id="namaPusaka" placeholder="Nama Pusaka" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="jenisPusaka" placeholder="Jenis Pusaka" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="namaPemilik" placeholder="Nama Pemilik" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="panjangBilah" placeholder="Panjang Bilah" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="lebarPangkal" placeholder="Lebar Pangkal" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="tebalPangkal" placeholder="Tebal Pangkal" style="width:100%; padding:8px; margin:6px 0;">
+<input type="text" id="beratBilah" placeholder="Berat Bilah" style="width:100%; padding:8px; margin:6px 0;">
+
+<textarea id="catatanPusaka" placeholder="Catatan / Informasi Tambahan (Opsional)"
+style="width:100%; padding:8px; margin:6px 0;"></textarea>
+
+<div style="margin:8px 0;">
+<label>Unggah Foto 1</label>
+<input type="file" id="foto1" style="width:100%; opacity:0.7;">
+</div>
+
+<div style="margin:8px 0;">
+<label>Unggah Foto 2</label>
+<input type="file" id="foto2" style="width:100%; opacity:0.7;">
+</div>
+
+<div style="text-align:center; margin-top:15px;">
+<button class="btn btn-red" onclick="tutupPopupSertifikat()">Batal</button>
+<button class="btn btn-gold" onclick="submitPengajuan()">Ajukan</button>
+</div>
+
+</div>
+</div>
+
+<!-- ================= POPUP VERIFIKASI ADMIN ================= -->
+<div id="popupDetail" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.8);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:#111;
+padding:30px;
+border-radius:12px;
+width:450px;
+max-height:90vh;
+overflow-y:auto;
+box-shadow:0 0 20px gold;
+color:white;
+">
 
+<h3 style="color:gold; text-align:center;">Detail Pengajuan</h3>
 
-/* =====================================================
-  FUNCTION: SETUJUI SERTIFIKAT (ENTERPRISE SAFE)
-===================================================== */
-function setujuiSertifikat(e, ss) {
- return withLock(() => {
+<div id="detailContent"></div>
 
+<div style="text-align:center; margin-top:20px;">
+<button class="btn btn-gold" onclick="closePopup()">Batal</button>
+<button class="btn btn-blue" onclick="approvePengajuan()">Setujui</button>
+<button class="btn btn-red" onclick="updateStatus('Ditolak')">Tolak</button>
+</div>
 
-   const sheetPengajuan = ss.getSheetByName(SHEET_PENGAJUAN);
-   const sheetSertifikat = ss.getSheetByName(SHEET_SERTIFIKAT);
+</div>
+</div>
 
+</body>
+</html>
 
-   const rowIndex = parseInt(e.parameter.row);
-
-
-   if (!rowIndex || rowIndex < 2) {
-     return output({ status: "error", message: "Row tidak valid" });
-   }
-
-
-   const currentStatus = sheetPengajuan.getRange(rowIndex, 12).getValue();
-
-
-   if (currentStatus === "Disetujui") {
-     return output({ status: "error", message: "Sudah disetujui sebelumnya" });
-   }
-
-
-   const data = sheetPengajuan.getRange(rowIndex, 1, 1, 12).getValues()[0];
-
-
-   const nomor = generateNomor(sheetSertifikat);
-   const linkPDF = generatePDF(data, nomor);
-   const qrLink = generateQRCode(nomor);
-
-
-   sheetSertifikat.appendRow([
-     nomor,        // 1 No Registrasi
-     new Date(),   // 2 Tanggal Terbit
-     data[1],      // 3 Nama Pusaka
-     data[2],      // 4 Jenis
-     data[3],      // 5 Pemilik
-     qrLink,       // 6 QR Code
-     linkPDF,      // 7 Link PDF
-     "Disetujui"   // 8 Status
-   ]);
-
-
-   sheetPengajuan.getRange(rowIndex, 12).setValue("Disetujui");
-
-
-   return output({
-     status: "approved",
-     nomor: nomor,
-     pdf: linkPDF
-   });
-
-
- });
-}
-
-
-
-
-/* =====================================================
-  FUNCTION: UPDATE STATUS
-===================================================== */
-function updateStatus(e, ss) {
- const noReg = e.parameter.noReg;
- const statusBaru = e.parameter.status;
-
-
- const sheet = ss.getSheetByName(SHEET_SERTIFIKAT);
- const data = sheet.getDataRange().getValues();
-
-
- for (let i = 1; i < data.length; i++) {
-   if (data[i][0] == noReg) {
-     sheet.getRange(i + 1, 8).setValue(statusBaru);
-     break;
-   }
- }
-
-
- return output({ status: "success" });
-}
-
-
-
-
-/* =====================================================
-  SIMPAN FOTO BASE64 KE DRIVE
-===================================================== */
-function simpanFoto(base64, folder, namaFile) {
- if (!base64) return "";
-
-
- const blob = Utilities.newBlob(
-   Utilities.base64Decode(base64),
-   "image/jpeg",
-   namaFile + ".jpg"
- );
-
-
- const file = folder.createFile(blob);
- return file.getUrl();
-}
-
-
-
-
-/* =====================================================
-  GENERATE NOMOR REGISTRASI (ANTI DUPLIKAT)
-===================================================== */
-function generateNomor(sheet) {
- const now = new Date();
- const tahun = now.getFullYear();
- const bulan = ("0" + (now.getMonth() + 1)).slice(-2);
- const tanggal = ("0" + now.getDate()).slice(-2);
- const kodeTanggal = bulan + tanggal;
-
-
- const prefix = "SKH-" + tahun + "-" + kodeTanggal;
-
-
- const data = sheet.getDataRange().getValues();
- let maxUrut = 0;
-
-
- for (let i = 1; i < data.length; i++) {
-   const nomor = data[i][0];
-   if (nomor && nomor.startsWith(prefix)) {
-     const parts = nomor.split("-");
-     const urut = parseInt(parts[3]);
-     if (urut > maxUrut) {
-       maxUrut = urut;
-     }
-   }
- }
-
-
- const nextUrut = ("0" + (maxUrut + 1)).slice(-2);
- return prefix + "-" + nextUrut;
-}
-
-
-
-
-/* =====================================================
-  GENERATE QR CODE
-===================================================== */
-function generateQRCode(nomor) {
-
-
-  const baseUrl = "https://script.google.com/macros/s/AKfycbxKuOuMN4iJ0FlRcPeOVi2VecssvU0Jvypp-2xyT_L9OseJ4PzndaSjzWJSi0eoMlZB/exec";
-
-
-  const urlValidasi = baseUrl + "?action=ceksertifikat&no=" + nomor;
-
-
-  return "https://quickchart.io/qr?size=200&text=" +
-         encodeURIComponent(urlValidasi);
-}
-
-
-/* =====================================================
-  GENERATE PDF SERTIFIKAT
-===================================================== */
-function generatePDF(data, nomor) {
-
-
-const template = HtmlService.createTemplateFromFile("template-sertifikat");
-
-
-template.nomor = nomor;
-template.tanggal = Utilities.formatDate(new Date(), "Asia/Jakarta", "dd MMMM yyyy");
-
-
-template.nama = data[1];
-template.jenis = data[2];
-template.pemilik = data[3];
-template.panjang = data[4];
-template.lebar = data[5];
-template.tebal = data[6];
-template.berat = data[7];
-template.deskripsi = data[8];
-
-
-template.foto1 = data[9]; // link foto jika ada
-
-
-template.qrLink = generateQRCode(nomor);
-
-
-const html = template.evaluate().getContent();
-
-
-const blob = Utilities.newBlob(html, "text/html", "sertifikat.html")
-.getAs("application/pdf")
-.setName("Sertifikat-" + nomor + ".pdf");
-
-
-  // ✅ FIX DI SINI
-  const folder = DriveApp.getFolderById(MAIN_FOLDER_ID);
-  const file = folder.createFile(blob);
-
-
-  return file.getUrl();
-}
-
-
-/* =====================================================
-  OUTPUT JSON
-===================================================== */
-function output(obj) {
- return ContentService
-   .createTextOutput(JSON.stringify(obj))
-   .setMimeType(ContentService.MimeType.JSON);
-}
 
