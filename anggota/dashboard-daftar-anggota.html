@@ -150,41 +150,6 @@ th{ background:#222; color:gold; }
 }
 #strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
 
-/* ================= LOADING OVERLAY ================= */
-.loading-overlay{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.85);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
-    flex-direction:column;
-}
-
-.spinner{
-    border:6px solid #333;
-    border-top:6px solid gold;
-    border-radius:50%;
-    width:60px;
-    height:60px;
-    animation:spin 1s linear infinite;
-    margin-bottom:15px;
-}
-
-@keyframes spin{
-    0%{ transform:rotate(0deg); }
-    100%{ transform:rotate(360deg); }
-}
-
-.loading-text{
-    color:gold;
-    font-size:18px;
-}
-
 </style>
 </head>
 <body>
@@ -600,8 +565,6 @@ async function submitPengajuan(){
     const base64Foto2 = await toBase64(file2);
 
     try{
-        document.getElementById("loadingOverlay").style.display="flex";
-
         const response = await fetch(WEBAPP_SERTIFIKAT,{
             method:"POST",
             headers:{"Content-Type":"application/x-www-form-urlencoded"},
@@ -622,8 +585,6 @@ async function submitPengajuan(){
 
         const result = await response.json();
 
-        document.getElementById("loadingOverlay").style.display="none";
-
         if(result.status==="success"){
             alert("Pengajuan berhasil dikirim!");
             tutupPopupSertifikat();
@@ -632,30 +593,54 @@ async function submitPengajuan(){
         }
 
     }catch(err){
-        document.getElementById("loadingOverlay").style.display="none";
         alert("Error: " + err.message);
     }
-
-
-    /* Tampilkan loading saat proses pengajuan */
-    document.getElementById("uploadLoading").style.display = "flex";
-
-    /* Sembunyikan loading setelah selesai */
-    document.getElementById("uploadLoading").style.display = "none";
 }
 
 function toBase64(file){
-    return new Promise((resolve, reject) => {
-        if (!file) {
-            resolve("");
-            return;
+    return new Promise((resolve,reject)=>{
+        if(!file){ 
+            resolve(""); 
+            return; 
         }
+
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
+
+        reader.onload = ()=>{
+
+            const base64 = reader.result.split(",")[1];
+
+            /* ================= TAMBAHAN BACKUP LOCALSTORAGE ================= */
+            try{
+                const backupData = {
+                    namaFile: file.name,
+                    waktu: new Date().toISOString(),
+                    data: base64
+                };
+
+                // simpan maksimal 2 foto terakhir
+                let history = JSON.parse(localStorage.getItem("backupFotoPusaka") || "[]");
+                history.push(backupData);
+
+                if(history.length > 2){
+                    history.shift();
+                }
+
+                localStorage.setItem("backupFotoPusaka", JSON.stringify(history));
+            }catch(e){
+                console.log("LocalStorage penuh / gagal:", e);
+            }
+            /* ================= AKHIR TAMBAHAN ================= */
+
+            resolve(base64);
+        };
+
         reader.onerror = error => reject(error);
+
         reader.readAsDataURL(file);
     });
 }
+
 
 function renderSertifikat(data){
     const tbody = document.getElementById("listSertifikat");
