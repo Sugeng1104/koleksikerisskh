@@ -150,9 +150,67 @@ th{ background:#222; color:gold; }
 }
 #strukturPengurus h3{ color:gold; margin-bottom:10px; text-align:center; }
 
+/* ================= TAMBAHAN LOADING UPLOAD ================= */
+.upload-loading{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.8);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+flex-direction:column;
+}
+
+.loader{
+border:6px solid #333;
+border-top:6px solid gold;
+border-radius:50%;
+width:60px;
+height:60px;
+animation:spin 1s linear infinite;
+margin-bottom:15px;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+.progress-upload{
+width:300px;
+height:12px;
+background:#333;
+border-radius:10px;
+overflow:hidden;
+margin-top:10px;
+}
+
+.progress-bar{
+height:100%;
+width:0%;
+background:gold;
+}
+
+
 </style>
 </head>
 <body>
+
+<!-- ================= LOADING UPLOAD ================= -->
+<div id="uploadLoading" class="upload-loading">
+
+<div class="loader"></div>
+<div style="color:gold">Mengirim data...</div>
+
+<div class="progress-upload">
+<div id="progressBar" class="progress-bar"></div>
+</div>
+
+</div>
 
 <div class="container">
 
@@ -366,6 +424,20 @@ function renderAnggota(data){
     document.getElementById("listAnggota").innerHTML=html;
 }
 
+/* ================= SIMULASI PROGRESS ================= */
+let progress = 0;
+const bar = document.getElementById("progressBar");
+
+const interval = setInterval(()=>{
+progress += 10;
+bar.style.width = progress + "%";
+
+if(progress >= 90){
+clearInterval(interval);
+}
+},300);
+
+
 /* ================= FETCH DATA ================= */
 async function fetchData(){
     try{
@@ -443,9 +515,16 @@ async function loadStatistik(){
         document.getElementById("bulanIni").innerText =
             data.bulanIni || 0;
 
-    }catch(err){
-        console.log("Gagal load statistik:", err);
+     catch(err){
+
+     console.log("Upload gagal, mencoba ulang...");
+
+     setTimeout(()=>{
+     submitPengajuan();
+     },3000);
+
     }
+
 }
 
 
@@ -541,8 +620,45 @@ function tutupPopupSertifikat(){
     document.getElementById("popupSertifikat").style.display="none";
 }
 
+// ====== KOMPRES FOTO SEBELUM UPLOAD ======
+function compressImage(file, quality = 0.6, maxWidth = 800) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+
+    reader.onload = function (event) {
+      const img = new Image();
+      img.src = event.target.result;
+
+
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        const scale = maxWidth / img.width;
+
+
+        canvas.width = maxWidth;
+        canvas.height = img.height * scale;
+
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+
+        canvas.toBlob(function (blob) {
+          resolve(blob);
+        }, "image/jpeg", quality);
+      };
+    };
+  });
+}
+
 /* ================= SUBMIT PENGAJUAN ================= */
 async function submitPengajuan(){
+
+/* ================= TAMPILKAN LOADING ================= */
+document.getElementById("uploadLoading").style.display="flex";
+
 
     const namaPusaka = document.getElementById("namaPusaka").value;
     const jenisPusaka = document.getElementById("jenisPusaka").value;
@@ -561,31 +677,50 @@ async function submitPengajuan(){
         return;
     }
 
-    const base64Foto1 = await toBase64(file1);
-    const base64Foto2 = await toBase64(file2);
+    /* ================= TAMBAHAN KOMPRES FOTO ================= */
+
+let base64Foto1 = "";
+let base64Foto2 = "";
+
+if(file1){
+    const foto1Kompres = await compressImage(file1);
+    base64Foto1 = await toBase64(foto1Kompres);
+}
+
+if(file2){
+    const foto2Kompres = await compressImage(file2);
+    base64Foto2 = await toBase64(foto2Kompres);
+}
+
+/* ================= AKHIR TAMBAHAN ================= */
+
 
     try{
-        const response = await fetch(WEBAPP_SERTIFIKAT,{
-            method:"POST",
-            headers:{"Content-Type":"application/x-www-form-urlencoded"},
-            body: new URLSearchParams({
-                action:"ajukan",
-                namaPusaka,
-                jenis:jenisPusaka,
-                pemilik:namaPemilik,
-                panjang,
-                lebar,
-                tebal,
-                berat,
-                catatan,
-                foto1: base64Foto1,
-                foto2: base64Foto2
-            })
-        });
+       const response = await fetch(WEBAPP_SERTIFIKAT,{
+       method:"POST",
+       headers:{"Content-Type":"application/x-www-form-urlencoded"},
+       body: new URLSearchParams({
+       action:"ajukan",
+       namaPusaka,
+       jenis:jenisPusaka,
+       pemilik:namaPemilik,
+       panjang,
+       lebar,
+       tebal,
+       berat,
+       catatan,
+       foto1: base64Foto1,
+       foto2: base64Foto2
+       })
+       });
+
 
         const result = await response.json();
 
         if(result.status==="success"){
+            document.getElementById("uploadLoading").style.display="none";
+            document.getElementById("progressBar").style.width="100%";
+
             alert("Pengajuan berhasil dikirim!");
             tutupPopupSertifikat();
         } else {
@@ -597,7 +732,7 @@ async function submitPengajuan(){
     }
 }
 
-function toBase64(file){
+function toBase64(fileOrBlob){
     return new Promise((resolve,reject)=>{
         if(!file){ 
             resolve(""); 
@@ -637,7 +772,7 @@ function toBase64(file){
 
         reader.onerror = error => reject(error);
 
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(fileOrBlob);
     });
 }
 
@@ -920,6 +1055,4 @@ color:white;
 
 </body>
 </html>
-
-
 
