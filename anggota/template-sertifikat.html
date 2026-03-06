@@ -73,6 +73,7 @@ body{
  background-size:420px;
 
  opacity:0.045;
+ z-index:0;
 
 }
 
@@ -80,6 +81,8 @@ body{
 
 .header{
  text-align:center;
+ position:relative;
+ z-index:2;
 }
 
 .logo{
@@ -123,15 +126,12 @@ body{
 /* GRID CONTENT */
 
 .content{
-
  display:grid;
-
  grid-template-columns: 40% 60%;
-
  gap:25px;
-
  margin-top:10px;
-
+ position:relative;
+ z-index:2;
 }
 
 /* FOTO */
@@ -185,22 +185,15 @@ td:first-child{
 
 /* FOOTER */
 
-.footer{
-
+..footer{
  position:absolute;
-
  bottom:1.5cm;
-
  left:1.2cm;
-
  right:1.2cm;
-
  display:flex;
-
  justify-content:space-between;
-
  align-items:flex-end;
-
+ z-index:2;
 }
 
 /* QR */
@@ -268,7 +261,7 @@ td:first-child{
 <? if(foto1){ ?>
 
 <div class="foto-frame">
-<img src="<?= foto1 ?>">
+<img src="<?= foto1 ?>" style="width:100%;height:auto;">
 </div>
 
 <? } else { ?>
