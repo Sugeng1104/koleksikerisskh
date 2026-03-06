@@ -599,13 +599,48 @@ async function submitPengajuan(){
 
 function toBase64(file){
     return new Promise((resolve,reject)=>{
-        if(!file){ resolve(""); return; }
+        if(!file){ 
+            resolve(""); 
+            return; 
+        }
+
         const reader = new FileReader();
-        reader.onload = ()=> resolve(reader.result.split(",")[1]);
+
+        reader.onload = ()=>{
+
+            const base64 = reader.result.split(",")[1];
+
+            /* ================= TAMBAHAN BACKUP LOCALSTORAGE ================= */
+            try{
+                const backupData = {
+                    namaFile: file.name,
+                    waktu: new Date().toISOString(),
+                    data: base64
+                };
+
+                // simpan maksimal 2 foto terakhir
+                let history = JSON.parse(localStorage.getItem("backupFotoPusaka") || "[]");
+                history.push(backupData);
+
+                if(history.length > 2){
+                    history.shift();
+                }
+
+                localStorage.setItem("backupFotoPusaka", JSON.stringify(history));
+            }catch(e){
+                console.log("LocalStorage penuh / gagal:", e);
+            }
+            /* ================= AKHIR TAMBAHAN ================= */
+
+            resolve(base64);
+        };
+
         reader.onerror = error => reject(error);
+
         reader.readAsDataURL(file);
     });
 }
+
 
 function renderSertifikat(data){
     const tbody = document.getElementById("listSertifikat");
@@ -885,5 +920,6 @@ color:white;
 
 </body>
 </html>
+
 
 
