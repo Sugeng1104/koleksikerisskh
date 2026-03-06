@@ -595,13 +595,21 @@ async function submitPengajuan(){
     }catch(err){
         alert("Error: " + err.message);
     }
+    /* Tampilkan loading saat proses pengajuan */
+    document.getElementById("uploadLoading").style.display = "flex";
+
+    /* Sembunyikan loading setelah selesai */
+    document.getElementById("uploadLoading").style.display = "none";
 }
 
 function toBase64(file){
-    return new Promise((resolve,reject)=>{
-        if(!file){ resolve(""); return; }
+    return new Promise((resolve, reject) => {
+        if (!file) {
+            resolve("");
+            return;
+        }
         const reader = new FileReader();
-        reader.onload = ()=> resolve(reader.result.split(",")[1]);
+        reader.onload = () => resolve(reader.result.split(",")[1]);
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
     });
@@ -885,3 +893,4 @@ color:white;
 
 </body>
 </html>
+
